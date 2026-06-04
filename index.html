@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RBA VAP Audit</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#0066cc;--blue-dk:#004fa3;--ink:#1d1d1f;--muted:#7a7a7a;
+  --canvas:#fff;--parch:#f5f5f7;--line:#e0e0e0;--dark:#1c1c1e;
+  --P:#ff3b30;--M:#ff9500;--m:#cc9900;--C:#34c759;
+  --r-sm:8px;--r-md:11px;--r-lg:18px;--pill:9999px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
+  background:var(--parch);color:var(--ink);font-size:17px;line-height:1.47;
+  min-height:100vh;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--parch)}
+
+/* NAV */
+.nav{background:#000;color:#fff;padding:0 16px;height:44px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:100}
+.ntitle{font-size:14px;font-weight:600;letter-spacing:-.224px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.nbtn{color:var(--blue);font-size:14px;cursor:pointer;background:none;border:none;font-family:inherit;
+  padding:4px 0;min-width:44px;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.nbtn.r{text-align:right}
+
+/* PROGRESS */
+.pbar{background:var(--canvas);padding:9px 16px 7px;border-bottom:1px solid var(--line)}
+.plbl{font-size:12px;color:var(--muted);margin-bottom:4px}
+.ptrack{background:var(--line);height:3px;border-radius:2px;overflow:hidden}
+.pfill{background:var(--blue);height:100%;border-radius:2px;transition:width .3s}
+
+/* CONTENT */
+.content{flex:1;padding:18px 16px 8px;overflow-y:auto}
+
+/* SECTION HEADER */
+.stag{display:inline-block;background:var(--blue);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:.5px;padding:3px 10px;border-radius:var(--pill);margin-bottom:8px;text-transform:uppercase}
+.stitle{font-size:22px;font-weight:600;letter-spacing:-.374px;line-height:1.2;margin-bottom:4px}
+.ssub{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.4}
+
+/* QUESTION CARD */
+.qcard{background:var(--canvas);border-radius:var(--r-lg);padding:14px;margin-bottom:9px;
+  border:1.5px solid var(--line);transition:border-color .15s}
+.qcard.vy{border-color:var(--C)}.qcard.vn{border-color:var(--M)}.qcard.vna{background:var(--parch)}
+.qid{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.qtxt{font-size:14px;line-height:1.4;letter-spacing:-.224px;margin-bottom:4px}
+.qhint{font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.3}
+.qbtns{display:flex;gap:7px}
+.qbtn{flex:1;padding:8px 4px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--canvas);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  color:var(--muted);text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.qbtn:active{transform:scale(.95)}
+.qbtn.sy{background:var(--C);border-color:var(--C);color:#fff}
+.qbtn.sn{background:var(--M);border-color:var(--M);color:#fff}
+.qbtn.sna{background:var(--muted);border-color:var(--muted);color:#fff}
+
+/* BOTTOM BAR */
+.bot{padding:12px 16px;background:var(--canvas);border-top:1px solid var(--line);display:flex;gap:10px;flex-shrink:0}
+.bp{flex:1;background:var(--blue);color:#fff;border:none;border-radius:var(--pill);
+  padding:12px 20px;font-size:17px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.bp:active{transform:scale(.97);background:var(--blue-dk)}
+.bs{background:transparent;color:var(--blue);border:1.5px solid var(--blue);
+  border-radius:var(--pill);padding:12px 16px;font-size:17px;cursor:pointer;font-family:inherit;
+  -webkit-tap-highlight-color:transparent}
+.bs:active{transform:scale(.97)}
+
+/* SETUP */
+.sfield{margin-bottom:16px}
+.slbl{font-size:14px;font-weight:600;margin-bottom:6px;display:block}
+.sinput{width:100%;padding:11px 15px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:17px;font-family:inherit;color:var(--ink);background:var(--canvas);-webkit-appearance:none}
+.sinput:focus{outline:none;border-color:var(--blue)}
+.shint{font-size:12px;color:var(--muted);margin-top:4px}
+.stoggle{display:flex;gap:8px}
+.stbtn{padding:9px 16px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--canvas);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+  color:var(--muted);transition:all .15s}
+.stbtn.sel{background:var(--blue);border-color:var(--blue);color:#fff}
+.snote{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:13px;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.5}
+
+/* HOME */
+.hhero{background:var(--dark);color:#fff;padding:24px 16px 20px}
+.htitle{font-size:26px;font-weight:600;letter-spacing:-.374px;margin-bottom:3px}
+.hsub{font-size:13px;color:rgba(255,255,255,.5)}
+.hcountry{font-size:12px;color:rgba(255,255,255,.35);margin-top:5px}
+.hsum{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.hsc{flex:1;min-width:60px;background:rgba(255,255,255,.07);border-radius:var(--r-md);padding:9px 6px;text-align:center}
+.hsc-lbl{font-size:10px;color:rgba(255,255,255,.45);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.hsc-val{font-size:12px;font-weight:700}
+
+.grpsec{padding:14px 16px 0}
+.grplbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+  margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.icards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:18px}
+.icard{background:var(--canvas);border-radius:var(--r-lg);padding:12px 10px;border:1.5px solid var(--line);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;text-align:center}
+.icard:active{transform:scale(.97)}
+.icard.dP{border-color:var(--P);background:#fff5f4}.icard.dM{border-color:var(--M);background:#fff9f2}
+.icard.dm{border-color:#e8c800;background:#fffdf0}.icard.dC{border-color:var(--C);background:#f2fbf5}
+.iccode{font-size:13px;font-weight:700;letter-spacing:.3px;margin-bottom:3px}
+.ictitle{font-size:11px;color:var(--muted);line-height:1.3;margin-bottom:7px;min-height:28px}
+.icbadge{display:inline-block;padding:3px 7px;border-radius:var(--pill);font-size:10px;font-weight:700;color:#fff}
+.icbadge.ns{background:var(--line);color:var(--muted)}.icbadge.ip{background:var(--blue)}
+.icbadge.P{background:var(--P)}.icbadge.M{background:var(--M)}.icbadge.m{background:var(--m)}.icbadge.C{background:var(--C)}
+
+/* SPECIAL INPUT */
+.spbox{background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-lg);padding:15px;margin-bottom:12px}
+.sptitle{font-size:14px;font-weight:600;color:#a05800;margin-bottom:13px}
+.sprow{margin-bottom:13px}
+.splbl{font-size:13px;font-weight:600;margin-bottom:3px}
+.spsub{font-size:12px;color:var(--muted);margin-bottom:5px}
+.spin{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:16px;font-family:inherit;color:var(--ink);background:var(--canvas);-webkit-appearance:none}
+.spin:focus{outline:none;border-color:var(--blue)}
+.spres{border-radius:var(--r-md);padding:11px 13px;margin-top:8px;border:2px solid transparent}
+.spbadge{display:inline-block;padding:4px 12px;border-radius:var(--pill);font-size:12px;font-weight:700;color:#fff;margin-bottom:5px}
+
+/* RESULT */
+.rcard{border-radius:var(--r-lg);padding:18px;margin-bottom:12px;text-align:center}
+.rcard.P{background:#fff0ee;border:2px solid var(--P)}.rcard.M{background:#fff8ee;border:2px solid var(--M)}
+.rcard.m{background:#fffde0;border:2px solid var(--m)}.rcard.C{background:#f0faf3;border:2px solid var(--C)}
+.rbadge{display:inline-block;padding:5px 16px;border-radius:var(--pill);font-size:12px;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;color:#fff;margin-bottom:9px}
+.P .rbadge{background:var(--P)}.M .rbadge{background:var(--M)}.m .rbadge{background:var(--m)}.C .rbadge{background:var(--C)}
+.rtitle{font-size:18px;font-weight:600;letter-spacing:-.374px;margin-bottom:5px}
+.rdesc{font-size:13px;color:var(--muted);line-height:1.5}
+.flist{margin-top:10px}
+.fitem{background:var(--canvas);border-radius:var(--r-md);padding:10px 12px;margin-bottom:7px;
+  display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line)}
+.fdot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.fdot.P{background:var(--P)}.fdot.M{background:var(--M)}.fdot.m{background:var(--m)}
+.ftxt{font-size:13px;line-height:1.4;letter-spacing:-.224px}
+.fok{display:flex;align-items:center;gap:8px;background:#f0faf3;border:1px solid var(--C);
+  border-radius:var(--r-md);padding:11px 12px;font-size:13px;color:#1a7a35}
+.step-pills{display:flex;gap:6px;margin-bottom:14px}
+.step-pill{flex:1;padding:6px 4px;border-radius:var(--pill);border:1px solid var(--line);
+  font-size:11px;font-weight:600;text-align:center;color:var(--muted)}
+.step-pill.P{background:var(--P);border-color:var(--P);color:#fff}
+.step-pill.M{background:var(--M);border-color:var(--M);color:#fff}
+.step-pill.m{background:var(--m);border-color:var(--m);color:#fff}
+.step-pill.C{background:var(--C);border-color:var(--C);color:#fff}
+
+.lawbox{background:var(--canvas);border-radius:var(--r-lg);padding:14px;border:1px solid var(--line);margin-bottom:12px}
+.lawrow{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.lawrow:last-child{border-bottom:none}
+.lawkey{color:var(--muted)}.lawval{font-weight:600}.lawval.warn{color:var(--M)}
+
+/* CAP */
+.capbox{border-radius:var(--r-lg);padding:14px;margin-bottom:10px;border:1.5px solid var(--line)}
+.capbox.P{background:#fff5f4;border-color:var(--P)}.capbox.M{background:#fff9f2;border-color:var(--M)}
+.capbox.m{background:#fffdf0;border-color:var(--m)}.capbox.C{background:#f2fbf5;border-color:var(--C)}
+.cap-head{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.cap-timeline{font-size:12px;background:rgba(0,0,0,.04);border-radius:var(--r-sm);padding:8px 10px;
+  margin-bottom:10px;line-height:1.5;color:var(--ink)}
+.cap-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);margin:8px 0 5px}
+.cap-li{font-size:13px;line-height:1.4;padding:4px 0 4px 16px;position:relative;color:var(--ink)}
+.cap-li::before{content:'→';position:absolute;left:0;color:var(--muted);font-size:11px;top:5px}
+
+/* Reset btn */
+.reset-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--pill);
+  color:rgba(255,255,255,.7);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;
+  -webkit-tap-highlight-color:transparent}
+.reset-btn:active{background:rgba(255,59,48,.4)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ─── ITEM DEFINITIONS ─────────────────────────
+const ITEMS={
+  a11:{code:'A1.1',title:'Forced Labor',desc:'No forced or coercive labor',grp:'A1'},
+  a12:{code:'A1.2',title:'Employment Terms',desc:'Written terms before employment',grp:'A1'},
+  a13:{code:'A1.3',title:'Document Retention',desc:'No confiscation of personal IDs',grp:'A1'},
+  a21:{code:'A2.1',title:'Minimum Age',desc:'No child labor present',grp:'A2'},
+  a22:{code:'A2.2',title:'Young Worker Protections',desc:'No hazardous work or OT for <18',grp:'A2'},
+  a23:{code:'A2.3',title:'Learner Programs',desc:'Student/intern/apprentice compliance',grp:'A2'},
+  a31:{code:'A3.1',title:'Weekly Hour Limits',desc:'Max 60 hours per week',grp:'A3'},
+  a32:{code:'A3.2',title:'Rest Days',desc:'At least 1 day off per 7 days',grp:'A3'},
+  a33:{code:'A3.3',title:'Breaks & Leave',desc:'Mandatory breaks and leave rights',grp:'A3'},
+  a41:{code:'A4.1',title:'Wages & Payment',desc:'Equal pay, correct calc, timely payment',grp:'A4'},
+  a42:{code:'A4.2',title:'Wage Statements',desc:'Understandable payslips each pay period',grp:'A4'},
+  a43:{code:'A4.3',title:'Deductions & Withholdings',desc:'Correct statutory deductions submitted on time',grp:'A4'},
+  a51:{code:'A5.1',title:'Non-Discrimination',desc:'No discrimination, harassment, or abuse',grp:'A5'},
+  a52:{code:'A5.2',title:'Disciplinary Actions',desc:'Documented and fairly reviewed',grp:'A5'},
+  a53:{code:'A5.3',title:'Religious Accommodation',desc:'Reasonable religious requests considered',grp:'A5'},
+  a54:{code:'A5.4',title:'Disability Accommodation',desc:'Reasonable disability requests considered',grp:'A5'},
+  a61:{code:'A6.1',title:'Freedom of Association',desc:'Workers free to join/form unions',grp:'A6'},
+  a62:{code:'A6.2',title:'Collective Bargaining',desc:'Bargaining rights respected in good faith',grp:'A6'},
+};
+const GRPS={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association'};
+
+// ─── QUESTIONS ────────────────────────────────
+const Q={
+  // A1.1
+  a11_mgmt:[
+    {id:'M1',text:'Is all overtime strictly voluntary — can workers always refuse without any penalty?',sev:'major'},
+    {id:'M2',text:'Is voluntary resignation guaranteed with ≤1 month notice and a penalty ≤60% of one month\'s base salary?',sev:'major'},
+    {id:'M3',text:'Do contracts with labor agents explicitly prohibit passing recruitment fees on to workers?',sev:'major'},
+    {id:'M4',text:'Do workers have unrestricted access to toilets, drinking water, and medical facilities at all times?',sev:'major'},
+    {id:'M5',text:'Can dormitory residents freely leave the facility outside working hours? (No curfew in place)',sev:'priority',na:true},
+    {id:'M6',text:'Are there no movement-restricting systems in place (forced locks, guard-controlled exits, toilet passes)?',sev:'priority'},
+    {id:'M7',text:'Is there a documented procedure to reimburse any discovered prohibited fees within 90 days?',sev:'major'},
+  ],
+  a11_doc:[
+    {id:'D1',text:'Do HR, attendance, and wage records show no indicators of non-voluntary labor?',hint:'Include grievance records, high-turnover alerts',sev:'major'},
+    {id:'D2',text:'Do overtime records confirm voluntary consent for all extra hours?',hint:'Check consent forms or OT request records',sev:'major'},
+    {id:'D3',text:'Does the employment contract state a resignation notice period of 1 month or less?',sev:'major'},
+    {id:'D4',text:'Is the penalty for leaving without notice ≤60% of one month\'s base salary in the contract?',sev:'major'},
+    {id:'D5',text:'Are permitted fees documented and disclosed to workers in writing?',hint:'Check payslips and posted notices',sev:'minor'},
+    {id:'D6',text:'Are there no records of prohibited fees (recruitment/placement) in payroll or accounting?',hint:'⚠ Selecting "Not Confirmed" adds the fee matrix screen',sev:'fee'},
+    {id:'D7',text:'Do facility access/exit logs show no evidence of movement restrictions?',sev:'priority'},
+    {id:'D8',text:'Personal loans: repayment ≤10% of monthly base pay, interest-free, ≤6 months duration?',hint:'Select N/A if no personal loans exist',sev:'minor',na:true},
+    {id:'D9',text:'Education loans: repayment ≤10% of monthly base pay, interest-free, ≤12 months duration?',hint:'Select N/A if no education loans exist',sev:'minor',na:true},
+    {id:'D10',text:'Are all worker loans confirmed to be completely interest-free?',hint:'Select N/A if no loans exist',sev:'major',na:true},
+    {id:'D11',text:'Do dormitory access records confirm workers can move freely during off hours?',hint:'Select N/A if no dormitory on site',sev:'priority',na:true},
+  ],
+  a11_worker:[
+    {id:'W1',text:'Did you pay any fees — recruitment, placement, or deposits — to get or keep this job?',sev:'major',inv:true},
+    {id:'W2',text:'Can you refuse overtime without any retaliation or negative consequence?',sev:'major'},
+    {id:'W3',text:'Do you feel genuinely free to resign whenever you choose?',sev:'priority'},
+    {id:'W4',text:'Can you use toilets and access drinking water freely without any restriction?',sev:'major'},
+    {id:'W5',text:'Can you leave the dormitory freely outside working hours?',sev:'priority',na:true},
+    {id:'W6',text:'Do you currently have your passport/ID in your own possession?',sev:'a13f',na:true},
+  ],
+  // A1.2
+  a12_mgmt:[
+    {id:'M1',text:'Are employment contracts provided before the worker\'s first day? (Migrant workers: before leaving home country)',sev:'priority'},
+    {id:'M2',text:'Are contracts written in a language the worker can read and fully understand?',sev:'major'},
+    {id:'M3',text:'Is there a formal process to verbally explain key terms (wages, hours, resignation) to all new hires?',sev:'minor'},
+    {id:'M4',text:'Have any migrant workers\' contract terms been changed unfavorably after arrival in the host country?',sev:'priority',inv:true,na:true},
+  ],
+  a12_doc:[
+    {id:'D1',text:'Are employment contracts written in the worker\'s native language or a language they clearly understand?',sev:'major'},
+    {id:'D2',text:'Is there evidence that contracts were signed before the employment start date?',hint:'Compare signature date vs. start date in personnel file',sev:'priority'},
+    {id:'D3',text:'For migrant workers: no records of contract terms changed unfavorably after arrival?',hint:'Select N/A if no migrant workers on site',sev:'priority',na:true},
+  ],
+  a12_worker:[
+    {id:'W1',text:'Did you receive and understand your employment contract before your first day of work?',sev:'priority'},
+    {id:'W2',text:'Did a staff member verbally explain your key conditions (pay, hours, how to resign)?',sev:'minor'},
+    {id:'W3',text:'(Migrant workers) Were you offered worse conditions after arriving than originally agreed?',sev:'priority',inv:true,na:true},
+  ],
+  // A1.3
+  a13_mgmt:[
+    {id:'M1',text:'Is there a policy of NOT retaining original worker identity documents (passports, visas, national IDs)?',sev:'priority'},
+    {id:'M2',text:'Where legally required to hold documents, can workers access them within 12 hours of any request?',sev:'major',na:true},
+    {id:'M3',text:'Is there absolutely no fee charged for safekeeping worker documents?',sev:'priority'},
+  ],
+  a13_doc:[
+    {id:'D1',text:'Are there no original identity documents found in personnel files? (Only copies should be retained)',sev:'priority'},
+    {id:'D2',text:'Are there no records of fees charged to workers for document custody?',sev:'priority'},
+    {id:'D3',text:'Where legal retention is required: are custody receipts (reason + duration) issued to workers?',hint:'Select N/A if document retention is not required by local law',sev:'minor',na:true},
+  ],
+  a13_worker:[
+    {id:'W1',text:'Do you have your passport/ID in your own possession or can you access it immediately at any time?',sev:'priority'},
+    {id:'W2',text:'Have you ever been charged a fee for the facility to store your personal documents?',sev:'priority',inv:true},
+  ],
+  // A2.1
+  a21_mgmt:[
+    {id:'M1',text:'Is there a documented minimum hiring age policy meeting or exceeding local law and the RBA minimum of 15 years?',sev:'major'},
+    {id:'M2',text:'Is age verification (government-issued ID check) performed for every new hire?',sev:'major'},
+    {id:'M3',text:'If an underage worker is found, is there a remediation plan that maintains their income and supports return to schooling?',sev:'major'},
+  ],
+  a21_doc:[
+    {id:'D1',text:'Do all personnel files confirm every worker meets the minimum age requirement?',sev:'priority'},
+    {id:'D2',text:'Does the employee roster show no workers below the legal or company minimum age?',sev:'priority'},
+    {id:'D3',text:'Are copies of age-verification documents (e.g., national ID) retained in each personnel file?',sev:'major'},
+  ],
+  a21_worker:[
+    {id:'W1',text:'Were you asked to provide proof of your age when you were hired?',sev:'major'},
+    {id:'W2',text:'Are you aware of any workers here who appear to be below the legal working age?',sev:'priority',inv:true},
+  ],
+  // A2.2
+  a22_mgmt:[
+    {id:'M1',text:'Are all workers under 18 identified and assigned exclusively to non-hazardous roles?',sev:'major'},
+    {id:'M2',text:'Do workers under 18 ever perform night work or overtime?',sev:'priority',inv:true},
+    {id:'M3',text:'Are health checks conducted for young workers where required by local law?',sev:'minor'},
+  ],
+  a22_doc:[
+    {id:'D1',text:'Do personnel files and job assignments confirm all workers under 18 are in non-hazardous roles?',sev:'priority'},
+    {id:'D2',text:'Do working time records confirm workers under 18 never work night shifts or overtime?',sev:'priority'},
+    {id:'D3',text:'Where required by law, are health check records maintained for young workers?',sev:'minor',na:true},
+  ],
+  a22_worker:[
+    {id:'W1',text:'(Workers under 18 only) Do you perform any hazardous tasks, night shifts, or overtime?',sev:'priority',inv:true,na:true},
+    {id:'W2',text:'Are you aware of any workers under 18 performing hazardous tasks, night work, or overtime here?',sev:'priority',inv:true},
+  ],
+  // A2.3
+  a23_mgmt:[
+    {id:'M1',text:'Are student workers, interns, and apprentices assigned only to tasks related to their field of study or vocational learning?',sev:'major'},
+    {id:'M2',text:'Are tri-partite agreements (student, school, facility) in place where required by law?',sev:'minor'},
+    {id:'M3',text:'Are learners paid at least minimum wage (or a legally permitted lower rate for a limited period only)?',sev:'major'},
+  ],
+  a23_doc:[
+    {id:'D1',text:'Do learner records include learning objectives, work assignments, and progress evaluations?',sev:'minor'},
+    {id:'D2',text:'Is there no evidence of labor agencies being used to recruit or manage student workers or interns?',sev:'major'},
+    {id:'D3',text:'Are learner working hours recorded and confirmed not to conflict with school or training schedules?',sev:'major'},
+  ],
+  a23_worker:[
+    {id:'W1',text:'(Student/intern/apprentice) Are your assigned tasks directly related to your course of study or vocational training?',sev:'major',na:true},
+    {id:'W2',text:'(Student/intern/apprentice) Do your working hours conflict with your school attendance or training schedule?',sev:'major',inv:true,na:true},
+  ],
+  // A3.1
+  a31_mgmt:[
+    {id:'M1',text:'Are weekly working hours tracked per worker and consistently kept below 60 hours?',sev:'major'},
+    {id:'M2',text:'Is all overtime strictly voluntary — can workers always refuse without any penalty?',sev:'major'},
+    {id:'M3',text:'Are workers under 18 confirmed to never perform any overtime whatsoever?',sev:'priority'},
+  ],
+  a31_doc:[
+    {id:'D1',text:'Do time records (3-month sample: peak, average, and low months) show no worker exceeds 60 hrs/week?',hint:'⚠ "Not Confirmed" adds the working hours matrix screen',sev:'hours'},
+    {id:'D2',text:'Are time records accurate and confirmed free from any falsification or manipulation?',sev:'major'},
+    {id:'D3',text:'Do records confirm workers under 18 perform no overtime?',hint:'Select N/A if no workers under 18 on site',sev:'priority',na:true},
+  ],
+  a31_worker:[
+    {id:'W1',text:'Are you ever required or pressured to work more than 60 hours in a week?',sev:'major',inv:true},
+    {id:'W2',text:'Can you refuse overtime without facing any negative consequences?',sev:'major'},
+    {id:'W3',text:'Have you ever been asked to sign time records that do not reflect your actual hours?',sev:'major',inv:true},
+  ],
+  // A3.2
+  a32_mgmt:[
+    {id:'M1',text:'Do all workers receive at least one full day off per seven days?',sev:'major'},
+    {id:'M2',text:'Have there been any periods where workers worked more than 6 consecutive days?',sev:'major',inv:true},
+  ],
+  a32_doc:[
+    {id:'D1',text:'Do time records (3-month sample) confirm no worker works more than 6 consecutive days?',hint:'⚠ "Not Confirmed" adds the rest days matrix screen',sev:'days'},
+    {id:'D2',text:'Where exceptions exist, are they documented as emergency or unusual situations?',sev:'minor',na:true},
+  ],
+  a32_worker:[
+    {id:'W1',text:'Do you receive at least one full day off every week?',sev:'major'},
+    {id:'W2',text:'Have you ever worked more than 6 days in a row without any day off?',sev:'major',inv:true},
+  ],
+  // A3.3
+  a33_mgmt:[
+    {id:'M1',text:'Do workers receive at least one meal break per shift as required by local law?',sev:'major'},
+    {id:'M2',text:'Can workers take sick leave with a valid medical certificate without losing their job or financial penalty?',sev:'priority'},
+    {id:'M3',text:'Is maternity/paternity leave provided in full compliance with local law?',sev:'major'},
+  ],
+  a33_doc:[
+    {id:'D1',text:'Do leave records accurately reflect holidays taken, sick leave used, and maternity/paternity leave granted?',sev:'major'},
+    {id:'D2',text:'Are leave records consistent with medical certificates and evidence of actual absences?',sev:'major'},
+  ],
+  a33_worker:[
+    {id:'W1',text:'Do you receive a proper meal break during your shift?',sev:'major'},
+    {id:'W2',text:'If you become ill, can you take time off without losing your job or facing a financial penalty?',sev:'priority'},
+    {id:'W3',text:'Do you know your holiday, annual leave, and sick leave entitlements?',sev:'minor'},
+  ],
+  // A4.1
+  a41_mgmt:[
+    {id:'M1',text:'Are all workers paid at least the agreed/minimum wage for all regular hours, and equal pay for equal work is applied?',sev:'major'},
+    {id:'M2',text:'Is overtime compensated at a rate of at least 125% of the regular hourly rate?',sev:'major'},
+    {id:'M3',text:'Are resigned or terminated workers paid all outstanding wages within one month of their last working day?',sev:'major'},
+  ],
+  a41_doc:[
+    {id:'D1',text:'Do payroll records confirm all workers are paid at or above the agreed/minimum wage for all regular hours?',sev:'major'},
+    {id:'D2',text:'Do records confirm overtime is paid at a minimum rate of 125% of regular pay?',sev:'major'},
+    {id:'D3',text:'Are wages paid directly to workers with no unauthorized deductions (including for discipline or PPE)?',sev:'major'},
+  ],
+  a41_worker:[
+    {id:'W1',text:'Are you paid at least minimum wage for all hours worked, and at a higher rate for overtime?',sev:'major'},
+    {id:'W2',text:'Is your wage paid on time with no unexplained delays?',sev:'major'},
+    {id:'W3',text:'Have wages ever been deducted as a disciplinary measure or for PPE?',sev:'major',inv:true},
+  ],
+  // A4.2
+  a42_mgmt:[
+    {id:'M1',text:'Are workers provided with a pay statement each pay period showing regular hours, OT hours, pay rates, and all deductions?',sev:'major'},
+    {id:'M2',text:'Are workers\' statutory insurance contributions (retirement, health, accident) clearly itemized on their pay statement?',sev:'major'},
+  ],
+  a42_doc:[
+    {id:'D1',text:'Do payslip records accurately show regular hours, OT hours, compensation rates, and itemized deductions?',sev:'major'},
+    {id:'D2',text:'Are payroll records free from unauthorized or disciplinary deductions?',sev:'major'},
+  ],
+  a42_worker:[
+    {id:'W1',text:'Do you receive a payslip each pay period clearly showing your hours, pay rates, and all deductions?',sev:'major'},
+    {id:'W2',text:'Can you understand the information on your payslip?',sev:'minor'},
+  ],
+  // A4.3
+  a43_mgmt:[
+    {id:'M1',text:'Are all legally required statutory deductions (taxes, social insurance) calculated correctly?',sev:'major'},
+    {id:'M2',text:'Are these deductions submitted to the relevant government agencies within the legally required timeframe?',sev:'priority'},
+  ],
+  a43_doc:[
+    {id:'D1',text:'Do records confirm employer contributions to statutory insurance schemes are calculated correctly by individual worker?',sev:'major'},
+    {id:'D2',text:'Do payment records confirm contributions are submitted to government agencies on time?',sev:'priority'},
+  ],
+  a43_worker:[
+    {id:'W1',text:'Have deductions been made from your wages that you did not agree to or cannot explain?',sev:'major',inv:true},
+  ],
+  // A5.1
+  a51_mgmt:[
+    {id:'M1',text:'Is there a clear anti-discrimination and anti-harassment policy covering hiring, pay, promotion, training, and termination?',sev:'major'},
+    {id:'M2',text:'Are workers subjected to pregnancy, virginity, or discriminatory medical tests as a condition of employment?',sev:'priority',inv:true},
+    {id:'M3',text:'Is there a functioning, accessible grievance mechanism for reporting discrimination or harassment?',sev:'major'},
+  ],
+  a51_doc:[
+    {id:'D1',text:'Do HR records (payroll, benefits, hiring, promotions, discipline, termination) show no evidence of discrimination by protected characteristics?',sev:'major'},
+    {id:'D2',text:'Do grievance records show no unresolved cases of harassment or inhumane treatment?',sev:'priority'},
+    {id:'D3',text:'Are there no discriminatory conditions in job postings, application forms, or employment contracts?',sev:'major'},
+  ],
+  a51_worker:[
+    {id:'W1',text:'Have you personally experienced or witnessed discrimination, harassment, or inhumane treatment at this facility?',sev:'priority',inv:true},
+    {id:'W2',text:'Have you seen workers treated differently based on race, gender, religion, nationality, or other personal characteristics?',sev:'major',inv:true},
+    {id:'W3',text:'Do you know how to report harassment or discrimination if it happens to you?',sev:'minor'},
+  ],
+  // A5.2
+  a52_mgmt:[
+    {id:'M1',text:'Are all disciplinary actions formally documented and reviewed by management?',sev:'major'},
+    {id:'M2',text:'Are workers informed of the reasons for disciplinary action and given the opportunity to respond?',sev:'major'},
+  ],
+  a52_doc:[
+    {id:'D1',text:'Do disciplinary records show all cases are documented with the worker\'s signature or written acknowledgment?',sev:'major'},
+    {id:'D2',text:'Are there no records of inhumane, discriminatory, or harassing disciplinary measures (physical punishment, public shaming, verbal abuse)?',sev:'priority'},
+  ],
+  a52_worker:[
+    {id:'W1',text:'If you have received disciplinary action, were you told the reason and given a chance to respond?',sev:'major',na:true},
+    {id:'W2',text:'Have you experienced or witnessed disciplinary measures involving physical punishment, public shaming, or verbal abuse?',sev:'priority',inv:true},
+  ],
+  // A5.3
+  a53_mgmt:[
+    {id:'M1',text:'Are reasonable requests for religious accommodation (prayer time, dress, dietary) considered and documented?',sev:'major'},
+    {id:'M2',text:'Where religious accommodation is refused, is a written reason communicated to the requesting worker in a timely manner?',sev:'major'},
+  ],
+  a53_doc:[
+    {id:'D1',text:'Are records of religious accommodation requests maintained, showing the decision and reason provided?',sev:'major'},
+    {id:'D2',text:'Where prayer or religious areas are requested, are adequate spaces provided?',sev:'minor',na:true},
+  ],
+  a53_worker:[
+    {id:'W1',text:'If you have requested a religious accommodation, was it handled respectfully and in a reasonable time?',sev:'major',na:true},
+  ],
+  // A5.4
+  a54_mgmt:[
+    {id:'M1',text:'Are reasonable requests for disability accommodation considered, documented, and implemented where possible?',sev:'major'},
+    {id:'M2',text:'Are disability assessment and effectiveness evaluation reports maintained for all identified disabilities?',sev:'major'},
+  ],
+  a54_doc:[
+    {id:'D1',text:'Are disability accommodation request records available showing the decision and reasoning given to the worker?',sev:'major'},
+    {id:'D2',text:'Where accommodations are deemed ineffective, are corrective action plans documented and in place?',sev:'minor'},
+  ],
+  a54_worker:[
+    {id:'W1',text:'If you or a colleague has requested a disability accommodation, was it addressed appropriately and in a timely manner?',sev:'major',na:true},
+  ],
+  // A6.1
+  a61_mgmt:[
+    {id:'M1',text:'Are workers free to form, join, or refrain from joining any trade union or worker representative body without management interference?',sev:'major'},
+    {id:'M2',text:'Is management neutral regarding union activities, limiting any contribution to providing meeting space or materials only?',sev:'major'},
+  ],
+  a61_doc:[
+    {id:'D1',text:'Do records show no episodes of violence, threats, or retaliation related to union activities or freedom of association?',sev:'priority'},
+    {id:'D2',text:'Do payroll records confirm union representatives or members are paid the same as comparable workers in similar roles?',sev:'major'},
+    {id:'D3',text:'Do communication records show no restrictions on freedom of association communications among workers?',sev:'major'},
+  ],
+  a61_worker:[
+    {id:'W1',text:'Are you aware of workers being threatened, penalized, or retaliated against for joining or organizing a union?',sev:'priority',inv:true},
+    {id:'W2',text:'Do you feel free to join or not join a worker representative body without fear of any negative consequence?',sev:'major'},
+  ],
+  // A6.2
+  a62_mgmt:[
+    {id:'M1',text:'Does management engage in good-faith negotiations with the worker representative body whenever requested?',sev:'major'},
+    {id:'M2',text:'Are the terms and conditions of any Collective Bargaining Agreement (CBA) fully implemented?',sev:'major',na:true},
+  ],
+  a62_doc:[
+    {id:'D1',text:'Are there no records of management refusing to enter negotiations requested by the worker representative body?',sev:'major'},
+    {id:'D2',text:'Where a CBA exists, do records confirm all its terms and conditions are being implemented?',sev:'major',na:true},
+  ],
+  a62_worker:[
+    {id:'W1',text:'Are you aware of management refusing to negotiate with elected worker representatives?',sev:'major',inv:true},
+    {id:'W2',text:'Do you know your rights regarding collective bargaining at this facility?',sev:'minor'},
+  ],
+};
+
+// ─── STATE ────────────────────────────────────
+// ─── TRANSLATIONS ─────────────────────────────
+const T={
+  en:{
+    setup:'Setup',skip:'Skip →',start:'Start Inspection →',back:'← Back',items:'← Items',
+    home:'🏠 Home',setupBtn:'⚙ Setup',reset:'↺ Reset',resetConfirm:'Reset all inspection data?',
+    next:'Next →',result:'Result',
+    mgmt:'Management Interview',doc:'Document Review',worker:'Worker Interview',
+    fee:'Fee Matrix',hours:'Hours Matrix',days:'Rest Days Matrix',
+    yes:'Yes',no:'No',na:'N/A',confirmed:'Confirmed',notConfirmed:'Not Confirmed',
+    answered:'answered',step:'Step',of:'of',
+    findings:'Findings',noFindings:'✓ No violations detected for this item.',
+    capTitle:'CAP Guidance',lawNotes:'⚖️ Local Law Notes',
+    recActions:'Recommended Corrective Actions',keyEvidence:'Key Evidence to Provide',
+    noCAP:'No corrective action required. Maintain current practices and document compliance evidence.',
+    mgmtCtx:'Ask the Compliance / HR Manager directly',
+    docCtx:'Review documents and records on site',
+    workerCtx:'Conduct private worker interviews (confidential)',
+    laborAudit:'Labor Audit',selectItem:'Select an item below to begin',
+    overall:'Overall',facilitySetup:'Facility & Country Settings',
+    setupDesc:'Enter local law benchmarks. The stricter of local law or RBA standard always applies.',
+    country:'Country / Region',countryHint:'v2: Country selection will auto-populate law fields',
+    resignLbl:'Statutory Resignation Notice Period (months)',resignHint:'RBA maximum: 1 month',
+    maxHrsLbl:'Statutory Maximum Weekly Working Hours',maxHrsHint:'RBA maximum: 60 hours/week',
+    otLbl:'Statutory Overtime Premium (%)',otHint:'RBA minimum: 25% above regular rate (= 125%)',
+    minWageLbl:'Statutory Minimum Monthly Wage (local currency)',
+    minAgeLbl:'Minimum Legal Working Age',minAgeHint:'RBA minimum: 15 years',
+    docRetLbl:'Does local law permit employer retention of personal documents?',
+    permitted:'Permitted',notPermitted:'Not permitted',
+    roadmap:'📌 Roadmap (v2): Select country → law fields auto-filled from reference database.',
+    inProgress:'In Progress',notStarted:'Not Started',
+    immediate:'Immediate Action',majorF:'Major Finding',minorF:'Minor Finding',
+    priorityDesc:'A serious violation requiring immediate corrective action.',
+    majorDesc:'A significant non-conformance. A CAP must be established.',
+    minorDesc:'A minor non-conformance. An improvement plan should be created.',
+    conformanceDesc:'All requirements are met for this item.',
+    feeTitle:'Prohibited Fee Matrix',feeDesc:'D6 flagged prohibited fee records. Enter details to calculate the finding severity.',
+    feeQ1:'Were prohibited fees reimbursed within 90 days?',feeYes:'Yes — Reimbursed',feeNo:'No',
+    feeQ2:'% of workers affected',feeQ2sub:'Workers charged prohibited fees ÷ total workforce × 100',
+    feeQ3:'Fee amount (% of one month\'s base salary)',feeQ3sub:'Total fees charged per worker during recruitment and employment',
+    hrsTitle:'Working Hours Matrix',hrsDesc:'D1 flagged hours exceeding 60 hrs/week. Enter sample data.',
+    hrsQ1:'Highest hours worked in any single week (sample period)',
+    hrsQ2:'% of sampled work weeks exceeding 60 hours',hrsQ2sub:'Weeks over 60 hrs ÷ total sampled work weeks × 100',
+    daysTitle:'Consecutive Days Matrix',daysDesc:'D1 flagged consecutive days exceeding 6. Enter sample data.',
+    daysQ1:'Maximum consecutive days worked found in sample',
+    daysQ2:'% of sampled workers exceeding 6 consecutive days',
+    complete:'Complete all fields for auto-rating.',
+  },
+  ko:{
+    setup:'설정',skip:'건너뛰기 →',start:'점검 시작 →',back:'← 이전',items:'← 항목',
+    home:'🏠 홈',setupBtn:'⚙ 설정',reset:'↺ 초기화',resetConfirm:'모든 점검 데이터를 초기화하시겠습니까?',
+    next:'다음 →',result:'결과',
+    mgmt:'경영진 인터뷰',doc:'문서 검토',worker:'노동자 인터뷰',
+    fee:'수수료 매트릭스',hours:'근무시간 매트릭스',days:'휴일 매트릭스',
+    yes:'예',no:'아니오',na:'해당없음',confirmed:'확인됨',notConfirmed:'미확인',
+    answered:'완료',step:'단계',of:'/',
+    findings:'위반 항목',noFindings:'✓ 이 항목에서 위반 사항이 없습니다.',
+    capTitle:'CAP 가이드',lawNotes:'⚖️ 현지 법령 참고',
+    recActions:'권장 시정 조치',keyEvidence:'제출 근거 자료',
+    noCAP:'시정 조치가 필요하지 않습니다. 현재 관행을 유지하고 준수 증거를 문서화하세요.',
+    mgmtCtx:'컴플라이언스/HR 매니저에게 직접 질문',
+    docCtx:'현장에서 문서 및 기록 직접 검토',
+    workerCtx:'개인 노동자 인터뷰 진행 (비밀 보장)',
+    laborAudit:'노동인권 점검',selectItem:'아래 항목을 선택하여 점검을 시작하세요',
+    overall:'종합',facilitySetup:'시설 및 국가 설정',
+    setupDesc:'현지 법령 기준을 입력하세요. RBA 기준과 현지 법 중 더 엄격한 기준이 적용됩니다.',
+    country:'국가 / 지역',countryHint:'v2: 국가 선택 시 법령 기준 자동 입력 예정',
+    resignLbl:'법정 퇴직 통보 기간 (개월)',resignHint:'RBA 기준: 최대 1개월',
+    maxHrsLbl:'법정 최대 주간 근무시간',maxHrsHint:'RBA 기준: 주 최대 60시간',
+    otLbl:'법정 초과근무 할증률 (%)',otHint:'RBA 기준: 정규임금의 최소 25% 이상 (= 125%)',
+    minWageLbl:'법정 최저임금 (월, 현지 통화)',
+    minAgeLbl:'법정 최저 취업 연령',minAgeHint:'RBA 기준: 최소 15세',
+    docRetLbl:'현지 법상 고용주의 개인 서류 보관 허용 여부',
+    permitted:'허용',notPermitted:'불허',
+    roadmap:'📌 로드맵 (v2): 국가 선택 시 법령 기준 자동 입력 예정.',
+    inProgress:'진행 중',notStarted:'미시작',
+    immediate:'즉시 조치 필요',majorF:'중대 부적합',minorF:'경미 부적합',
+    priorityDesc:'즉각적인 시정 조치가 필요한 심각한 위반입니다.',
+    majorDesc:'중대 부적합입니다. CAP(시정 계획)을 수립해야 합니다.',
+    minorDesc:'경미 부적합입니다. 개선 계획을 수립하세요.',
+    conformanceDesc:'이 항목의 모든 요구 사항을 충족합니다.',
+    feeTitle:'금지 수수료 매트릭스',feeDesc:'D6에서 금지 수수료 기록이 발견되었습니다. 심각도 계산을 위해 세부사항을 입력하세요.',
+    feeQ1:'금지 수수료가 90일 이내에 환급되었습니까?',feeYes:'예 — 환급됨',feeNo:'아니오',
+    feeQ2:'영향받은 근로자 비율 (%)',feeQ2sub:'수수료 부과 근로자 ÷ 전체 근로자 × 100',
+    feeQ3:'수수료 금액 (월 기본급 대비 %)',feeQ3sub:'채용부터 고용까지 근로자당 부과된 수수료 합계',
+    hrsTitle:'근무시간 매트릭스',hrsDesc:'D1에서 주 60시간 초과가 발견되었습니다. 표본 데이터를 입력하세요.',
+    hrsQ1:'표본 기간 중 단일 주에 가장 많이 근무한 시간',
+    hrsQ2:'주 60시간을 초과한 표본 주의 비율 (%)',hrsQ2sub:'60시간 초과 주 ÷ 전체 표본 주 × 100',
+    daysTitle:'연속 근무일 매트릭스',daysDesc:'D1에서 6일 초과 연속 근무가 발견되었습니다. 표본 데이터를 입력하세요.',
+    daysQ1:'표본에서 발견된 최대 연속 근무일',
+    daysQ2:'연속 6일 이상 근무한 근로자 비율 (%)',
+    complete:'자동 판정을 위해 모든 항목을 입력하세요.',
+  },
+  zh:{
+    setup:'设置',skip:'跳过 →',start:'开始检查 →',back:'← 返回',items:'← 项目',
+    home:'🏠 首页',setupBtn:'⚙ 设置',reset:'↺ 重置',resetConfirm:'重置所有检查数据？',
+    next:'下一步 →',result:'结果',
+    mgmt:'管理层访谈',doc:'文件审查',worker:'工人访谈',
+    fee:'费用矩阵',hours:'工时矩阵',days:'休息日矩阵',
+    yes:'是',no:'否',na:'不适用',confirmed:'已确认',notConfirmed:'未确认',
+    answered:'已完成',step:'步骤',of:'/',
+    findings:'发现问题',noFindings:'✓ 未发现此项目的违规情况。',
+    capTitle:'CAP指导',lawNotes:'⚖️ 当地法律说明',
+    recActions:'建议纠正措施',keyEvidence:'关键证据',
+    noCAP:'无需纠正措施。请保持当前做法并记录合规证据。',
+    mgmtCtx:'直接向合规/HR经理提问',
+    docCtx:'现场审查文件和记录',
+    workerCtx:'进行保密的工人个别访谈',
+    laborAudit:'劳工审查',selectItem:'请在下方选择项目开始检查',
+    overall:'综合',facilitySetup:'设施与国家设置',
+    setupDesc:'请输入当地法律基准。当地法律与RBA标准中较严格的一方适用。',
+    country:'国家/地区',countryHint:'v2：选择国家后将自动填充法律字段',
+    resignLbl:'法定辞职通知期（月）',resignHint:'RBA标准：最多1个月',
+    maxHrsLbl:'法定最高每周工时',maxHrsHint:'RBA标准：每周最多60小时',
+    otLbl:'法定加班工资溢价（%）',otHint:'RBA标准：至少高于正常工资25%（即125%）',
+    minWageLbl:'法定最低月工资（当地货币）',
+    minAgeLbl:'法定最低就业年龄',minAgeHint:'RBA标准：最低15岁',
+    docRetLbl:'当地法律是否允许雇主保留个人证件？',
+    permitted:'允许',notPermitted:'不允许',
+    roadmap:'📌 路线图（v2）：选择国家后将从参考数据库自动填充法律字段。',
+    inProgress:'进行中',notStarted:'未开始',
+    immediate:'需立即采取行动',majorF:'重大不符合',minorF:'轻微不符合',
+    priorityDesc:'发现需要立即纠正的严重违规行为。',
+    majorDesc:'存在重大不符合情况，必须制定CAP（纠正行动计划）。',
+    minorDesc:'存在轻微不符合情况，应制定改进计划。',
+    conformanceDesc:'此项目的所有要求均已满足。',
+    feeTitle:'禁止费用矩阵',feeDesc:'D6发现禁止费用记录。请输入详细信息以计算发现严重程度。',
+    feeQ1:'禁止费用是否在90天内退还？',feeYes:'是——已退还',feeNo:'否',
+    feeQ2:'受影响工人比例（%）',feeQ2sub:'被收取禁止费用的工人 ÷ 全体工人 × 100',
+    feeQ3:'费用金额（占一个月基本工资的%）',feeQ3sub:'招聘和就业期间向工人收取的总费用',
+    hrsTitle:'工时矩阵',hrsDesc:'D1发现每周工时超过60小时。请输入样本数据。',
+    hrsQ1:'样本期内单周最高工时',
+    hrsQ2:'超过60小时的样本工作周比例（%）',hrsQ2sub:'超60小时的周 ÷ 总抽样周 × 100',
+    daysTitle:'连续工作日矩阵',daysDesc:'D1发现连续工作日超过6天。请输入样本数据。',
+    daysQ1:'样本中发现的最长连续工作天数',
+    daysQ2:'连续工作超过6天的工人比例（%）',
+    complete:'请填写所有字段以获得自动评级。',
+  },
+};
+
+// Item translations
+const IT={
+  ko:{
+    a11:{title:'강제노동 금지',desc:'강제·채무·강요 노동 금지'},
+    a12:{title:'고용 조건 안내',desc:'취업 전 서면 고용 조건 제공'},
+    a13:{title:'서류 압수 금지',desc:'신분 서류 몰수 금지'},
+    a21:{title:'최저 취업 연령',desc:'아동 노동 없음'},
+    a22:{title:'연소 근로자 보호',desc:'18세 미만 위험·야간·초과근무 금지'},
+    a23:{title:'학습자 프로그램',desc:'학생·인턴·수습 규정 준수'},
+    a31:{title:'주간 근무시간 제한',desc:'주 최대 60시간'},
+    a32:{title:'휴일',desc:'7일에 최소 1일 휴일'},
+    a33:{title:'휴식 및 휴가',desc:'의무 휴식 및 휴가 권리'},
+    a41:{title:'임금 및 지급',desc:'동일 노동 동일 임금, 정확한 계산, 적시 지급'},
+    a42:{title:'급여 명세서',desc:'매 지급 주기별 이해 가능한 급여 명세서'},
+    a43:{title:'공제 및 원천징수',desc:'법정 공제 정확한 계산 및 적시 제출'},
+    a51:{title:'차별 금지',desc:'차별·괴롭힘·비인도적 처우 금지'},
+    a52:{title:'징계 조치',desc:'문서화 및 공정한 검토'},
+    a53:{title:'종교적 편의',desc:'합리적 종교 요청 검토'},
+    a54:{title:'장애 편의',desc:'합리적 장애 요청 검토'},
+    a61:{title:'결사의 자유',desc:'근로자의 자유로운 노조 가입·설립 권리'},
+    a62:{title:'단체 교섭',desc:'단체 교섭권 성실 존중'},
+  },
+  zh:{
+    a11:{title:'禁止强迫劳动',desc:'禁止强迫、债役或强制性劳动'},
+    a12:{title:'雇佣条款告知',desc:'就业前提供书面雇佣条款'},
+    a13:{title:'禁止扣押证件',desc:'禁止没收个人身份证件'},
+    a21:{title:'最低就业年龄',desc:'不得使用童工'},
+    a22:{title:'未成年工人保护',desc:'18岁以下不得从事危险/夜班/加班'},
+    a23:{title:'学习者项目',desc:'学生/实习生/学徒合规'},
+    a31:{title:'每周工时限制',desc:'每周最多60小时'},
+    a32:{title:'休息日',desc:'每7天至少1天休息'},
+    a33:{title:'休息与休假',desc:'法定休息时间和假期权利'},
+    a41:{title:'工资与支付',desc:'同工同酬、准确计算、及时支付'},
+    a42:{title:'工资单',desc:'每支付周期提供清晰工资单'},
+    a43:{title:'扣款与代扣',desc:'按时提交准确的法定扣款'},
+    a51:{title:'禁止歧视',desc:'禁止歧视、骚扰及不人道对待'},
+    a52:{title:'纪律措施',desc:'有记录且经公平审查'},
+    a53:{title:'宗教便利',desc:'合理考虑宗教申请'},
+    a54:{title:'残障便利',desc:'合理考虑残障申请'},
+    a61:{title:'结社自由',desc:'工人可自由加入或组建工会'},
+    a62:{title:'集体谈判',desc:'善意尊重集体谈判权利'},
+  },
+};
+
+// Question translations (keyed as "item_type_ID")
+const QT={
+  ko:{
+    'a11_mgmt_M1':'모든 초과근무는 자발적이며 근로자가 불이익 없이 거부할 수 있습니까?',
+    'a11_mgmt_M2':'자발적 퇴직이 보장되고, 통보 기간 1개월 이하, 위약금 월 기본급 60% 이하입니까?',
+    'a11_mgmt_M3':'노무 대행사 계약에 채용 수수료의 근로자 전가 금지 조항이 명시되어 있습니까?',
+    'a11_mgmt_M4':'근로자가 항상 화장실·식수·의료시설을 제한 없이 이용할 수 있습니까?',
+    'a11_mgmt_M5':'기숙사 근로자가 근무 외 시간에 자유롭게 외출할 수 있습니까? (통금 없음)',
+    'a11_mgmt_M6':'이동을 제한하는 시스템(강제 잠금·경비 통제·화장실 통행증)이 없습니까?',
+    'a11_mgmt_M7':'금지 수수료 발견 시 90일 내 환급하는 절차가 문서화되어 있습니까?',
+    'a11_doc_D1':'인사·근태·임금 기록에 비자발적 노동의 징후가 없습니까?',
+    'a11_doc_D2':'초과근무 기록에 근로자의 자발적 동의가 확인됩니까?',
+    'a11_doc_D3':'고용 계약서의 퇴직 통보 기간이 1개월 이하입니까?',
+    'a11_doc_D4':'무단 퇴직 위약금이 계약서에 월 기본급의 60% 이하로 명시되어 있습니까?',
+    'a11_doc_D5':'허용 수수료가 문서화되어 근로자에게 서면으로 공개되어 있습니까?',
+    'a11_doc_D6':'급여·회계 기록에 금지 수수료(채용·입사) 기록이 없습니까?',
+    'a11_doc_D7':'시설 출입 기록에 이동 제한의 증거가 없습니까?',
+    'a11_doc_D8':'개인 대출: 상환 월 기본급 10% 이하, 무이자, 6개월 이내입니까?',
+    'a11_doc_D9':'교육 대출: 상환 월 기본급 10% 이하, 무이자, 12개월 이내입니까?',
+    'a11_doc_D10':'모든 근로자 대출이 완전 무이자임이 확인됩니까?',
+    'a11_doc_D11':'기숙사 출입 기록이 근무 외 자유로운 이동을 확인합니까?',
+    'a11_worker_W1':'이 일자리를 얻거나 유지하기 위해 채용비·소개비·보증금 등을 지불한 적 있습니까?',
+    'a11_worker_W2':'어떠한 보복이나 불이익 없이 초과근무를 거부할 수 있습니까?',
+    'a11_worker_W3':'원할 때 언제든지 자유롭게 퇴직할 수 있다고 느끼십니까?',
+    'a11_worker_W4':'어떠한 제한 없이 화장실을 사용하고 식수에 접근할 수 있습니까?',
+    'a11_worker_W5':'근무 시간 외에 기숙사를 자유롭게 떠날 수 있습니까?',
+    'a11_worker_W6':'현재 여권이나 신분증을 직접 소지하고 있습니까?',
+    'a12_mgmt_M1':'근로자가 근무 시작 전에 고용 계약서를 받습니까? (이주 근로자: 출국 전)',
+    'a12_mgmt_M2':'계약서가 근로자가 읽고 이해할 수 있는 언어로 작성되어 있습니까?',
+    'a12_mgmt_M3':'모든 신규 입사자에게 주요 조건(임금·근무시간·퇴직)을 구두 설명하는 절차가 있습니까?',
+    'a12_mgmt_M4':'이주 근로자의 계약 조건이 현지 도착 후 불리하게 변경된 사례가 있습니까?',
+    'a12_doc_D1':'고용 계약서가 근로자의 모국어 또는 이해 가능한 언어로 작성되어 있습니까?',
+    'a12_doc_D2':'계약서가 근무 시작일 이전에 서명 제공된 증거가 있습니까?',
+    'a12_doc_D3':'이주 근로자 도착 후 불리한 계약 조건 변경 기록이 없습니까?',
+    'a12_worker_W1':'첫 근무일 전에 계약서를 받고 내용을 이해하셨습니까?',
+    'a12_worker_W2':'담당자가 주요 근무 조건(급여·시간·퇴직 방법)을 구두로 설명해 주었습니까?',
+    'a12_worker_W3':'(이주 근로자) 도착 후 처음 합의한 것보다 나쁜 조건을 제시받은 적 있습니까?',
+    'a13_mgmt_M1':'근로자의 신분 서류(여권·비자·신분증) 원본을 보관하지 않는 정책이 있습니까?',
+    'a13_mgmt_M2':'법적으로 서류 보관이 필요한 경우, 요청 후 12시간 내에 반환할 수 있습니까?',
+    'a13_mgmt_M3':'서류 보관과 관련하여 어떠한 수수료도 부과하지 않습니까?',
+    'a13_doc_D1':'인사 파일에 신분 서류 원본이 없습니까? (사본만 보관해야 함)',
+    'a13_doc_D2':'근로자에게 서류 보관 수수료를 부과한 기록이 없습니까?',
+    'a13_doc_D3':'법적 보관이 필요한 경우, 보관 사유와 기간이 명시된 영수증이 발급됩니까?',
+    'a13_worker_W1':'여권·신분증·비자를 직접 소지하거나 언제든지 즉시 접근할 수 있습니까?',
+    'a13_worker_W2':'시설이 개인 서류를 보관하는 데 대해 비용을 청구받은 적이 있습니까?',
+    'a21_mgmt_M1':'현지 법과 RBA 최소 연령(15세) 이상을 충족하는 최저 채용 연령 정책이 문서화되어 있습니까?',
+    'a21_mgmt_M2':'모든 신규 채용 시 정부 발급 신분증으로 연령 검증이 실시됩니까?',
+    'a21_mgmt_M3':'미성년 근로자 발견 시 수입 유지 및 학업 복귀 지원을 포함한 구제 계획이 있습니까?',
+    'a21_doc_D1':'모든 인사 파일이 각 근로자가 최저 연령 요건을 충족함을 확인합니까?',
+    'a21_doc_D2':'직원 명부에 법적 최저 연령 미만 근로자가 없습니까?',
+    'a21_doc_D3':'각 인사 파일에 연령 검증 서류(예: 신분증 사본)가 보관되어 있습니까?',
+    'a21_worker_W1':'채용 시 연령 증명을 제출하도록 요청받았습니까?',
+    'a21_worker_W2':'이 시설에 법적 취업 가능 연령 미만으로 보이는 근로자를 알고 있습니까?',
+    'a22_mgmt_M1':'18세 미만 근로자가 모두 파악되어 비위험직에만 배치됩니까?',
+    'a22_mgmt_M2':'18세 미만 근로자가 야간 근무나 초과근무를 하는 경우가 있습니까?',
+    'a22_mgmt_M3':'현지 법이 요구하는 경우 연소 근로자에 대한 건강 검진이 실시됩니까?',
+    'a22_doc_D1':'인사 파일과 업무 배치가 18세 미만 근로자가 비위험직에 있음을 확인합니까?',
+    'a22_doc_D2':'근무 시간 기록이 18세 미만 근로자의 야간 근무 및 초과근무 미실시를 확인합니까?',
+    'a22_doc_D3':'법적 요구 시 연소 근로자의 건강 검진 기록이 유지됩니까?',
+    'a22_worker_W1':'(18세 미만 근로자) 위험 작업, 야간 근무 또는 초과근무를 수행하고 있습니까?',
+    'a22_worker_W2':'이 시설에서 18세 미만 근로자가 위험 작업, 야간 근무 또는 초과근무를 하는 것을 알고 있습니까?',
+    'a23_mgmt_M1':'학생 근로자·인턴·수습은 전공 분야 또는 직업 교육과 관련된 업무만 배정됩니까?',
+    'a23_mgmt_M2':'법적으로 필요한 경우 삼자 협약(학생·학교·시설)이 체결되어 있습니까?',
+    'a23_mgmt_M3':'학습자에게 최저임금 이상이 지급됩니까? (법이 허용하는 한시적 하향 제외)',
+    'a23_doc_D1':'학습자 기록에 학습 목표, 업무 배정, 진행 평가가 포함되어 있습니까?',
+    'a23_doc_D2':'학생 근로자 또는 인턴 모집에 노무 대행사를 활용한 증거가 없습니까?',
+    'a23_doc_D3':'학습자의 근무 시간이 기록되고 학교 일정과 충돌하지 않음이 확인됩니까?',
+    'a23_worker_W1':'(학생/인턴/수습) 배정된 업무가 전공 공부 또는 직업 교육과 직접 관련됩니까?',
+    'a23_worker_W2':'(학생/인턴/수습) 이 시설의 근무 시간이 학교 수업 또는 교육 프로그램과 충돌합니까?',
+    'a31_mgmt_M1':'근로자별 주간 근무 시간이 추적되고 지속적으로 60시간 미만으로 유지됩니까?',
+    'a31_mgmt_M2':'모든 초과근무는 자발적이며, 근로자가 언제든지 불이익 없이 거부할 수 있습니까?',
+    'a31_mgmt_M3':'18세 미만 근로자가 어떠한 초과근무도 수행하지 않음이 확인됩니까?',
+    'a31_doc_D1':'시간 기록(3개월 표본: 성수기·평균·비성수기)이 어떤 근로자도 주 60시간을 초과하지 않음을 보여줍니까?',
+    'a31_doc_D2':'근무 시간 기록이 정확하고 조작이 없음이 확인됩니까?',
+    'a31_doc_D3':'기록이 18세 미만 근로자의 초과근무 미실시를 확인합니까?',
+    'a31_worker_W1':'일주일에 60시간 이상 근무하도록 요구받거나 압박을 받은 적 있습니까?',
+    'a31_worker_W2':'어떠한 부정적 결과 없이 초과근무를 거부할 수 있습니까?',
+    'a31_worker_W3':'실제 근무 시간을 반영하지 않은 시간 기록에 서명하도록 요청받은 적 있습니까?',
+    'a32_mgmt_M1':'모든 근로자가 7일마다 최소 하루의 완전한 휴일을 받습니까?',
+    'a32_mgmt_M2':'근로자가 6일 이상 연속 근무한 기간이 있었습니까?',
+    'a32_doc_D1':'시간 기록(3개월 표본)이 어떤 근로자도 연속 6일을 초과하여 근무하지 않음을 확인합니까?',
+    'a32_doc_D2':'예외가 있는 경우, 비상·특수 상황으로 문서화되고 정당화됩니까?',
+    'a32_worker_W1':'매주 최소 하루의 완전한 휴일을 받습니까?',
+    'a32_worker_W2':'쉬는 날 없이 연속으로 6일 이상 근무한 적이 있습니까?',
+    'a33_mgmt_M1':'근로자가 현지 법에서 요구하는 대로 매 교대 근무마다 최소 하나의 식사 휴식을 받습니까?',
+    'a33_mgmt_M2':'유효한 진단서를 지참한 근로자가 직업 손실이나 금전적 불이익 없이 병가를 사용할 수 있습니까?',
+    'a33_mgmt_M3':'출산·육아 휴직이 현지 법에 완전히 부합하여 제공됩니까?',
+    'a33_doc_D1':'휴가 기록이 실제로 사용된 공휴일, 병가, 출산/육아 휴직을 정확히 반영합니까?',
+    'a33_doc_D2':'휴가 기록이 진단서 및 실제 결근 증빙과 일치합니까?',
+    'a33_worker_W1':'근무 교대 중에 적절한 식사 휴식을 취합니까?',
+    'a33_worker_W2':'아프면 직업을 잃거나 금전적 불이익 없이 휴가를 낼 수 있습니까?',
+    'a33_worker_W3':'공휴일, 연간 휴가, 병가 권리를 알고 있습니까?',
+    'a41_mgmt_M1':'모든 근로자에게 모든 정규 시간에 대해 합의된/최저임금 이상을 지급하고 동일 노동 동일 임금이 적용됩니까?',
+    'a41_mgmt_M2':'초과근무는 정규 임금의 최소 125% 비율로 보상됩니까?',
+    'a41_mgmt_M3':'퇴직 또는 해고된 근로자에게 마지막 근무일 후 1개월 내에 미지급 임금이 전액 지급됩니까?',
+    'a41_doc_D1':'급여 기록이 모든 근로자가 모든 정규 시간에 대해 합의된/최저임금 이상을 받음을 확인합니까?',
+    'a41_doc_D2':'기록이 초과근무가 정규 임금의 최소 125% 비율로 지급됨을 확인합니까?',
+    'a41_doc_D3':'임금이 근로자에게 직접 지급되고 허가받지 않은 공제(징계·안전장비 포함)가 없습니까?',
+    'a41_worker_W1':'모든 근무 시간에 대해 최저임금 이상, 초과근무에 대해 더 높은 비율로 지급받습니까?',
+    'a41_worker_W2':'설명 없는 지연 없이 제때 임금을 받습니까?',
+    'a41_worker_W3':'징계 조치 또는 안전장비 비용으로 임금이 공제된 적 있습니까?',
+    'a42_mgmt_M1':'매 지급 주기마다 근로자에게 정규 시간·초과근무 시간·임금률·모든 공제를 보여주는 급여 명세서가 제공됩니까?',
+    'a42_mgmt_M2':'법정 보험 기여금(퇴직·의료·산재)이 급여 명세서에 명확히 항목화되어 있습니까?',
+    'a42_doc_D1':'급여 명세서 기록에 정규 시간·초과근무 시간·보상 비율·항목별 공제가 정확히 표시됩니까?',
+    'a42_doc_D2':'급여 기록에 허가받지 않은 징계 공제가 없습니까?',
+    'a42_worker_W1':'매 지급 주기마다 근무 시간·임금률·모든 공제를 명확히 보여주는 급여 명세서를 받습니까?',
+    'a42_worker_W2':'급여 명세서의 정보를 이해할 수 있습니까?',
+    'a43_mgmt_M1':'모든 법정 공제(세금·사회보험)가 정확히 계산됩니까?',
+    'a43_mgmt_M2':'이러한 공제가 법적으로 요구된 기간 내에 해당 정부 기관에 제출됩니까?',
+    'a43_doc_D1':'기록이 법정 보험 기여금(근로자별)이 정확히 계산됨을 확인합니까?',
+    'a43_doc_D2':'납부 기록이 정부 기관에 기여금이 적시에 제출됨을 확인합니까?',
+    'a43_worker_W1':'동의하지 않거나 설명할 수 없는 임금 공제가 있었습니까?',
+    'a51_mgmt_M1':'채용·급여·승진·교육·해고를 포괄하는 반차별 및 반괴롭힘 정책이 있습니까?',
+    'a51_mgmt_M2':'근로자가 취업 조건으로 임신 검사, 처녀성 검사 또는 차별적 의료 검사를 받습니까?',
+    'a51_mgmt_M3':'차별이나 괴롭힘 신고를 위한 기능적인 고충 처리 메커니즘이 있습니까?',
+    'a51_doc_D1':'인사 기록(급여·혜택·채용·승진·징계·해고)에 보호 특성에 근거한 차별의 증거가 없습니까?',
+    'a51_doc_D2':'고충 기록에 미해결된 괴롭힘 또는 비인도적 처우 사례가 없습니까?',
+    'a51_doc_D3':'채용 공고, 지원서, 고용 계약에 차별적 조건이 없습니까?',
+    'a51_worker_W1':'이 시설에서 차별, 괴롭힘 또는 비인도적 처우를 경험하거나 목격한 적 있습니까?',
+    'a51_worker_W2':'인종·성별·종교·국적 등에 따라 근로자가 다르게 대우받는 것을 본 적 있습니까?',
+    'a51_worker_W3':'괴롭힘이나 차별을 어떻게 신고하는지 알고 있습니까?',
+    'a52_mgmt_M1':'모든 징계 조치가 공식적으로 문서화되고 경영진의 검토를 받습니까?',
+    'a52_mgmt_M2':'근로자가 징계 조치의 이유를 통보받고 대응할 기회를 받습니까?',
+    'a52_doc_D1':'징계 기록에 근로자 서명 또는 서면 확인이 포함된 모든 사례가 문서화됩니까?',
+    'a52_doc_D2':'비인도적·차별적·괴롭힘 징계 조치(신체 처벌·공개 수치·언어 폭력) 기록이 없습니까?',
+    'a52_worker_W1':'징계 조치를 받은 경우, 이유를 통보받고 대응할 기회가 있었습니까?',
+    'a52_worker_W2':'신체 처벌·공개 수치·언어 폭력을 포함한 징계 조치를 경험하거나 목격한 적 있습니까?',
+    'a53_mgmt_M1':'합리적인 종교적 편의 요청(기도 시간·복장·식이요법)을 검토하고 문서화합니까?',
+    'a53_mgmt_M2':'종교적 편의가 거부되는 경우, 거부 이유가 요청 근로자에게 서면으로 통보됩니까?',
+    'a53_doc_D1':'종교적 편의 요청 기록에 결정과 제공된 이유가 포함됩니까?',
+    'a53_doc_D2':'요청이 있는 경우 기도/종교 공간이 적절히 제공됩니까?',
+    'a53_worker_W1':'종교적 편의를 요청한 경우, 존중 받으며 합리적인 시간 내에 처리되었습니까?',
+    'a54_mgmt_M1':'합리적인 장애 편의 요청을 검토하고 문서화하며 가능한 경우 시행합니까?',
+    'a54_mgmt_M2':'확인된 모든 장애에 대한 장애 평가 및 효과 평가 보고서가 유지됩니까?',
+    'a54_doc_D1':'장애 편의 요청 기록에 결정 및 근로자에게 제공된 이유가 포함됩니까?',
+    'a54_doc_D2':'효과 없는 편의에 대한 시정 조치 계획이 문서화되어 있습니까?',
+    'a54_worker_W1':'본인이나 동료가 장애 편의를 요청한 경우, 적절하고 적시에 처리되었습니까?',
+    'a61_mgmt_M1':'근로자가 경영진의 간섭 없이 노동조합이나 근로자 대표 기구에 자유롭게 가입·조직·불참할 수 있습니까?',
+    'a61_mgmt_M2':'경영진은 노조 활동에 중립적이며, 회의 장소나 자료 제공에만 기여를 한정합니까?',
+    'a61_doc_D1':'기록에 노조 활동 또는 결사의 자유와 관련된 폭력·위협·보복 사례가 없습니까?',
+    'a61_doc_D2':'급여 기록이 노조 대표자 또는 조합원이 유사 직무의 다른 근로자와 동일 임금을 받음을 확인합니까?',
+    'a61_doc_D3':'내부 커뮤니케이션 기록에 근로자의 결사의 자유 커뮤니케이션을 제한하는 내용이 없습니까?',
+    'a61_worker_W1':'이 시설에서 노조에 가입하거나 조직하려는 근로자가 위협·처벌·보복을 당하는 것을 알고 있습니까?',
+    'a61_worker_W2':'어떠한 부정적 결과에 대한 두려움 없이 근로자 대표 기구에 자유롭게 가입하거나 불참할 수 있다고 느끼십니까?',
+    'a62_mgmt_M1':'근로자 대표 기구의 요청이 있을 때마다 경영진이 성실한 단체 교섭에 임합니까?',
+    'a62_mgmt_M2':'단체 협약(CBA)의 모든 조건이 완전히 이행됩니까?',
+    'a62_doc_D1':'근로자 대표 기구가 요청한 교섭을 경영진이 거부한 기록이 없습니까?',
+    'a62_doc_D2':'CBA가 있는 경우, 기록이 모든 조건이 이행됨을 확인합니까?',
+    'a62_worker_W1':'경영진이 근로자 대표의 교섭 요청을 거부하는 것을 알고 있습니까?',
+    'a62_worker_W2':'이 시설에서 단체 교섭에 관한 권리를 알고 있습니까?',
+  },
+  zh:{
+    'a11_mgmt_M1':'所有加班均为自愿，工人可以拒绝而不受任何处罚吗？',
+    'a11_mgmt_M2':'是否保证自愿辞职，通知期不超过1个月，违约金不超过月基本工资的60%？',
+    'a11_mgmt_M3':'与劳务中介的合同是否明确禁止将招聘费用转嫁给工人？',
+    'a11_mgmt_M4':'工人是否随时可以不受限制地使用卫生间、饮用水和医疗设施？',
+    'a11_mgmt_M5':'宿舍工人在非工作时间可以自由离开设施吗？（无宵禁）',
+    'a11_mgmt_M6':'是否没有限制行动的系统（强制锁定、保安控制、如厕证等）？',
+    'a11_mgmt_M7':'是否有书面程序，在发现禁止费用后90天内退还给工人？',
+    'a11_doc_D1':'人事、考勤和工资记录是否无非自愿劳动迹象？',
+    'a11_doc_D2':'加班记录是否确认所有加班均为自愿同意？',
+    'a11_doc_D3':'劳动合同规定的辞职通知期是否不超过1个月？',
+    'a11_doc_D4':'合同中的无通知离职违约金是否不超过月基本工资的60%？',
+    'a11_doc_D5':'允许费用是否有记录并以书面形式向工人披露？',
+    'a11_doc_D6':'薪资或会计记录中是否无禁止费用（招聘/安置）记录？',
+    'a11_doc_D7':'设施出入记录是否无行动限制证据？',
+    'a11_doc_D8':'个人贷款：还款不超过月基本工资10%，免息，期限不超过6个月？',
+    'a11_doc_D9':'教育贷款：还款不超过月基本工资10%，免息，期限不超过12个月？',
+    'a11_doc_D10':'是否确认所有工人贷款完全免息？',
+    'a11_doc_D11':'宿舍出入记录是否确认工人在非工作时间可自由行动？',
+    'a11_worker_W1':'您是否为获得或保留这份工作而支付过招聘费、中介费或押金等费用？',
+    'a11_worker_W2':'您可以拒绝加班而不受任何报复或负面影响吗？',
+    'a11_worker_W3':'您是否感到可以随时自由辞职？',
+    'a11_worker_W4':'您可以自由使用卫生间和饮用水，不受任何限制吗？',
+    'a11_worker_W5':'您在非工作时间可以自由离开宿舍吗？',
+    'a11_worker_W6':'您目前是否亲自持有护照或身份证件？',
+    'a12_mgmt_M1':'工人是否在入职前收到劳动合同？（移民工人：在离开母国前）',
+    'a12_mgmt_M2':'合同是否以工人能够阅读和理解的语言书写？',
+    'a12_mgmt_M3':'是否有流程向所有新员工口头解释关键条款（工资、工时、辞职）？',
+    'a12_mgmt_M4':'是否有移民工人在抵达当地后被以不利方式更改合同条款的情况？',
+    'a12_doc_D1':'劳动合同是否以工人母语或其能够理解的语言书写？',
+    'a12_doc_D2':'是否有证据证明合同在入职日期前已签署并提供给工人？',
+    'a12_doc_D3':'移民工人抵达后是否无合同条款不利变更的记录？',
+    'a12_worker_W1':'您是否在第一天上班前收到并理解了您的劳动合同？',
+    'a12_worker_W2':'是否有工作人员口头向您解释了关键工作条件（工资、工时、如何辞职）？',
+    'a12_worker_W3':'（移民工人）您抵达后是否被提供了比原协议更差的条件？',
+    'a13_mgmt_M1':'是否有不保留工人原始身份证件（护照、签证、身份证）的政策？',
+    'a13_mgmt_M2':'在法律要求持有证件的情况下，是否可以在要求后12小时内归还？',
+    'a13_mgmt_M3':'是否完全不收取任何证件保管费用？',
+    'a13_doc_D1':'人事档案中是否没有身份证件原件？（应只保留复印件）',
+    'a13_doc_D2':'是否没有向工人收取证件保管费用的记录？',
+    'a13_doc_D3':'在需要依法保管的情况下，是否向工人出具注明保管原因和期限的收据？',
+    'a13_worker_W1':'您是否亲自持有护照、身份证或签证，或可以随时立即取用？',
+    'a13_worker_W2':'您是否曾因设施保管您的个人证件而被收取费用？',
+    'a21_mgmt_M1':'是否有书面的最低雇用年龄政策，符合或超过当地法律及RBA最低标准15岁？',
+    'a21_mgmt_M2':'是否对每位新员工进行政府颁发证件的年龄核查？',
+    'a21_mgmt_M3':'若发现未成年工人，是否有包含维持收入和支持返学的补救计划？',
+    'a21_doc_D1':'所有人事档案是否确认每位工人均符合最低年龄要求？',
+    'a21_doc_D2':'员工名册上是否没有低于法定或公司最低年龄的工人？',
+    'a21_doc_D3':'每份人事档案中是否保存有年龄核查证件副本（如身份证复印件）？',
+    'a21_worker_W1':'您在被录用时是否被要求提供年龄证明？',
+    'a21_worker_W2':'您是否知道此设施中有看起来未达到法定工作年龄的工人？',
+    'a22_mgmt_M1':'所有18岁以下工人是否均已识别并仅分配到无危险岗位？',
+    'a22_mgmt_M2':'18岁以下工人是否曾从事夜班或加班？',
+    'a22_mgmt_M3':'在当地法律要求的情况下，是否对未成年工人进行健康检查？',
+    'a22_doc_D1':'人事档案和工作分配是否确认所有18岁以下工人均在无危险岗位工作？',
+    'a22_doc_D2':'工作时间记录是否确认18岁以下工人未从事夜班或加班？',
+    'a22_doc_D3':'在法律要求的情况下，是否保存未成年工人的健康检查记录？',
+    'a22_worker_W1':'（18岁以下工人）您是否从事任何危险工作、夜班或加班？',
+    'a22_worker_W2':'您是否知道本设施中有18岁以下工人从事危险工作、夜班或加班？',
+    'a23_mgmt_M1':'学生工、实习生和学徒是否只被分配与其专业领域或职业学习相关的工作？',
+    'a23_mgmt_M2':'在法律要求的情况下，是否签订了三方协议（学生、学校、设施）？',
+    'a23_mgmt_M3':'学员是否获得至少最低工资的报酬？（法律允许的有限期间下调除外）',
+    'a23_doc_D1':'学员记录是否包含学习目标、工作分配和进度评估？',
+    'a23_doc_D2':'是否没有使用劳务中介招募或管理学生工或实习生的证据？',
+    'a23_doc_D3':'是否记录了学员工作时间，并确认不与学校或培训日程冲突？',
+    'a23_worker_W1':'（学生/实习生/学徒）您的工作任务是否与您的专业学习或职业培训直接相关？',
+    'a23_worker_W2':'（学生/实习生/学徒）您在本设施的工作时间是否与学校出勤或培训计划冲突？',
+    'a31_mgmt_M1':'是否按工人跟踪每周工作时间，并持续保持在60小时以下？',
+    'a31_mgmt_M2':'所有加班是否完全自愿，工人可随时拒绝而不受任何处罚？',
+    'a31_mgmt_M3':'是否确认18岁以下工人从不加班？',
+    'a31_doc_D1':'时间记录（3个月样本：旺季、平均、淡季）是否显示没有工人超过每周60小时？',
+    'a31_doc_D2':'是否确认工时记录准确且无任何伪造或篡改？',
+    'a31_doc_D3':'记录是否确认18岁以下工人未从事任何加班？',
+    'a31_worker_W1':'您是否曾被要求或被迫每周工作超过60小时？',
+    'a31_worker_W2':'您可以拒绝加班而不受任何负面影响吗？',
+    'a31_worker_W3':'您是否曾被要求在不准确反映实际工作时间的考勤记录上签名？',
+    'a32_mgmt_M1':'所有工人是否每七天至少获得一天完整休息日？',
+    'a32_mgmt_M2':'是否有工人连续工作超过6天的情况？',
+    'a32_doc_D1':'时间记录（3个月样本）是否确认没有工人连续工作超过6天？',
+    'a32_doc_D2':'如有例外，是否将其记录并作为紧急或特殊情况加以说明？',
+    'a32_worker_W1':'您是否每周至少获得一天完整的休息日？',
+    'a32_worker_W2':'您是否曾连续工作超过6天而没有休息日？',
+    'a33_mgmt_M1':'工人是否按当地法律要求，每个班次至少获得一次用餐休息时间？',
+    'a33_mgmt_M2':'持有有效医疗证明的工人能否在不失业或受到任何经济处罚的情况下请病假？',
+    'a33_mgmt_M3':'是否完全依照当地法律提供产假/陪产假？',
+    'a33_doc_D1':'休假记录是否准确反映了实际节假日、病假和产假/陪产假的使用情况？',
+    'a33_doc_D2':'休假记录是否与医疗证明和实际缺勤证据相符？',
+    'a33_worker_W1':'您在工作班次中是否能获得适当的用餐休息时间？',
+    'a33_worker_W2':'如果您生病，您能否请假而不失去工作或受到经济处罚？',
+    'a33_worker_W3':'您是否了解自己的节假日、年假和病假权利？',
+    'a41_mgmt_M1':'所有工人的所有正常工时是否获得不低于约定/最低工资，并适用同工同酬原则？',
+    'a41_mgmt_M2':'加班是否按至少正常工资125%的比率进行补偿？',
+    'a41_mgmt_M3':'离职或被解雇的工人是否在最后工作日后一个月内获得全部未付工资？',
+    'a41_doc_D1':'工资记录是否确认所有工人的所有正常工时均获得不低于约定/最低工资的报酬？',
+    'a41_doc_D2':'记录是否确认加班按至少正常工资125%的比率支付？',
+    'a41_doc_D3':'工资是否直接支付给工人，且没有未经授权的扣款（包括纪律处罚或防护装备）？',
+    'a41_worker_W1':'您是否在所有工作时间获得至少最低工资，加班获得更高比率的报酬？',
+    'a41_worker_W2':'您的工资是否按时支付，没有不明原因的延误？',
+    'a41_worker_W3':'是否曾因纪律处罚或个人防护装备费用而被扣除工资？',
+    'a42_mgmt_M1':'是否每个支付周期向工人提供显示正常工时、加班工时、工资率和所有扣款的工资单？',
+    'a42_mgmt_M2':'工人的法定保险缴纳（养老、医疗、工伤）是否在工资单上清晰列明？',
+    'a42_doc_D1':'工资单记录是否准确显示正常工时、加班工时、薪酬率和分项扣款？',
+    'a42_doc_D2':'工资记录是否无未经授权的纪律扣款？',
+    'a42_worker_W1':'您是否每个支付周期收到清楚显示工时、工资率和所有扣款的工资单？',
+    'a42_worker_W2':'您能否理解工资单上的信息？',
+    'a43_mgmt_M1':'所有法定扣款（税款、社会保险）是否计算正确？',
+    'a43_mgmt_M2':'这些扣款是否在法律规定的时限内提交至相关政府部门？',
+    'a43_doc_D1':'记录是否确认法定保险缴纳（按工人）计算正确？',
+    'a43_doc_D2':'付款记录是否确认已及时向政府部门提交缴纳款项？',
+    'a43_worker_W1':'是否有您未同意或无法解释的工资扣款？',
+    'a51_mgmt_M1':'是否有涵盖招聘、薪酬、晋升、培训和解雇的明确反歧视和反骚扰政策？',
+    'a51_mgmt_M2':'是否要求工人进行怀孕检测、贞操检测或歧视性医学检测作为就业条件？',
+    'a51_mgmt_M3':'是否有功能完善且便于使用的投诉机制，用于举报歧视或骚扰？',
+    'a51_doc_D1':'人事记录（工资、福利、招聘、晋升、纪律、解雇）是否无基于受保护特征的歧视证据？',
+    'a51_doc_D2':'投诉记录是否无未解决的骚扰或不人道对待案例？',
+    'a51_doc_D3':'招聘广告、申请表或劳动合同中是否无歧视性条件？',
+    'a51_worker_W1':'您个人是否在本设施经历或目睹过歧视、骚扰或不人道对待？',
+    'a51_worker_W2':'您是否见过工人因种族、性别、宗教、国籍或其他个人特征而受到不同对待？',
+    'a51_worker_W3':'如果您遭遇骚扰或歧视，您是否知道如何举报？',
+    'a52_mgmt_M1':'所有纪律措施是否正式记录并经管理层审查？',
+    'a52_mgmt_M2':'工人是否被告知对其采取纪律措施的原因，并获得回应机会？',
+    'a52_doc_D1':'纪律记录是否显示所有案例均有工人签名或书面确认？',
+    'a52_doc_D2':'是否没有包含不人道、歧视性或骚扰性纪律措施的记录？',
+    'a52_worker_W1':'如果您受到了纪律处分，您是否被告知原因并获得了回应机会？',
+    'a52_worker_W2':'您是否经历或目睹过体罚、公开羞辱或言语暴力等纪律措施？',
+    'a53_mgmt_M1':'是否审查并记录合理的宗教便利申请（祈祷时间、着装、饮食）？',
+    'a53_mgmt_M2':'当宗教便利被拒绝时，是否以书面形式将原因告知申请工人？',
+    'a53_doc_D1':'宗教便利申请记录是否包含决定及提供给工人的理由？',
+    'a53_doc_D2':'在有申请的情况下，是否提供了充足的祈祷/宗教场所？',
+    'a53_worker_W1':'如果您申请了宗教便利，是否得到了尊重并在合理时间内处理？',
+    'a54_mgmt_M1':'是否审查、记录并在可能的情况下实施合理的残障便利申请？',
+    'a54_mgmt_M2':'是否为所有已识别的残障保存残障评估和效果评估报告？',
+    'a54_doc_D1':'残障便利申请记录是否包含决定及向工人提供的理由？',
+    'a54_doc_D2':'对被认定为无效的便利措施是否有书面纠正行动计划？',
+    'a54_worker_W1':'您或同事是否申请过残障便利？若有，是否得到了适当且及时的处理？',
+    'a61_mgmt_M1':'工人是否有自由加入、组建或不参加工会或工人代表机构，而不受管理层干涉？',
+    'a61_mgmt_M2':'管理层是否在工会活动方面保持中立，仅限于提供会议场所或材料？',
+    'a61_doc_D1':'记录是否显示无与工会活动或结社自由相关的暴力、威胁或报复事件？',
+    'a61_doc_D2':'工资记录是否确认工会代表或成员与担任类似职能的其他工人获得同等报酬？',
+    'a61_doc_D3':'内部通信记录是否显示无限制工人结社自由通信的内容？',
+    'a61_worker_W1':'您是否知道本设施中有工人因加入或组建工会而受到威胁、处罚或打击报复？',
+    'a61_worker_W2':'您是否感到可以自由加入或不加入工人代表机构，而不必担心任何负面后果？',
+    'a62_mgmt_M1':'每当工人代表机构提出要求时，管理层是否以诚信参与集体谈判？',
+    'a62_mgmt_M2':'集体谈判协议（CBA）的所有条款和条件是否得到完全落实？',
+    'a62_doc_D1':'是否没有管理层拒绝工人代表机构提出的谈判请求的记录？',
+    'a62_doc_D2':'在存在CBA的情况下，记录是否确认所有条款均已落实？',
+    'a62_worker_W1':'您是否知道管理层曾拒绝工人代表提出的谈判请求？',
+    'a62_worker_W2':'您是否了解自己在本设施的集体谈判权利？',
+  },
+};
+
+function t(k){return(T[S.lang]||T.en)[k]||(T.en)[k]||k}
+function qt(item,type,id){
+  if(S.lang==='en')return null;
+  return(QT[S.lang]||{})[`${item}_${type}_${id}`]||null;
+}
+function iTitle(id){return((IT[S.lang]||{})[id]||{}).title||ITEMS[id].title}
+function iDesc(id){return((IT[S.lang]||{})[id]||{}).desc||ITEMS[id].desc}
+
+const initState=()=>({
+  screen:'setup', item:null, step:null,
+  lang:'en',
+  country:'',
+  law:{resignNotice:'',docRetention:null,minAge:'',minWage:'',maxWeekHrs:'',otPremium:''},
+  ans:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
+  fees:{reimbursed:null,workerPct:'',feeAmtPct:''},
+  hours31:{maxHours:'',pctOver:''},
+  days32:{maxDays:'',pctOver:''},
+  done:{},
+});
+let S=initState();
+
+// ─── RATING ───────────────────────────────────
+const LVL=['conformance','minor','major','priority'];
+const maxR=(a,b)=>LVL.indexOf(a)>=LVL.indexOf(b)?a:b;
+const RL={priority:'Priority',major:'Major',minor:'Minor',conformance:'Conformance'};
+const RLs=()=>({priority:t('immediate'),major:t('majorF'),minor:t('minorF'),conformance:'Conformance'});
+const RDESC=()=>({
+  priority:t('priorityDesc'),major:t('majorDesc'),minor:t('minorDesc'),conformance:t('conformanceDesc')
+});
+const RCOL={priority:'var(--P)',major:'var(--M)',minor:'var(--m)',conformance:'var(--C)'};
+const RBGCOL={priority:'#fff0ee',major:'#fff8ee',minor:'#fffde0',conformance:'#f0faf3'};
+const RK={priority:'P',major:'M',minor:'m',conformance:'C'};
+
+function secRating(qKey,answers){
+  let r='conformance';
+  for(const q of (Q[qKey]||[])){
+    const a=answers[q.id.toLowerCase()];
+    if(!a||a==='na') continue;
+    if(['fee','hours','days','a13f'].includes(q.sev)) continue;
+    const viol=q.inv?(a==='yes'):(a==='no');
+    if(!viol) continue;
+    r=maxR(r,q.sev==='priority'?'priority':q.sev==='major'?'major':'minor');
+  }
+  return r;
+}
+
+function calcFeeR(){
+  const p=parseFloat(S.fees.workerPct)||0,a=parseFloat(S.fees.feeAmtPct)||0,r=S.fees.reimbursed;
+  if(!r){if(a>=150)return'priority';if(a>=100)return p<1?'major':'priority';if(a>=5)return p<1?'minor':p<=5?'major':'priority';return p<1?'minor':'major';}
+  else{if(a>=100)return'major';if(a>=5)return p<1?'minor':'major';return'minor';}
+}
+function calcHrsR(){
+  const m=parseFloat(S.hours31.maxHours)||0,p=parseFloat(S.hours31.pctOver)||0;
+  if(m>84)return p>5?'priority':p>1?'major':'minor';
+  if(m>72)return p>40?'priority':p>15?'priority':p>5?'major':p>1?'minor':'conformance';
+  if(m>60)return p>40?'priority':p>15?'major':p>5?'minor':'conformance';
+  return p>40?'major':p>5?'minor':'conformance';
+}
+function calcDaysR(){
+  const m=parseFloat(S.days32.maxDays)||0,p=parseFloat(S.days32.pctOver)||0;
+  if(m>=24)return'priority';if(m>12)return p>40?'priority':p>5?'major':'minor';
+  if(m>6)return p>40?'major':p>1?'minor':'conformance';return'conformance';
+}
+
+function calcItem(id){
+  const a=S.ans[id];
+  const parts=[secRating(id+'_mgmt',a.mgmt),secRating(id+'_doc',a.doc),secRating(id+'_worker',a.worker)];
+  if(id==='a11'&&a.doc['d6']==='no')parts.push(calcFeeR());
+  if(id==='a31'&&a.doc['d1']==='no')parts.push(calcHrsR());
+  if(id==='a32'&&a.doc['d1']==='no')parts.push(calcDaysR());
+  // A1.3 Priority → A1.1 also Priority
+  if(id==='a11'&&S.done['a13']&&calcItem('a13')==='priority')parts.push('priority');
+  return parts.reduce(maxR,'conformance');
+}
+
+function calcGrp(g){
+  const its=Object.keys(ITEMS).filter(k=>ITEMS[k].grp===g&&S.done[k]);
+  return its.length?its.map(calcItem).reduce(maxR,'conformance'):null;
+}
+
+function getSteps(id){
+  const b=['mgmt','doc','worker'],sp=[];
+  if(id==='a11'&&S.ans.a11.doc['d6']==='no')sp.push('fee');
+  if(id==='a31'&&S.ans.a31.doc['d1']==='no')sp.push('hours');
+  if(id==='a32'&&S.ans.a32.doc['d1']==='no')sp.push('days');
+  return[...b,...sp,'result'];
+}
+
+function hasAns(id){
+  const a=S.ans[id];
+  return Object.keys(a.mgmt).length+Object.keys(a.doc).length+Object.keys(a.worker).length>0;
+}
+
+function getFindings(qKey,ans){
+  return(Q[qKey]||[]).filter(q=>{
+    const a=ans[q.id.toLowerCase()];
+    if(!a||a==='na')return false;
+    if(['fee','hours','days','a13f'].includes(q.sev))return false;
+    return q.inv?(a==='yes'):(a==='no');
+  }).map(q=>({text:q.text,sev:q.sev}));
+}
+
+// ─── NAV ──────────────────────────────────────
+function openItem(id){S.screen='item';S.item=id;S.step='mgmt';render();window.scrollTo(0,0)}
+function goHome(){S.screen='home';S.item=null;S.step=null;render();window.scrollTo(0,0)}
+function itemNext(){const st=getSteps(S.item),i=st.indexOf(S.step);if(i<st.length-1){S.step=st[i+1];render();window.scrollTo(0,0)}}
+function itemBack(){const st=getSteps(S.item),i=st.indexOf(S.step);if(i>0){S.step=st[i-1];render();window.scrollTo(0,0)}else goHome()}
+function setAns(id,type,qid,val){S.ans[id][type][qid.toLowerCase()]=val;render()}
+
+// ─── RENDER HELPERS ───────────────────────────
+function nav(title,back,rightLabel,rightFn){
+  return`<div class="nav">
+    ${back?`<button class="nbtn" onclick="${back}">${back.includes('goHome')?'← Items':'← Back'}</button>`:'<span style="min-width:44px"></span>'}
+    <span class="ntitle">${title}</span>
+    ${rightLabel?`<button class="nbtn r" onclick="${rightFn}">${rightLabel}</button>`:'<span style="min-width:44px"></span>'}
+  </div>`;
+}
+function pbar(lbl,cur,tot){
+  return`<div class="pbar"><div class="plbl">${lbl} · ${t('step')} ${cur} ${t('of')} ${tot}</div>
+  <div class="ptrack"><div class="pfill" style="width:${Math.round(cur/tot*100)}%"></div></div></div>`;
+}
+function stepName(s){return{mgmt:t('mgmt'),doc:t('doc'),worker:t('worker'),fee:t('fee'),hours:t('hours'),days:t('days'),result:t('result')}[s]||s}
+function badge(r){const k=RK[r]||'ns';return`<span class="icbadge ${k}">${RL[r]||'—'}</span>`}
+
+function qcard(q,id,type,ans){
+  const a=ans[q.id.toLowerCase()];
+  const viol=a?(q.inv?(a==='yes'):(a==='no')):false;
+  let cc='qcard';
+  if(a){cc+=a==='na'?' vna':viol?' vn':' vy'}
+  const yc=a==='yes'?(q.inv?'sn':'sy'):'';
+  const nc=a==='no'?(q.inv?'sy':'sn'):'';
+  const nac=a==='na'?'sna':'';
+  const isDoc=type==='doc';
+  const txt=qt(id,type,q.id)||q.text;
+  return`<div class="${cc}">
+    <div class="qid">${q.id}</div>
+    <div class="qtxt">${txt}</div>
+    ${q.hint?`<div class="qhint">${q.hint}</div>`:''}
+    <div class="qbtns">
+      <button class="qbtn ${yc}" onclick="setAns('${id}','${type}','${q.id}','yes')">${isDoc?t('confirmed'):t('yes')}</button>
+      <button class="qbtn ${nc}" onclick="setAns('${id}','${type}','${q.id}','no')">${isDoc?t('notConfirmed'):t('no')}</button>
+      ${q.na?`<button class="qbtn ${nac}" onclick="setAns('${id}','${type}','${q.id}','na')">${t('na')}</button>`:''}
+    </div>
+  </div>`;
+}
+
+function spResult(r){
+  return r?`<div class="spres" style="background:${RBGCOL[r]};border-color:${RCOL[r]}">
+    <span class="spbadge" style="background:${RCOL[r]}">${RL[r]}</span>
+    <div style="font-size:13px">${RLs()[r]}</div>
+  </div>`:`<div style="font-size:12px;color:var(--muted);margin-top:6px">${t('complete')}</div>`;
+}
+
+// ─── SCREENS ──────────────────────────────────
+function screenSetup(){
+  const l=S.law;
+  const lp=`<div style="display:flex;gap:5px;margin-bottom:16px">
+    ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:5px 12px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'var(--blue)':'var(--line)'};background:${S.lang===l?'var(--blue)':'transparent'};color:${S.lang===l?'#fff':'var(--muted)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
+  </div>`;
+  return`${nav('RBA VAP Audit',null,t('skip'),'S.screen=\'home\';render()')}
+  <div class="content">
+    <span class="stag">${t('setup')}</span>
+    <h2 class="stitle">${t('facilitySetup')}</h2>
+    <p class="ssub">${t('setupDesc')}</p>
+    ${lp}
+    <div class="sfield"><label class="slbl">${t('country')}</label>
+      <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
+      <div class="shint">${t('countryHint')}</div>
+    </div>
+    <div class="sfield"><label class="slbl">${t('resignLbl')}</label>
+      <input class="sinput" type="number" placeholder="e.g. 1" value="${l.resignNotice}" oninput="S.law.resignNotice=this.value">
+      <div class="shint">${t('resignHint')}</div>
+    </div>
+    <div class="sfield"><label class="slbl">${t('maxHrsLbl')}</label>
+      <input class="sinput" type="number" placeholder="e.g. 48" value="${l.maxWeekHrs}" oninput="S.law.maxWeekHrs=this.value">
+      <div class="shint">${t('maxHrsHint')}</div>
+    </div>
+    <div class="sfield"><label class="slbl">${t('otLbl')}</label>
+      <input class="sinput" type="number" placeholder="e.g. 25" value="${l.otPremium}" oninput="S.law.otPremium=this.value">
+      <div class="shint">${t('otHint')}</div>
+    </div>
+    <div class="sfield"><label class="slbl">${t('minWageLbl')}</label>
+      <input class="sinput" type="text" placeholder="e.g. 4,680,000" value="${l.minWage}" oninput="S.law.minWage=this.value">
+    </div>
+    <div class="sfield"><label class="slbl">${t('minAgeLbl')}</label>
+      <input class="sinput" type="number" placeholder="e.g. 15" value="${l.minAge}" oninput="S.law.minAge=this.value">
+      <div class="shint">${t('minAgeHint')}</div>
+    </div>
+    <div class="sfield"><label class="slbl">${t('docRetLbl')}</label>
+      <div class="stoggle">
+        <button class="stbtn ${l.docRetention===true?'sel':''}" onclick="S.law.docRetention=true;render()">${t('permitted')}</button>
+        <button class="stbtn ${l.docRetention===false?'sel':''}" onclick="S.law.docRetention=false;render()">${t('notPermitted')}</button>
+      </div>
+    </div>
+    <div class="snote"><strong>${t('roadmap')}</strong></div>
+  </div>
+  <div class="bot"><button class="bp" onclick="S.screen='home';render();window.scrollTo(0,0)">${t('start')}</button></div>`;
+}
+
+function screenHome(){
+  const grpList=['A1','A2','A3','A4','A5','A6'];
+
+  const icard=id=>{
+    const m=ITEMS[id],done=S.done[id],inprog=!done&&hasAns(id);
+    const r=done?calcItem(id):null,k=RK[r]||null;
+    const ccls=`icard${k?' d'+k:''}`;
+    const bcls=done?(k||'C'):inprog?'ip':'ns';
+    const btxt=done?RL[r]:inprog?t('inProgress'):t('notStarted');
+    return`<div class="${ccls}" onclick="openItem('${id}')">
+      <div class="iccode">${m.code}</div>
+      <div class="ictitle">${iTitle(id)}</div>
+      <span class="icbadge ${bcls}">${btxt}</span>
+    </div>`;
+  };
+
+  const grpSec=g=>{
+    const gr=calcGrp(g),k=RK[gr]||null;
+    const gbdg=gr?`<span class="icbadge ${k}" style="font-size:10px">${RL[gr]}</span>`:`<span class="icbadge ns" style="font-size:10px">—</span>`;
+    const its=Object.keys(ITEMS).filter(k=>ITEMS[k].grp===g);
+    return`<div class="grpsec">
+      <div class="grplbl"><span>${g} — ${GRPS[g]}</span>${gbdg}</div>
+      <div class="icards">${its.map(icard).join('')}</div>
+    </div>`;
+  };
+
+  const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);
+  const overall=allDone.length?allDone.map(calcItem).reduce(maxR,'conformance'):null;
+
+  const langPills=`<div style="display:flex;gap:5px;margin-top:10px">
+    ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:4px 10px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'#fff':'rgba(255,255,255,.3)'};background:${S.lang===l?'rgba(255,255,255,.2)':'transparent'};color:${S.lang===l?'#fff':'rgba(255,255,255,.5)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
+  </div>`;
+
+  return`${nav('RBA VAP Audit',null,t('setupBtn'),'S.screen=\'setup\';render()')}
+  <div class="hhero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div class="htitle">${t('laborAudit')}</div>
+      <div class="hsub">${t('selectItem')}</div>
+      ${S.country?`<div class="hcountry">📍 ${S.country}</div>`:''}
+      ${langPills}</div>
+      <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
+    </div>
+    <div class="hsum">
+      ${grpList.map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
+      <div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${overall?RCOL[overall]:'rgba(255,255,255,.3)'}">${overall?RL[overall]:'—'}</div></div>
+    </div>
+  </div>
+  ${grpList.map(grpSec).join('')}
+  <div style="height:20px"></div>`;
+}
+
+function screenItem(){
+  const id=S.item,step=S.step,m=ITEMS[id];
+  const steps=getSteps(id),idx=steps.indexOf(step)+1,tot=steps.length;
+  if(step==='result')return screenResult(id,steps,idx,tot);
+  if(step==='fee')   return screenFee(id,idx,tot);
+  if(step==='hours') return screenHours(id,idx,tot);
+  if(step==='days')  return screenDays(id,idx,tot);
+
+  const qKey=`${id}_${step}`,qs=Q[qKey]||[];
+  const ans=S.ans[id][step];
+  const done=qs.filter(q=>ans[q.id.toLowerCase()]).length;
+  const typeCtx={mgmt:t('mgmtCtx'),doc:t('docCtx'),worker:t('workerCtx')};
+  const isDoc=step==='doc';
+
+  return`${nav(`${m.code} — ${stepName(step)}`,'itemBack()',t('home'),'goHome()')}
+  ${pbar(stepName(step),idx,tot)}
+  <div class="content">
+    <span class="stag">${m.code}</span>
+    <h2 class="stitle">${stepName(step)}</h2>
+    <p class="ssub">${typeCtx[step]||''} · ${done}/${qs.length} ${t('answered')}</p>
+    ${qs.map(q=>qcard(q,id,step,ans)).join('')}
+  </div>
+  <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
+}
+
+function screenFee(id,idx,tot){
+  const f=S.fees,ready=f.reimbursed!==null&&f.workerPct&&f.feeAmtPct,fr=ready?calcFeeR():null;
+  return`${nav('A1.1 — '+t('fee'),'itemBack()',t('home'),'goHome()')}
+  ${pbar(t('fee'),idx,tot)}
+  <div class="content">
+    <span class="stag">A1.1</span>
+    <h2 class="stitle">${t('feeTitle')}</h2>
+    <p class="ssub">${t('feeDesc')}</p>
+    <div class="spbox">
+      <div class="sptitle">⚠️ Fee Matrix Input</div>
+      <div class="sprow"><div class="splbl">${t('feeQ1')}</div>
+        <div class="stoggle">
+          <button class="stbtn ${f.reimbursed===true?'sel':''}" onclick="S.fees.reimbursed=true;render()">${t('feeYes')}</button>
+          <button class="stbtn ${f.reimbursed===false?'sel':''}" onclick="S.fees.reimbursed=false;render()">${t('feeNo')}</button>
+        </div>
+      </div>
+      <div class="sprow"><div class="splbl">${t('feeQ2')}</div>
+        <div class="spsub">${t('feeQ2sub')}</div>
+        <input class="spin" type="number" placeholder="e.g. 2.5" value="${f.workerPct}" oninput="S.fees.workerPct=this.value;render()">
+      </div>
+      <div class="sprow"><div class="splbl">${t('feeQ3')}</div>
+        <div class="spsub">${t('feeQ3sub')}</div>
+        <input class="spin" type="number" placeholder="e.g. 85" value="${f.feeAmtPct}" oninput="S.fees.feeAmtPct=this.value;render()">
+      </div>
+      ${spResult(fr)}
+    </div>
+  </div>
+  <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
+}
+
+function screenHours(id,idx,tot){
+  const h=S.hours31,ready=h.maxHours&&h.pctOver,hr=ready?calcHrsR():null;
+  return`${nav('A3.1 — '+t('hours'),'itemBack()',t('home'),'goHome()')}
+  ${pbar(t('hours'),idx,tot)}
+  <div class="content">
+    <span class="stag">A3.1</span>
+    <h2 class="stitle">${t('hrsTitle')}</h2>
+    <p class="ssub">${t('hrsDesc')}</p>
+    <div class="spbox">
+      <div class="sptitle">⏱ Hours Matrix Input</div>
+      <div class="sprow"><div class="splbl">${t('hrsQ1')}</div>
+        <input class="spin" type="number" placeholder="e.g. 68" value="${h.maxHours}" oninput="S.hours31.maxHours=this.value;render()">
+      </div>
+      <div class="sprow"><div class="splbl">${t('hrsQ2')}</div>
+        <div class="spsub">${t('hrsQ2sub')}</div>
+        <input class="spin" type="number" placeholder="e.g. 12" value="${h.pctOver}" oninput="S.hours31.pctOver=this.value;render()">
+      </div>
+      ${spResult(hr)}
+    </div>
+  </div>
+  <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
+}
+
+function screenDays(id,idx,tot){
+  const d=S.days32,ready=d.maxDays&&d.pctOver,dr=ready?calcDaysR():null;
+  return`${nav('A3.2 — '+t('days'),'itemBack()',t('home'),'goHome()')}
+  ${pbar(t('days'),idx,tot)}
+  <div class="content">
+    <span class="stag">A3.2</span>
+    <h2 class="stitle">${t('daysTitle')}</h2>
+    <p class="ssub">${t('daysDesc')}</p>
+    <div class="spbox">
+      <div class="sptitle">📅 Rest Days Matrix Input</div>
+      <div class="sprow"><div class="splbl">${t('daysQ1')}</div>
+        <input class="spin" type="number" placeholder="e.g. 9" value="${d.maxDays}" oninput="S.days32.maxDays=this.value;render()">
+      </div>
+      <div class="sprow"><div class="splbl">${t('daysQ2')}</div>
+        <input class="spin" type="number" placeholder="e.g. 8" value="${d.pctOver}" oninput="S.days32.pctOver=this.value;render()">
+      </div>
+      ${spResult(dr)}
+    </div>
+  </div>
+  <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
+}
+
+// ─── CAP DATA ─────────────────────────────────
+const CAP_TIMELINE={
+  priority:'⏱ Containment within 24–48 hrs · CAP submitted within 5 business days · Priority closure assessment (on-site) required · Notify customer & RBA APM immediately',
+  major:'⏱ CAP submitted within 30 days of VAR · Corrective actions implemented within 60–90 days · Documentary evidence required',
+  minor:'⏱ CAP submitted within 60 days of VAR · Corrective actions implemented within 90–180 days · Remote verification typically accepted',
+};
+const CAP_ACTIONS={
+  a11:{priority:['Immediately remove all movement restrictions (locks, curfews, guard-controlled exits)','Cease any coercive labor practice and document actions taken','Reimburse all prohibited fees to affected workers within 90 days','Notify customer and RBA APM in writing immediately'],
+    major:['Revise employment contracts — resignation notice ≤1 month, penalty ≤60% of monthly base pay','Establish voluntary overtime policy and communicate to all workers in writing','Audit all labor agent contracts and add explicit fee prohibition clauses','Train HR and supervisors on RBA prohibition of forced labor'],
+    minor:['Publish and post permitted fee schedule to all workers','Update payslip format to clearly itemize any permitted deductions','Conduct worker awareness briefing on fee-related rights']},
+  a12:{priority:['Immediately provide employment contracts to any worker who did not receive one pre-employment','Implement pre-departure contract delivery for all migrant worker hires going forward','Document and retain written evidence of all verbal orientation sessions'],
+    major:['Translate employment contracts into workers\' native languages or provide certified interpreters','Implement pre-employment sign-off checklist confirming contract delivery and understanding','Update onboarding SOP to include verbal orientation with acknowledgment records'],
+    minor:['Create standardized verbal orientation checklist for key contract terms','Establish and retain worker acknowledgment forms for verbal explanations']},
+  a13:{priority:['Return all original personal documents to workers immediately','Issue detailed custody receipts if temporary legal retention is required','Eliminate all fees related to document safekeeping immediately'],
+    major:['Amend document retention policy to prohibit holding of original IDs','Train HR on RBA document retention rules and 12-hour access guarantee','Conduct full audit of personnel files for original documents'],
+    minor:['Develop custody receipt template (reason, duration, access procedure)','Install secure personal lockers in dormitory or living areas for document self-storage']},
+  a21:{priority:['Remove any identified underage workers from work immediately — do not simply terminate','Implement comprehensive remediation plan: income maintenance + schooling support','Conduct full workforce age verification audit within 5 business days'],
+    major:['Implement mandatory government-ID age verification for all new hires','Update minimum age policy to meet or exceed RBA standard of 15 years','Train all recruitment and HR staff on age verification procedures'],
+    minor:['Ensure all personnel files include copies of age-verification documents','Schedule periodic age verification audits (minimum annually)']},
+  a22:{priority:['Immediately reassign all workers under 18 away from hazardous, night, and overtime roles','Conduct emergency review of all young worker assignments and work schedules','Document all reassignments with dates and new role assignments'],
+    major:['Build a young worker register and integrate with scheduling system to flag restrictions','Update scheduling SOP to automatically block young workers from night shifts and OT'],
+    minor:['Schedule mandatory health checks for young workers as required by local law','Ensure health check results are filed in personnel records']},
+  a23:{priority:['Immediately halt any use of labor agencies for student worker recruitment','Reassign student workers performing tasks unrelated to their field of study'],
+    major:['Execute tri-partite agreements with all current student workers, schools, and facility','Establish learning objective tracking system and regular progress evaluations','Verify active enrollment for all student workers at their educational institution'],
+    minor:['Update working hours records to confirm no conflicts with school schedules','Ensure learner records include objectives, assignments, and performance evaluations']},
+  a31:{priority:['Implement immediate mandatory management approval for any hours approaching 60/week','Formally notify all workers of their unconditional right to refuse overtime','Remove any overtime requirements or implicit obligations from contracts and policies'],
+    major:['Deploy weekly hours monitoring report reviewed by compliance/HR management','Revise production planning to eliminate reliance on excessive overtime','Conduct supervisor training: 60-hour limit, voluntary OT, and RBA requirements'],
+    minor:['Implement early-warning alerts when workers approach 55 hours/week','Improve time-recording accuracy and access controls to prevent falsification']},
+  a32:{priority:['Enforce mandatory rest day schedule immediately for all affected workers','Calculate and compensate any workers for unlawful consecutive work periods'],
+    major:['Revise scheduling system to enforce minimum 1 day off per 7 days for all workers','Train production planners and supervisors on RBA rest day requirements','Implement scheduling audit process with compliance sign-off'],
+    minor:['Document all emergency exceptions with proper justification and management sign-off','Conduct retrospective records review; compensate affected workers if underpaid']},
+  a33:{priority:['Immediately communicate to all workers that sick leave cannot result in job loss or financial penalty','Cease any practice that penalizes sick or maternity leave use — document remediation actions'],
+    major:['Update leave policy to fully comply with local law for all leave types','Train all supervisors on mandatory break schedules and leave entitlements','Implement maternity/paternity leave tracking and approval process'],
+    minor:['Post leave entitlement summary in multiple languages in common areas','Conduct worker awareness session on break and leave rights']},
+  a41:{priority:['Immediately calculate and pay all outstanding delayed wages to affected workers','Conduct full payroll audit to identify all underpayment and implement remediation within 30 days'],
+    major:['Correct OT calculation methodology to minimum 125% of regular rate','Implement formal process to settle all final wages within 1 month of departure','Conduct payroll accuracy audit covering 3+ months; correct and document all errors'],
+    minor:['Investigate and correct isolated payroll discrepancies','Implement regular payroll accuracy review process (monthly recommended)']},
+  a42:{priority:['Issue corrected payslips immediately for all affected pay periods'],
+    major:['Redesign payslip to include all required items: regular hrs, OT hrs, pay rates, itemized deductions, and insurance contributions','Implement payslip verification process before distribution to workers'],
+    minor:['Simplify payslip design for worker comprehension — use plain language','Conduct worker orientation session on how to read and verify payslips']},
+  a43:{priority:['Immediately remit all overdue statutory contributions — late penalties must be borne by employer, not workers','Provide workers with written evidence of all remittances made on their behalf'],
+    major:['Engage payroll specialist to audit and correct all contribution calculations','Implement monthly statutory contribution reconciliation and payment calendar'],
+    minor:['Conduct payroll audit to confirm calculation accuracy by worker','Create automated reminders for all statutory submission deadlines']},
+  a51:{priority:['Immediately investigate confirmed discrimination/harassment case using a qualified independent investigator','Provide support, protection from retaliation, and remedy to affected workers','Document all investigation steps and outcomes — share findings with RBA APM'],
+    major:['Publish anti-discrimination and anti-harassment policy to all workers in their language','Strengthen or establish grievance mechanism with accessible reporting channels','Remove all discriminatory language from job postings, application forms, and contracts'],
+    minor:['Conduct anti-harassment and anti-discrimination training for all staff and supervisors','Implement periodic HR process audits for unconscious bias in hiring and promotion']},
+  a52:{priority:['Immediately stop all confirmed inhumane disciplinary practices','Provide support and remediation to affected workers — document all actions taken'],
+    major:['Revise disciplinary procedure to eliminate any non-compliant practices','Conduct mandatory disciplinary practice training for all supervisors and managers','Implement management sign-off requirement for all disciplinary actions'],
+    minor:['Audit all historical disciplinary records for missing worker acknowledgment signatures','Update record templates to include worker signature/acknowledgment field']},
+  a53:{priority:['Immediately review and reconsider all unreasonably refused religious accommodation requests','Provide written justification to the requesting worker for any denial'],
+    major:['Develop formal religious accommodation request, review, and decision process','Train HR managers on reasonable accommodation obligations and approval criteria'],
+    minor:['Designate a prayer/quiet room or space where feasible and requested','Implement accommodation request log — record all requests, decisions, and reasons']},
+  a54:{priority:['Immediately implement emergency interim accommodation measures for all denied disability requests'],
+    major:['Develop formal disability accommodation assessment and review process','Engage a qualified disability specialist to assess all workplace accommodation needs'],
+    minor:['Complete effectiveness evaluations for all existing disability accommodations','Create documented CAPs for any accommodation found to be inadequate or ineffective']},
+  a61:{priority:['Investigate all confirmed threats or retaliation against union members immediately','Protect affected workers from further retaliation — document all protective measures taken','Issue formal management statement guaranteeing workers\' freedom of association rights'],
+    major:['Issue written management neutrality statement on freedom of association','Conduct mandatory training for all managers and supervisors on FOA rights','Review and remove any communication policies that restrict workers\' FOA rights'],
+    minor:['Conduct payroll review to confirm equal pay for union representatives','Ensure all internal communication channels are accessible to worker representatives']},
+  a62:{priority:['Immediately engage in good-faith collective bargaining negotiations with the worker representative body','Document all negotiation activities with meeting minutes and signed attendance records'],
+    major:['Establish formal CBA negotiation timeline and good-faith engagement process','Conduct full audit of all outstanding CBA terms and implement any unimplemented provisions','Train HR management on collective bargaining legal obligations'],
+    minor:['Schedule regular CBA implementation review meetings (quarterly recommended)','Conduct CBA compliance audit and document findings and corrective steps']},
+};
+const CAP_EVIDENCE={
+  a11:['Revised employment contracts (notice period + penalty clauses)','Updated labor agent contracts with explicit fee prohibition','Voluntary OT consent forms or policy','Worker reimbursement records (if fees were paid)'],
+  a12:['Pre-employment contract sign-off checklist','Translated contract samples with worker acknowledgment','Verbal orientation acknowledgment forms'],
+  a13:['Updated document retention policy','Personnel file audit showing no original IDs','Custody receipts issued to workers (if applicable)'],
+  a21:['Updated age verification procedure + personnel file audit','Remediation plan documentation (if underage workers found)','Training records for recruitment and HR staff'],
+  a22:['Young worker register with confirmed non-hazardous role assignments','Updated work schedules for workers under 18','Health check records where required by local law'],
+  a23:['Tri-partite agreements for all student workers','Learner records with objectives and evaluations','Working hours records confirming no school schedule conflicts'],
+  a31:['Updated OT policy with voluntary consent requirement','3-month working hours analysis reports post-remediation','Supervisor training completion records'],
+  a32:['Updated work schedules showing mandatory rest days','3-month attendance records post-remediation','Exception justification records (emergency situations)'],
+  a33:['Updated leave policy (sick, maternity, annual)','Leave records showing compliance post-remediation','Worker communication: leave entitlement posters or notices'],
+  a41:['Corrected payroll records for affected workers','Updated OT calculation methodology documentation','Evidence of final wage payment for leavers'],
+  a42:['Sample corrected payslips with all required line items','Payslip redesign documentation','Worker acknowledgment of new payslip format'],
+  a43:['Statutory contribution calculation records by individual worker','Government agency remittance receipts','Monthly reconciliation reports'],
+  a51:['Updated anti-discrimination policy (published, translated)','Investigation report (if a case was found)','Anti-harassment training completion records'],
+  a52:['Updated disciplinary procedure','Revised disciplinary records with worker signatures','Supervisor training records on permissible practices'],
+  a53:['Religious accommodation request log + decision records','Facility photos of prayer/religious areas','Updated accommodation policy'],
+  a54:['Disability accommodation request + decision records','Effectiveness evaluation reports','CAPs for any ineffective accommodations'],
+  a61:['Written management neutrality statement on FOA','Training records for managers/supervisors','Payroll analysis confirming equal pay for union representatives'],
+  a62:['Collective bargaining negotiation meeting minutes','CBA compliance audit report','Evidence of implementation of all CBA provisions'],
+};
+
+function capSection(id,r){
+  if(r==='conformance')return`<div class="capbox C" style="margin-top:4px">
+    <div class="cap-head">✅ ${t('capTitle')}</div>
+    <div style="font-size:13px;color:var(--muted)">${t('noCAP')}</div>
+  </div>`;
+  const k=RK[r];
+  const actions=(CAP_ACTIONS[id]||{})[r]||[];
+  const evidence=CAP_EVIDENCE[id]||[];
+  return`<div class="capbox ${k}">
+    <div class="cap-head">📋 ${t('capTitle')} — ${RL[r]}</div>
+    <div class="cap-timeline">${CAP_TIMELINE[r]||''}</div>
+    <div class="cap-section">${t('recActions')}</div>
+    ${actions.map(a=>`<div class="cap-li">${a}</div>`).join('')}
+    <div class="cap-section">${t('keyEvidence')}</div>
+    ${evidence.map(e=>`<div class="cap-li">${e}</div>`).join('')}
+  </div>`;
+}
+
+function screenResult(id,steps,idx,tot){
+  S.done[id]=true;
+  const m=ITEMS[id],r=calcItem(id),k=RK[r];
+  const a=S.ans[id];
+  const mr=secRating(id+'_mgmt',a.mgmt),dr=secRating(id+'_doc',a.doc),wr=secRating(id+'_worker',a.worker);
+
+  const all=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+  if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')all.push({text:`Prohibited fees found — ${S.fees.workerPct||'?'}% of workers, ${S.fees.feeAmtPct||'?'}% of monthly salary`,sev:fr});}
+  if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')all.push({text:`Hours exceed 60/week — max ${S.hours31.maxHours||'?'} hrs, ${S.hours31.pctOver||'?'}% of sampled weeks`,sev:hr});}
+  if(id==='a32'&&a.doc['d1']==='no'){const dr=calcDaysR();if(dr!=='conformance')all.push({text:`Consecutive days exceed 6 — max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr});}
+
+  const l=S.law,lawNotes=[];
+  if((id==='a11'||id==='a12')&&l.resignNotice&&parseFloat(l.resignNotice)>1) lawNotes.push(`Local notice period (${l.resignNotice} months) exceeds RBA max of 1 month — RBA standard applies`);
+  if(id==='a13'&&l.docRetention===true) lawNotes.push('Local law permits document retention — immediate-access (≤12 hrs) and zero-fee procedures must be strictly enforced');
+  if((id==='a21'||id==='a22')&&l.minAge&&parseInt(l.minAge)<15) lawNotes.push(`Local minimum age (${l.minAge}) is below RBA minimum of 15 — RBA standard of 15 years applies`);
+  if(id==='a31'&&l.maxWeekHrs&&parseInt(l.maxWeekHrs)<60) lawNotes.push(`Local max hours (${l.maxWeekHrs}/week) is stricter than RBA 60 hrs — local standard applies`);
+  if(id==='a41'&&l.otPremium&&parseFloat(l.otPremium)<25) lawNotes.push(`Local OT premium (${l.otPremium}%) is below RBA minimum of 25% above regular rate — RBA standard (125%) applies`);
+
+  return`${nav(`${m.code} — Result`,'itemBack()','🏠 Home','goHome()')}
+  ${pbar('Result',idx,tot)}
+  <div class="content">
+    <span class="stag">${m.code}</span>
+    <h2 class="stitle">${m.title}</h2>
+    <div class="rcard ${k}" style="margin-top:12px">
+      <span class="rbadge">${RL[r]}</span>
+      <div class="rtitle">${RLs()[r]}</div>
+      <div class="rdesc">${RDESC()[r]}</div>
+    </div>
+    <div class="step-pills">
+      <div class="step-pill ${RK[mr]||'C'}">Mgmt<br>${RL[mr]}</div>
+      <div class="step-pill ${RK[dr]||'C'}">Doc<br>${RL[dr]}</div>
+      <div class="step-pill ${RK[wr]||'C'}">Worker<br>${RL[wr]}</div>
+    </div>
+    ${all.length?`<div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:7px">${t('findings')} (${all.length})</div>
+    <div class="flist">${all.map(f=>`<div class="fitem"><div class="fdot ${RK[f.sev]||'M'}"></div><div class="ftxt">${f.text}</div></div>`).join('')}</div>`
+    :`<div class="fok">${t('noFindings')}</div>`}
+    ${lawNotes.length?`<div style="font-size:13px;font-weight:700;color:var(--muted);margin:11px 0 7px">${t('lawNotes')}</div>
+    ${lawNotes.map(n=>`<div class="fitem" style="border-color:#e8c800"><div class="fdot" style="background:var(--m);margin-top:5px;flex-shrink:0"></div><div class="ftxt">${n}</div></div>`).join('')}`:''}
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin:14px 0 7px">📋 ${t('capTitle')}</div>
+    ${capSection(id,r)}
+    <div style="height:16px"></div>
+  </div>
+  <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="goHome()">${t('home')}</button></div>`;
+}
+
+// ─── MAIN ─────────────────────────────────────
+function render(){
+  document.getElementById('app').innerHTML=
+    S.screen==='setup'?screenSetup():
+    S.screen==='home'?screenHome():
+    S.screen==='item'?screenItem():'';
+}
+render();
+</script>
+</body>
+</html>
