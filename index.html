@@ -191,8 +191,17 @@ const ITEMS={
   a54:{code:'A5.4',title:'Disability Accommodation',desc:'Reasonable disability requests considered',grp:'A5'},
   a61:{code:'A6.1',title:'Freedom of Association',desc:'Workers free to join/form unions',grp:'A6'},
   a62:{code:'A6.2',title:'Collective Bargaining',desc:'Bargaining rights respected in good faith',grp:'A6'},
+  am11:{code:'AM.1.1',title:'Compliance Process',desc:'Quarterly process to track applicable laws',grp:'AM'},
+  am12:{code:'AM.1.2',title:'Risk Assessment',desc:'Due diligence on actual and potential labor risks',grp:'AM'},
+  am21:{code:'AM.2.1',title:'Roles & Responsibilities',desc:'Labor compliance responsibilities assigned at all levels',grp:'AM'},
+  am22:{code:'AM.2.2',title:'Policies & Controls',desc:'Adequate labor policies and effective control processes',grp:'AM'},
+  am23:{code:'AM.2.3',title:'Training',desc:'Labor compliance training for all managers and workers',grp:'AM'},
+  am31:{code:'AM.3.1',title:'Communication',desc:'Two-way communication on labor practices',grp:'AM'},
+  am32:{code:'AM.3.2',title:'Grievance Mechanism',desc:'Anonymous reporting without fear of reprisal',grp:'AM'},
+  am41:{code:'AM.4.1',title:'Performance Review',desc:'Annual management review of labor system',grp:'AM'},
+  am42:{code:'AM.4.2',title:'Self-Audit',desc:'Periodic self-audit against RBA Code',grp:'AM'},
 };
-const GRPS={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association'};
+const GRPS={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System'};
 
 // ─── QUESTIONS ────────────────────────────────
 const Q={
@@ -469,6 +478,105 @@ const Q={
     {id:'W1',text:'Are you aware of management refusing to negotiate with elected worker representatives?',sev:'major',inv:true},
     {id:'W2',text:'Do you know your rights regarding collective bargaining at this facility?',sev:'minor'},
   ],
+
+  // ── A.M LABOR MANAGEMENT SYSTEM ──
+  am11_mgmt:[
+    {id:'M1',text:'Is there a quarterly process to identify, track, and update compliance with applicable labor laws and customer requirements?',hint:'This should be a scheduled, documented process — not just reacting when an audit occurs. Ask to see the last quarterly review records.',sev:'major'},
+    {id:'M2',text:'Is there a documented system to track and renew permits, certifications, and licenses before they expire?',hint:'e.g. A compliance calendar showing upcoming renewal dates for work permits, business licenses, health & safety certifications. Expired licenses found = Major.',sev:'major'},
+  ],
+  am11_doc:[
+    {id:'D1',text:'Is there an accurate, current compliance register listing all applicable labor laws and regulations?',hint:'The register should name specific laws (e.g. Labor Standards Act Art.52, Minimum Wage Act), their requirements, and when they were last reviewed.',sev:'major'},
+    {id:'D2',text:'Are compliance calendar reminders or scheduled review tasks documented and in place?',hint:'Look for: calendar entries, email reminders, task management system records, or a compliance schedule with owner assignments.',sev:'minor'},
+  ],
+
+  am12_mgmt:[
+    {id:'M1',text:'Is there a formal process to identify and assess significant labor risks for all worker groups (direct, indirect, migrant, young)?',hint:'"Due diligence" = a proactive, systematic process — not just waiting for problems to surface. It must cover ALL worker types, not only permanent direct hires.',sev:'major'},
+    {id:'M2',text:'Is the risk assessment updated when significant changes occur (new production process, new supplier, new worker population)?',hint:'Significant change examples: starting to hire migrant workers, adding a new production line, taking on a new major customer with stricter requirements.',sev:'major'},
+  ],
+  am12_doc:[
+    {id:'D1',text:'Is there an up-to-date risk assessment report covering all facility operations and all required stakeholder groups?',hint:'Check the date — if the last assessment is over 2 years old or there has been a significant change since, it is likely out of date.',sev:'major'},
+    {id:'D2',text:'Does the risk assessment include all required groups: direct workers, indirect/contract workers, migrant workers, young workers, and on-site contractors?',hint:'Each group has different risk profiles. A risk assessment covering only direct permanent workers is incomplete.',sev:'major'},
+  ],
+
+  am21_mgmt:[
+    {id:'M1',text:'Is a senior-level representative formally assigned responsibility for labor compliance and RBA conformance?',hint:'This must be a named person with actual authority to implement corrective actions — not just a job title on paper. Ask: "Who is that person and what decisions can they make without approval?"',sev:'major'},
+    {id:'M2',text:'Are labor compliance responsibilities defined at every relevant organizational level — management, supervisors, and HR?',hint:'It should be clear what each level is responsible for. e.g. Supervisors = monitor daily working hours; HR = maintain personnel records; Senior management = approve CAPs.',sev:'major'},
+  ],
+  am21_doc:[
+    {id:'D1',text:'Do job descriptions formally assign labor compliance responsibilities at each relevant level?',hint:'Check that compliance tasks appear in actual job descriptions — not just verbally agreed. If compliance is not in the job description, it may not be prioritized.',sev:'major'},
+    {id:'D2',text:'Are emergency labor compliance responsibilities also documented (not only normal operations)?',hint:'e.g. Who is responsible for contacting the labor authority if a serious injury occurs? Who handles an anonymous grievance during a public holiday?',sev:'minor'},
+  ],
+  am21_worker:[
+    {id:'W1',text:'Do you know who at this facility is responsible for labor rights and working conditions issues?',hint:'Workers should be able to name a specific person or department (e.g. "HR Manager" or "the compliance officer on the 3rd floor"). Vague answers ("someone in HR") suggest poor communication.',sev:'minor'},
+  ],
+
+  am22_mgmt:[
+    {id:'M1',text:'Are written labor policies in place covering all required RBA Code areas (forced labor, child labor, hours, wages, non-discrimination, freedom of association)?',hint:'Each topic must be explicitly addressed. A general "we follow all laws" statement is NOT sufficient — specific prohibitions and commitments must be stated.',sev:'major'},
+    {id:'M2',text:'Does each labor policy have a documented implementation (control) process to ensure it is effectively followed in practice?',hint:'A policy without a control process is just a document. e.g. Policy says "no child labor" → control process = ID verification at hiring + cross-reference two ID types.',sev:'major'},
+    {id:'M3',text:'Are all labor agents and contractors contractually required to comply with the facility\'s labor policies?',hint:'Check that service provider contracts include explicit RBA/labor compliance clauses — not just a generic "comply with local law" line.',sev:'major'},
+  ],
+  am22_doc:[
+    {id:'D1',text:'Do written labor policies address all required RBA Code elements?',hint:'Use the policy checklist: forced labor, document retention, fees, child labor, young workers, working hours, days off, wages, non-discrimination, harassment, FOA, grievance. All must be present.',sev:'major'},
+    {id:'D2',text:'Are risk control records available showing that the effectiveness of each control is regularly evaluated?',hint:'Controls must be monitored — not just set up. Look for: monitoring logs, audit trail records, supervisor verification records, or periodic control effectiveness review reports.',sev:'major'},
+    {id:'D3',text:'Are minimum on-site records maintained: wages paid, hours worked, age verification, grievances, training records, and self-audit reports?',hint:'These are the minimum required records per RBA. All must be present, accurate, complete, and securely stored with appropriate access controls.',sev:'major'},
+  ],
+  am22_worker:[
+    {id:'W1',text:'Have you been given or shown the company\'s policies on your rights as a worker (wages, hours, treatment, grievances)?',hint:'Workers don\'t need to quote the policy verbatim, but they should know it exists and where to find it. If no worker has seen a labor policy = significant communication failure.',sev:'minor'},
+  ],
+
+  am23_mgmt:[
+    {id:'M1',text:'Is there a structured training program covering all labor policies and RBA requirements for both managers and workers?',hint:'The program should include: new hire orientation, periodic refresher training, and specialized training for roles with higher labor risk (e.g. recruiters, supervisors, dormitory managers).',sev:'major'},
+    {id:'M2',text:'Does every new worker receive orientation covering labor rights and company policies within 30 days of hire?',hint:'>5% of workers not trained within 30 days of hire = Major finding. More than 5% with no training = likely Major/Priority.',sev:'major'},
+  ],
+  am23_doc:[
+    {id:'D1',text:'Are training records available showing all workers and managers have completed required labor compliance training?',hint:'Records should show: worker name, training topic, date completed, trainer/facilitator name. Records covering <95% of the workforce = likely a finding.',sev:'major'},
+    {id:'D2',text:'Do training records include evidence of training effectiveness (e.g. test scores, supervisor verification, post-training acknowledgment)?',hint:'Attendance records alone are not sufficient. There must be evidence the training was understood — e.g. a short written test, a demonstration, or a supervisor sign-off that the worker can apply the content.',sev:'minor'},
+  ],
+  am23_worker:[
+    {id:'W1',text:'Did you receive training or an orientation on labor rights, company policies, and how to report concerns when you first joined?',hint:'If the worker says they only received safety or job skills training with no mention of labor rights, wages, or grievance process = gap in training.',sev:'major'},
+  ],
+
+  am31_mgmt:[
+    {id:'M1',text:'Is there an ongoing two-way communication process allowing workers to give feedback on working conditions and labor practices?',hint:'"Two-way" = workers can SEND feedback, not just receive announcements. Examples: regular surveys, suggestion boxes with visible responses, worker-management committees, town halls.',sev:'major'},
+    {id:'M2',text:'Are external stakeholders (suppliers, local community, customers) included in relevant labor-related communications?',hint:'This doesn\'t need to be frequent, but there must be an established channel. e.g. Supplier communication on RBA code expectations, community engagement records.',sev:'minor'},
+  ],
+  am31_doc:[
+    {id:'D1',text:'Are records of worker feedback sessions, surveys, or focus groups maintained and show evidence feedback was acted upon?',hint:'The key word is "acted upon." If workers gave feedback but nothing changed and there is no record of a response = communication exists but is not effective.',sev:'major'},
+    {id:'D2',text:'Do records confirm that worker feedback was received, reviewed, and responded to in a timely manner?',hint:'Look for: survey result summaries, meeting minutes showing feedback was discussed, follow-up actions assigned with owners and deadlines.',sev:'minor'},
+  ],
+  am31_worker:[
+    {id:'W1',text:'Are there accessible ways for you to give feedback or raise suggestions about working conditions?',hint:'Ask: "Has anything changed at this facility based on worker feedback?" If the worker is unaware of any feedback channel = communication gap.',sev:'major'},
+  ],
+
+  am32_mgmt:[
+    {id:'M1',text:'Is there an anonymous grievance reporting channel that workers can use without fear of retaliation or intimidation?',hint:'"Anonymous" = the worker\'s identity is not revealed to their supervisor or the person the grievance is about. Ask: "How does a worker report a grievance about their own supervisor?" If the only channel is through that supervisor = not adequate.',sev:'major'},
+    {id:'M2',text:'Are all grievances investigated promptly, with corrective actions taken and communicated back to the complainant?',hint:'Grievances not investigated within 3 months = Priority finding. No response to complainant = Major. A formal investigation process with assigned investigators and timelines must exist.',sev:'priority'},
+  ],
+  am32_doc:[
+    {id:'D1',text:'Do grievance records show each report was received, assigned to an investigator, resolved, and communicated back?',hint:'Each grievance record should have: date received, description, investigator assigned, investigation findings, corrective action, and date communicated to complainant.',sev:'major'},
+    {id:'D2',text:'Are there any grievances that have been open for more than 3 months without a corrective action plan?',hint:'⚠️ Inverted — "Yes" = Priority finding. Check the grievance register for any record with a gap of >90 days between "received" and "resolved" dates.',sev:'priority',inv:true},
+  ],
+  am32_worker:[
+    {id:'W1',text:'Do you know how to report a concern or grievance anonymously?',hint:'Workers should be able to describe at least one channel (e.g. "there is a suggestion box outside the cafeteria" or "I can call a hotline"). Blank responses = grievance mechanism is not accessible.',sev:'major'},
+    {id:'W2',text:'If you or a colleague has reported a concern, was it investigated and resolved in a reasonable time?',hint:'If the worker reports a concern that was ignored or resulted in retaliation = Priority finding. Select N/A if neither the worker nor any known colleague has filed a grievance.',sev:'major',na:true},
+  ],
+
+  am41_mgmt:[
+    {id:'M1',text:'Does senior management conduct at least an annual review of the labor management system\'s performance against targets?',hint:'"Senior management" = a person with authority to change budgets, headcount, and policies — not just HR staff. The review must cover actual performance data, not just a status update meeting.',sev:'major'},
+    {id:'M2',text:'Are formal labor performance indicators, objectives, and targets defined with clear timelines and responsible owners?',hint:'e.g. Target: "Reduce overtime hours per worker to below 50/week by Q3" — with a baseline, target value, deadline, and named owner. Vague goals ("improve working conditions") are not sufficient.',sev:'major'},
+  ],
+  am41_doc:[
+    {id:'D1',text:'Are management review meeting records available showing labor performance was reviewed at the senior level?',hint:'Check for: meeting agenda that includes labor performance, attendance list confirming a senior manager was present, and minutes showing decisions or actions were taken.',sev:'major'},
+    {id:'D2',text:'Are progress tracking records available for all labor objectives and targets, showing current status?',hint:'Look for a dashboard or tracking sheet showing baseline, current performance, target, and whether the facility is on track. Objectives with no progress tracking = Major.',sev:'major'},
+  ],
+
+  am42_mgmt:[
+    {id:'M1',text:'Is there a periodic self-audit process to assess conformance with RBA Code requirements and applicable labor laws?',hint:'Self-audit ≠ VAP preparation only. It should be a regular internal review (at least annually) covering all facility areas, all policies, records, and worker interviews — documented in a formal report.',sev:'major'},
+    {id:'M2',text:'Are self-audit findings reviewed by senior management and used to drive corrective actions?',hint:'The self-audit loses value if findings stay within HR and never reach senior management. Check: are self-audit reports presented to facility leadership? Are CAPs generated for findings?',sev:'major'},
+  ],
+  am42_doc:[
+    {id:'D1',text:'Are self-audit reports available covering all facility areas, all policies, physical conditions, records, and interviews?',hint:'A self-audit report should be similar in scope to a VAP audit report — covering all A1-A6 and AM items. A surface-level checklist covering only easy items is not an adequate self-audit.',sev:'major'},
+  ],
 };
 
 // ─── STATE ────────────────────────────────────
@@ -632,6 +740,15 @@ const IT={
     a54:{title:'장애 편의',desc:'합리적 장애 요청 검토'},
     a61:{title:'결사의 자유',desc:'근로자의 자유로운 노조 가입·설립 권리'},
     a62:{title:'단체 교섭',desc:'단체 교섭권 성실 존중'},
+    am11:{title:'법령 준수 프로세스',desc:'적용 법령 분기별 파악 및 추적'},
+    am12:{title:'리스크 평가',desc:'실제 및 잠재적 노동 리스크 실사'},
+    am21:{title:'역할 및 책임',desc:'노동 컴플라이언스 책임 배정'},
+    am22:{title:'정책 및 통제',desc:'적절한 노동 정책 및 효과적 통제 프로세스'},
+    am23:{title:'교육 훈련',desc:'경영진·근로자 전체 노동 컴플라이언스 교육'},
+    am31:{title:'소통 프로세스',desc:'노동 관행에 대한 쌍방향 소통'},
+    am32:{title:'고충 처리 메커니즘',desc:'보복 없는 익명 고충 신고'},
+    am41:{title:'경영 성과 검토',desc:'노동 관리 시스템 연간 경영진 검토'},
+    am42:{title:'자체 감사',desc:'RBA 기준 정기 자체 점검'},
   },
   zh:{
     a11:{title:'禁止强迫劳动',desc:'禁止强迫、债役或强制性劳动'},
@@ -652,6 +769,15 @@ const IT={
     a54:{title:'残障便利',desc:'合理考虑残障申请'},
     a61:{title:'结社自由',desc:'工人可自由加入或组建工会'},
     a62:{title:'集体谈判',desc:'善意尊重集体谈判权利'},
+    am11:{title:'合规流程',desc:'季度跟踪适用劳工法律'},
+    am12:{title:'风险评估',desc:'劳工实际与潜在风险尽职调查'},
+    am21:{title:'职责与权限',desc:'各级劳工合规责任分配'},
+    am22:{title:'政策与管控',desc:'充分的劳工政策与有效的管控流程'},
+    am23:{title:'培训',desc:'管理层及工人劳工合规培训'},
+    am31:{title:'沟通流程',desc:'劳工实践的双向沟通'},
+    am32:{title:'申诉机制',desc:'无报复的匿名投诉渠道'},
+    am41:{title:'绩效审查',desc:'劳工管理体系年度高层审查'},
+    am42:{title:'自我审核',desc:'定期对照RBA标准进行自我审核'},
   },
 };
 
@@ -805,6 +931,49 @@ const QT={
     'a62_doc_D2':'CBA가 있는 경우, 기록이 모든 조건이 이행됨을 확인합니까?',
     'a62_worker_W1':'경영진이 근로자 대표의 교섭 요청을 거부하는 것을 알고 있습니까?',
     'a62_worker_W2':'이 시설에서 단체 교섭에 관한 권리를 알고 있습니까?',
+    'am11_mgmt_M1':'적용 노동 법령 및 고객 요구 사항을 파악·추적·갱신하는 분기별 프로세스가 있습니까?',
+    'am11_mgmt_M2':'허가증·자격증·인증의 만료 전 갱신을 추적하는 문서화된 시스템이 있습니까?',
+    'am11_doc_D1':'적용 노동 법령과 규정을 열거한 정확하고 최신의 컴플라이언스 등록부가 있습니까?',
+    'am11_doc_D2':'컴플라이언스 검토 일정 리마인더 또는 예약 과업이 문서화되어 있습니까?',
+    'am12_mgmt_M1':'모든 근로자 그룹(직접·간접·이주·연소 근로자)에 대한 중요 노동 리스크를 파악·평가하는 공식 프로세스가 있습니까?',
+    'am12_mgmt_M2':'중요 변경 사항(새 공정·새 공급업체·새 근로자 그룹) 발생 시 리스크 평가가 갱신됩니까?',
+    'am12_doc_D1':'모든 시설 운영과 필요 이해관계자 그룹을 포괄하는 최신 리스크 평가 보고서가 있습니까?',
+    'am12_doc_D2':'리스크 평가에 직접 근로자·간접 근로자·이주 근로자·연소 근로자·현장 협력업체 등 모든 필요 그룹이 포함됩니까?',
+    'am21_mgmt_M1':'노동 컴플라이언스 및 RBA 적합성에 대한 책임이 고위 담당자에게 공식적으로 배정되어 있습니까?',
+    'am21_mgmt_M2':'노동 컴플라이언스 책임이 경영진·감독자·HR 등 모든 관련 조직 수준에서 정의되어 있습니까?',
+    'am21_doc_D1':'각 관련 조직 수준에서 노동 컴플라이언스 책임이 직무 기술서에 공식 명시되어 있습니까?',
+    'am21_doc_D2':'일상 운영뿐만 아니라 비상 상황에 대한 노동 컴플라이언스 책임도 문서화되어 있습니까?',
+    'am21_worker_W1':'이 시설에서 노동인권과 근무 조건 문제를 담당하는 사람이 누구인지 알고 있습니까?',
+    'am22_mgmt_M1':'강제노동·아동노동·근무시간·임금·비차별·결사의 자유 등 RBA 모든 항목을 포괄하는 서면 노동 정책이 있습니까?',
+    'am22_mgmt_M2':'각 노동 정책에 실제로 준수되도록 하는 문서화된 이행(통제) 프로세스가 있습니까?',
+    'am22_mgmt_M3':'모든 노무 대행사 및 협력업체가 시설의 노동 정책을 준수하도록 계약서에 명시되어 있습니까?',
+    'am22_doc_D1':'서면 노동 정책이 RBA 모든 필수 항목(강제노동·아동노동·근무시간·임금·비차별·결사의 자유)을 다루고 있습니까?',
+    'am22_doc_D2':'각 통제의 효과가 정기적으로 평가되고 있음을 보여주는 리스크 통제 기록이 있습니까?',
+    'am22_doc_D3':'임금 지급, 근무시간, 연령 확인, 고충 처리, 교육 기록, 자체 감사 보고서 등 최소 필수 기록이 현장에 유지됩니까?',
+    'am22_worker_W1':'임금·근무시간·처우·고충 처리 등 근로자 권리에 관한 회사 정책을 받거나 확인한 적 있습니까?',
+    'am23_mgmt_M1':'경영진과 근로자 모두를 위한 모든 노동 정책 및 RBA 요구 사항을 포괄하는 구조화된 교육 프로그램이 있습니까?',
+    'am23_mgmt_M2':'모든 신규 근로자가 입사 후 30일 이내에 노동인권 및 회사 정책에 관한 오리엔테이션을 받습니까?',
+    'am23_doc_D1':'모든 근로자와 경영진이 필요한 노동 컴플라이언스 교육을 이수했음을 보여주는 교육 기록이 있습니까?',
+    'am23_doc_D2':'교육 기록에 교육 효과 검증(예: 시험 점수, 감독자 확인) 증거가 포함됩니까?',
+    'am23_worker_W1':'처음 입사했을 때 노동인권, 회사 정책, 고충 신고 방법에 관한 교육이나 오리엔테이션을 받았습니까?',
+    'am31_mgmt_M1':'근로자가 근무 조건 및 노동 관행에 대한 피드백을 제공할 수 있는 지속적인 쌍방향 소통 프로세스가 있습니까?',
+    'am31_mgmt_M2':'외부 이해관계자(공급업체·고객·지역 사회)가 관련 노동 소통에 포함됩니까?',
+    'am31_doc_D1':'근로자 피드백 세션, 설문조사, 포커스 그룹 기록이 유지되고 피드백이 조치되었음을 보여줍니까?',
+    'am31_doc_D2':'소통 기록이 피드백 수신, 검토, 적시 응답이 이루어졌음을 확인합니까?',
+    'am31_worker_W1':'근무 조건에 대한 피드백이나 제안을 할 수 있는 접근 가능한 방법이 있습니까?',
+    'am32_mgmt_M1':'근로자가 보복이나 협박 없이 익명으로 고충을 신고할 수 있는 채널이 있습니까?',
+    'am32_mgmt_M2':'모든 고충이 신속히 조사되고 시정 조치가 취해져 신고자에게 통보됩니까?',
+    'am32_doc_D1':'각 고충이 접수·배정·해결·통보된 것을 보여주는 고충 처리 기록이 있습니까?',
+    'am32_doc_D2':'시정 조치 계획 없이 3개월 이상 미해결 상태인 고충이 있습니까?',
+    'am32_worker_W1':'걱정이나 고충을 익명으로 신고하는 방법을 알고 있습니까?',
+    'am32_worker_W2':'본인 또는 동료가 고충을 신고한 경우, 합리적인 기간 내에 조사 및 해결되었습니까?',
+    'am41_mgmt_M1':'고위 경영진이 목표 대비 노동 관리 시스템 성과를 최소 연간 검토합니까?',
+    'am41_mgmt_M2':'명확한 기한과 담당자를 포함한 공식 노동 성과 지표, 목표, 타깃이 정의되어 있습니까?',
+    'am41_doc_D1':'고위 수준에서 노동 성과가 검토되었음을 보여주는 경영 검토 회의록이 있습니까?',
+    'am41_doc_D2':'현재 상태를 보여주는 모든 노동 목표 및 타깃의 진행 추적 기록이 있습니까?',
+    'am42_mgmt_M1':'RBA 기준 및 적용 노동 법령 준수 여부를 평가하는 정기 자체 감사 프로세스가 있습니까?',
+    'am42_mgmt_M2':'자체 감사 결과가 고위 경영진에 의해 검토되고 시정 조치에 활용됩니까?',
+    'am42_doc_D1':'모든 시설 구역, 정책, 물리적 조건, 기록, 인터뷰를 포괄하는 자체 감사 보고서가 있습니까?',
   },
   zh:{
     'a11_mgmt_M1':'所有加班均为自愿，工人可以拒绝而不受任何处罚吗？',
@@ -954,6 +1123,49 @@ const QT={
     'a62_doc_D2':'在存在CBA的情况下，记录是否确认所有条款均已落实？',
     'a62_worker_W1':'您是否知道管理层曾拒绝工人代表提出的谈判请求？',
     'a62_worker_W2':'您是否了解自己在本设施的集体谈判权利？',
+    'am11_mgmt_M1':'是否有季度流程来识别、跟踪和更新适用劳工法律及客户要求的合规情况？',
+    'am11_mgmt_M2':'是否有书面系统在证书、许可证到期前进行跟踪和续期？',
+    'am11_doc_D1':'是否有准确、最新的合规登记册，列出所有适用的劳工法律法规？',
+    'am11_doc_D2':'是否有书面记录的合规日历提醒或计划审查任务？',
+    'am12_mgmt_M1':'是否有正式流程识别和评估所有工人群体（直接、间接、移民、未成年工人）的重大劳工风险？',
+    'am12_mgmt_M2':'发生重大变化时（新工艺、新供应商、新工人群体）是否更新风险评估？',
+    'am12_doc_D1':'是否有涵盖所有设施运营和所有必要利益相关方群体的最新风险评估报告？',
+    'am12_doc_D2':'风险评估是否涵盖所有必要群体：直接工人、间接工人、移民工人、未成年工人及现场承包商？',
+    'am21_mgmt_M1':'是否正式指定了负责劳工合规和RBA符合性的高级代表？',
+    'am21_mgmt_M2':'劳工合规责任是否在所有相关组织层级（管理层、主管、人力资源）均有明确界定？',
+    'am21_doc_D1':'各相关组织层级的工作说明书中是否正式分配了劳工合规责任？',
+    'am21_doc_D2':'紧急情况下的劳工合规责任是否也有文件记录？',
+    'am21_worker_W1':'您是否知道本设施中谁负责劳工权利和工作条件问题？',
+    'am22_mgmt_M1':'是否有涵盖所有RBA规范领域（强迫劳动、童工、工时、工资、禁止歧视、结社自由）的书面劳工政策？',
+    'am22_mgmt_M2':'每项劳工政策是否有书面实施（管控）流程以确保切实执行？',
+    'am22_mgmt_M3':'所有劳务中介和承包商是否在合同中被要求遵守本设施的劳工政策？',
+    'am22_doc_D1':'书面劳工政策是否涵盖所有RBA必要要素（强迫劳动、童工、工时、工资、禁止歧视、结社自由）？',
+    'am22_doc_D2':'是否有风险管控记录，显示定期评估每项管控的有效性？',
+    'am22_doc_D3':'现场是否保存最低必要记录：工资支付、工时、年龄核查、申诉、培训记录和自我审核报告？',
+    'am22_worker_W1':'您是否收到或看到过公司关于工人权利（工资、工时、待遇、申诉）的政策？',
+    'am23_mgmt_M1':'是否有涵盖所有劳工政策和RBA要求、面向管理层和工人的结构化培训计划？',
+    'am23_mgmt_M2':'每位新员工是否在入职30天内接受有关劳工权利和公司政策的入职培训？',
+    'am23_doc_D1':'是否有培训记录，显示所有工人和管理层已完成所需的劳工合规培训？',
+    'am23_doc_D2':'培训记录是否包含培训效果证明（如测试成绩、主管确认）？',
+    'am23_worker_W1':'您刚入职时是否接受过有关劳工权利、公司政策和如何举报问题的培训或入职培训？',
+    'am31_mgmt_M1':'是否有持续的双向沟通机制，让工人能够就工作条件和劳工实践提供反馈？',
+    'am31_mgmt_M2':'外部利益相关方（供应商、客户、社区）是否纳入相关劳工沟通中？',
+    'am31_doc_D1':'是否保存了工人反馈会议、调查或焦点小组的记录，并显示反馈已得到处理？',
+    'am31_doc_D2':'沟通记录是否确认反馈已被接收、审查并及时回应？',
+    'am31_worker_W1':'是否有便捷的方式让您就工作条件提供反馈或建议（如调查、意见箱、会议）？',
+    'am32_mgmt_M1':'是否有匿名投诉渠道，工人可以在没有报复或恐吓风险的情况下举报问题？',
+    'am32_mgmt_M2':'是否对所有投诉进行及时调查，采取纠正措施并通知投诉人？',
+    'am32_doc_D1':'投诉记录是否显示每份报告均已接收、分配调查员、处理并反馈？',
+    'am32_doc_D2':'是否有超过3个月未制定纠正行动计划的未解决投诉？',
+    'am32_worker_W1':'您是否知道如何匿名举报问题或投诉？',
+    'am32_worker_W2':'如果您或同事曾举报过问题，是否在合理时间内得到了调查和解决？',
+    'am41_mgmt_M1':'高层管理人员是否至少每年对照目标审查劳工管理体系的绩效？',
+    'am41_mgmt_M2':'是否制定了有明确时限和责任人的正式劳工绩效指标、目标和指标？',
+    'am41_doc_D1':'是否有管理审查会议记录，显示劳工绩效在高层得到审查？',
+    'am41_doc_D2':'是否有所有劳工目标和指标的进展跟踪记录，显示当前状态？',
+    'am42_mgmt_M1':'是否有定期自我审核流程，评估与RBA规范要求和适用劳工法律的符合情况？',
+    'am42_mgmt_M2':'自我审核发现是否由高层管理人员审查并用于推动纠正措施？',
+    'am42_doc_D1':'是否有涵盖所有设施区域、政策、物理条件、记录和访谈的自我审核报告？',
   },
 };
 
@@ -1157,7 +1369,7 @@ function screenSetup(){
 }
 
 function screenHome(){
-  const grpList=['A1','A2','A3','A4','A5','A6'];
+  const grpList=['A1','A2','A3','A4','A5','A6','AM'];
 
   const icard=id=>{
     const m=ITEMS[id],done=S.done[id],inprog=!done&&hasAns(id);
@@ -1199,12 +1411,16 @@ function screenHome(){
       <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
     </div>
     <div class="hsum">
-      ${grpList.map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
+      ${['A1','A2','A3','A4','A5','A6','AM'].map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
       <div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${overall?RCOL[overall]:'rgba(255,255,255,.3)'}">${overall?RL[overall]:'—'}</div></div>
     </div>
   </div>
   ${grpList.map(grpSec).join('')}
-  <div style="height:20px"></div>`;
+  <div style="padding:0 16px 24px">
+    <button onclick="exportCSV()" style="width:100%;padding:14px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📊 ${S.lang==='ko'?'점검 결과 Excel 내보내기':S.lang==='zh'?'导出检查结果 Excel':'Export Results to Excel (.csv)'}
+    </button>
+  </div>`;
 }
 
 function screenItem(){
@@ -1451,6 +1667,78 @@ function screenResult(id,steps,idx,tot){
     <div style="height:16px"></div>
   </div>
   <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="goHome()">${t('home')}</button></div>`;
+}
+
+// ─── EXCEL / CSV EXPORT ───────────────────────
+function exportCSV(){
+  const BOM='﻿';
+  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details'];
+
+  const rows=Object.entries(ITEMS).map(([id,meta])=>{
+    const grpName=GRPS[meta.grp]||meta.grp;
+    const section=`${meta.grp} — ${grpName}`;
+    const done=S.done[id];
+    const a=S.ans[id];
+    const r=done?calcItem(id):null;
+    const mr=secRating(id+'_mgmt',a.mgmt);
+    const dr=secRating(id+'_doc',a.doc);
+    const wr=secRating(id+'_worker',a.worker);
+
+    // Collect findings
+    const finds=[
+      ...getFindings(id+'_mgmt',a.mgmt),
+      ...getFindings(id+'_doc',a.doc),
+      ...getFindings(id+'_worker',a.worker),
+    ];
+    if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')finds.push({text:`Prohibited fees: ${S.fees.workerPct||'?'}% workers, ${S.fees.feeAmtPct||'?'}% of monthly salary`,sev:fr});}
+    if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')finds.push({text:`Working hours: max ${S.hours31.maxHours||'?'} hrs/week, ${S.hours31.pctOver||'?'}% of sampled weeks`,sev:hr});}
+    if(id==='a32'&&a.doc['d1']==='no'){const dr2=calcDaysR();if(dr2!=='conformance')finds.push({text:`Consecutive days: max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr2});}
+
+    const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
+
+    return[
+      section,
+      meta.code,
+      iTitle(id),
+      done?RL[r]:'Not Started',
+      Object.keys(a.mgmt).length?RL[mr]:'—',
+      Object.keys(a.doc).length?RL[dr]:'—',
+      Object.keys(a.worker).length?RL[wr]:'—',
+      finds.length.toString(),
+      findTxt,
+    ];
+  });
+
+  // Add summary rows
+  const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);
+  const overall=allDone.length?allDone.map(calcItem).reduce(maxR,'conformance'):'Not Started';
+  rows.push([]);
+  rows.push(['OVERALL RATING','','',allDone.length?RL[overall]:'Not Started','','','',allDone.length+' / '+Object.keys(ITEMS).length+' items completed','']);
+
+  // Facility info rows at top
+  const meta=[
+    ['RBA VAP Labor Audit — Inspection Report'],
+    [`Facility Country: ${S.country||'(not set)'}`],
+    [`Audit Date: ${new Date().toISOString().slice(0,10)}`],
+    [`Items Completed: ${allDone.length} / ${Object.keys(ITEMS).length}`],
+    [],
+    hdr,
+    ...rows,
+  ];
+
+  const csv=BOM+meta.map(row=>
+    (row.length?row:['']).map(cell=>`"${String(cell||'').replace(/"/g,'""')}"`).join(',')
+  ).join('\n');
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`RBA_VAP_Audit_${(S.country||'Report').replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ─── MAIN ─────────────────────────────────────
