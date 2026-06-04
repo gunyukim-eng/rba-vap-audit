@@ -198,57 +198,57 @@ const GRPS={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & 
 const Q={
   // A1.1
   a11_mgmt:[
-    {id:'M1',text:'Is all overtime strictly voluntary — can workers always refuse without any penalty?',sev:'major'},
-    {id:'M2',text:'Is voluntary resignation guaranteed with ≤1 month notice and a penalty ≤60% of one month\'s base salary?',sev:'major'},
-    {id:'M3',text:'Do contracts with labor agents explicitly prohibit passing recruitment fees on to workers?',sev:'major'},
-    {id:'M4',text:'Do workers have unrestricted access to toilets, drinking water, and medical facilities at all times?',sev:'major'},
-    {id:'M5',text:'Can dormitory residents freely leave the facility outside working hours? (No curfew in place)',sev:'priority',na:true},
-    {id:'M6',text:'Are there no movement-restricting systems in place (forced locks, guard-controlled exits, toilet passes)?',sev:'priority'},
-    {id:'M7',text:'Is there a documented procedure to reimburse any discovered prohibited fees within 90 days?',sev:'major'},
+    {id:'M1',text:'Is all overtime strictly voluntary — can workers always refuse without any penalty?',hint:'Ask: "What happens if a worker says no to overtime?" Any mention of warnings, wage cuts, or job threats = violation.',sev:'major'},
+    {id:'M2',text:'Is voluntary resignation guaranteed with ≤1 month notice and a penalty ≤60% of one month\'s base salary?',hint:'Penalty = amount deducted if a worker leaves without giving notice. e.g. Monthly salary 500 USD → max penalty = 300 USD (60%). More than 1 month notice required = Major finding.',sev:'major'},
+    {id:'M3',text:'Do contracts with labor agents explicitly prohibit passing recruitment fees on to workers?',hint:'Labor agent = a third-party company that recruits workers for the facility. Recruitment fee = any amount the agent charges for finding or placing a worker. Workers must NEVER pay this — it must be borne by the employer.',sev:'major'},
+    {id:'M4',text:'Do workers have unrestricted access to toilets, drinking water, and medical facilities at all times?',hint:'Ask: "Do workers need to ask permission or wait for a pass to use the restroom?" Any restriction is a violation.',sev:'major'},
+    {id:'M5',text:'Can dormitory residents freely leave the facility outside working hours? (No curfew in place)',hint:'Ask: "Is there a time after which dormitory residents cannot leave?" or "Are dormitory gates locked at night?" Any curfew = Priority finding. Select N/A if no dormitory.',sev:'priority',na:true},
+    {id:'M6',text:'Are there no movement-restricting systems in place (forced locks, guard-controlled exits, toilet passes)?',hint:'Toilet pass = a paper slip workers must obtain from a supervisor to use the restroom. Forced lock = dormitory or factory doors locked from outside while workers are inside. Either = Priority finding.',sev:'priority'},
+    {id:'M7',text:'Is there a documented procedure to reimburse any discovered prohibited fees within 90 days?',hint:'Prohibited fees = any charge to workers for getting or keeping their job (e.g. recruitment, placement, visa processing paid by worker). If found, must be reimbursed within 90 days of discovery.',sev:'major'},
   ],
   a11_doc:[
-    {id:'D1',text:'Do HR, attendance, and wage records show no indicators of non-voluntary labor?',hint:'Include grievance records, high-turnover alerts',sev:'major'},
-    {id:'D2',text:'Do overtime records confirm voluntary consent for all extra hours?',hint:'Check consent forms or OT request records',sev:'major'},
-    {id:'D3',text:'Does the employment contract state a resignation notice period of 1 month or less?',sev:'major'},
-    {id:'D4',text:'Is the penalty for leaving without notice ≤60% of one month\'s base salary in the contract?',sev:'major'},
-    {id:'D5',text:'Are permitted fees documented and disclosed to workers in writing?',hint:'Check payslips and posted notices',sev:'minor'},
-    {id:'D6',text:'Are there no records of prohibited fees (recruitment/placement) in payroll or accounting?',hint:'⚠ Selecting "Not Confirmed" adds the fee matrix screen',sev:'fee'},
-    {id:'D7',text:'Do facility access/exit logs show no evidence of movement restrictions?',sev:'priority'},
-    {id:'D8',text:'Personal loans: repayment ≤10% of monthly base pay, interest-free, ≤6 months duration?',hint:'Select N/A if no personal loans exist',sev:'minor',na:true},
-    {id:'D9',text:'Education loans: repayment ≤10% of monthly base pay, interest-free, ≤12 months duration?',hint:'Select N/A if no education loans exist',sev:'minor',na:true},
-    {id:'D10',text:'Are all worker loans confirmed to be completely interest-free?',hint:'Select N/A if no loans exist',sev:'major',na:true},
-    {id:'D11',text:'Do dormitory access records confirm workers can move freely during off hours?',hint:'Select N/A if no dormitory on site',sev:'priority',na:true},
+    {id:'D1',text:'Do HR, attendance, and wage records show no indicators of non-voluntary labor?',hint:'Look for: workers penalized for resigning, forced training repayment to "buy out" a contract, very high turnover with no documented reason, grievance records about coercion.',sev:'major'},
+    {id:'D2',text:'Do overtime records confirm voluntary consent for all extra hours?',hint:'Check for signed OT consent forms or individual OT request records. If everyone is recorded as "volunteering" with no supporting document, probe further.',sev:'major'},
+    {id:'D3',text:'Does the employment contract state a resignation notice period of 1 month or less?',hint:'e.g. A contract clause saying "3 months advance notice required to resign" directly violates RBA rules. Maximum allowed = 1 month.',sev:'major'},
+    {id:'D4',text:'Is the penalty for leaving without notice ≤60% of one month\'s base salary in the contract?',hint:'e.g. Monthly base salary = 500 USD. Maximum permissible penalty for leaving without notice = 300 USD (60%). Anything higher = Major. Over 3 months\' salary = Priority.',sev:'major'},
+    {id:'D5',text:'Are permitted fees documented and disclosed to workers in writing?',hint:'Permitted fees = fees the employer IS allowed to charge, e.g. subsidized housing or canteen deductions. These must be pre-agreed at hire and appear itemized on the payslip.',sev:'minor'},
+    {id:'D6',text:'Are there no records of prohibited fees (recruitment/placement) in payroll or accounting?',hint:'⚠ Selecting "Not Confirmed" adds the fee matrix screen. Check: employer invoices from labor agents, itemized payslip deductions, worker sign-off receipts.',sev:'fee'},
+    {id:'D7',text:'Do facility access/exit logs show no evidence of movement restrictions?',hint:'Look for: gate logs requiring supervisor sign-off to exit, toilet pass records, dormitory logs showing workers were unable to leave after a certain hour.',sev:'priority'},
+    {id:'D8',text:'Personal loans: repayment ≤10% of monthly base pay, interest-free, ≤6 months duration?',hint:'e.g. Worker borrows 300 USD. Monthly salary = 500 USD → max repayment/month = 50 USD (10%), max loan = 300 USD (60% of salary), no interest allowed. Select N/A if no loans.',sev:'minor',na:true},
+    {id:'D9',text:'Education loans: repayment ≤10% of monthly base pay, interest-free, ≤12 months duration?',hint:'e.g. Worker borrows 600 USD for school fees. Monthly salary = 500 USD → max loan = 600 USD (120% of salary), max repayment/month = 50 USD (10%), no interest. Select N/A if no education loans.',sev:'minor',na:true},
+    {id:'D10',text:'Are all worker loans confirmed to be completely interest-free?',hint:'Even a small interest rate (e.g. 0.5%/month) on worker loans is prohibited under RBA. Check all loan agreements for any interest clause. Select N/A if no loans of any kind.',sev:'major',na:true},
+    {id:'D11',text:'Do dormitory access records confirm workers can move freely during off hours?',hint:'Check gate logs for after-hours exits. Look for patterns showing workers consistently could not leave between certain hours. Select N/A if no dormitory on site.',sev:'priority',na:true},
   ],
   a11_worker:[
-    {id:'W1',text:'Did you pay any fees — recruitment, placement, or deposits — to get or keep this job?',sev:'major',inv:true},
-    {id:'W2',text:'Can you refuse overtime without any retaliation or negative consequence?',sev:'major'},
-    {id:'W3',text:'Do you feel genuinely free to resign whenever you choose?',sev:'priority'},
-    {id:'W4',text:'Can you use toilets and access drinking water freely without any restriction?',sev:'major'},
-    {id:'W5',text:'Can you leave the dormitory freely outside working hours?',sev:'priority',na:true},
-    {id:'W6',text:'Do you currently have your passport/ID in your own possession?',sev:'a13f',na:true},
+    {id:'W1',text:'Did you pay any fees — recruitment, placement, or deposits — to get or keep this job?',hint:'Probe with: "Did a recruiter charge you anything to get this job?" / "Did you pay a deposit that would be returned when you leave?" / "Did you borrow money to pay for this job opportunity?"',sev:'major',inv:true},
+    {id:'W2',text:'Can you refuse overtime without any retaliation or negative consequence?',hint:'If the worker hesitates, probe: "Has anyone ever been demoted or lost pay for saying no to overtime?"',sev:'major'},
+    {id:'W3',text:'Do you feel genuinely free to resign whenever you choose?',hint:'If hesitant, follow up: "Is there any penalty, fine, or debt you would owe if you decided to quit today?"',sev:'priority'},
+    {id:'W4',text:'Can you use toilets and access drinking water freely without any restriction?',hint:'Ask: "Do you need to ask anyone or get a pass to use the restroom during your shift?"',sev:'major'},
+    {id:'W5',text:'Can you leave the dormitory freely outside working hours?',hint:'Ask: "Is there a time at night when the gates are locked and you cannot leave?" Any curfew = Priority. Select N/A if not in a dormitory.',sev:'priority',na:true},
+    {id:'W6',text:'Do you currently have your passport/ID in your own possession?',hint:'If "No" → flag for A1.3 (Document Retention) as well. Ask: "Where are they being kept and can you get them back right now if you wanted to?"',sev:'a13f',na:true},
   ],
   // A1.2
   a12_mgmt:[
-    {id:'M1',text:'Are employment contracts provided before the worker\'s first day? (Migrant workers: before leaving home country)',sev:'priority'},
-    {id:'M2',text:'Are contracts written in a language the worker can read and fully understand?',sev:'major'},
-    {id:'M3',text:'Is there a formal process to verbally explain key terms (wages, hours, resignation) to all new hires?',sev:'minor'},
-    {id:'M4',text:'Have any migrant workers\' contract terms been changed unfavorably after arrival in the host country?',sev:'priority',inv:true,na:true},
+    {id:'M1',text:'Are employment contracts provided before the worker\'s first day? (Migrant workers: before leaving home country)',hint:'For local workers: signed contract must be given before Day 1. For migrant workers: contract must be in hand BEFORE they board a plane or bus. Providing it upon arrival = Priority finding.',sev:'priority'},
+    {id:'M2',text:'Are contracts written in a language the worker can read and fully understand?',hint:'A Vietnamese worker given a contract written only in English or Chinese has NOT been given a readable contract. If a translator was used at signing, a certified translated copy should be provided.',sev:'major'},
+    {id:'M3',text:'Is there a formal process to verbally explain key terms (wages, hours, resignation) to all new hires?',hint:'Look for: a structured onboarding checklist where an HR officer walks through the contract verbally with each worker and the worker signs to confirm they understood.',sev:'minor'},
+    {id:'M4',text:'Have any migrant workers\' contract terms been changed unfavorably after arrival in the host country?',hint:'⚠️ Inverted: "Yes" = violation. e.g. Worker signed for 500 USD/month in home country, arrived to find new contract says 380 USD/month with "adjusted for local conditions." = Priority finding. N/A if no migrant workers.',sev:'priority',inv:true,na:true},
   ],
   a12_doc:[
-    {id:'D1',text:'Are employment contracts written in the worker\'s native language or a language they clearly understand?',sev:'major'},
-    {id:'D2',text:'Is there evidence that contracts were signed before the employment start date?',hint:'Compare signature date vs. start date in personnel file',sev:'priority'},
-    {id:'D3',text:'For migrant workers: no records of contract terms changed unfavorably after arrival?',hint:'Select N/A if no migrant workers on site',sev:'priority',na:true},
+    {id:'D1',text:'Are employment contracts written in the worker\'s native language or a language they clearly understand?',hint:'For multi-nationality workforces: each worker should receive a contract in their own language, or an officially translated copy alongside the local-language version.',sev:'major'},
+    {id:'D2',text:'Is there evidence that contracts were signed before the employment start date?',hint:'Check: contract signature date vs. employee start date in the HR system. If signature date = start date or is AFTER start date, that is a Priority finding.',sev:'priority'},
+    {id:'D3',text:'For migrant workers: no records of contract terms changed unfavorably after arrival?',hint:'Look for two contract versions in the same file — one signed pre-departure and a newer one signed post-arrival with lower wages, longer hours, or worse terms. That is a Priority finding. Select N/A if no migrant workers.',sev:'priority',na:true},
   ],
   a12_worker:[
-    {id:'W1',text:'Did you receive and understand your employment contract before your first day of work?',sev:'priority'},
-    {id:'W2',text:'Did a staff member verbally explain your key conditions (pay, hours, how to resign)?',sev:'minor'},
-    {id:'W3',text:'(Migrant workers) Were you offered worse conditions after arriving than originally agreed?',sev:'priority',inv:true,na:true},
+    {id:'W1',text:'Did you receive and understand your employment contract before your first day of work?',hint:'If the worker says "I signed it when I arrived" or "I signed on my first day" — that may be a Priority finding. Follow up: "Did you read it before signing?"',sev:'priority'},
+    {id:'W2',text:'Did a staff member verbally explain your key conditions (pay, hours, how to resign)?',hint:'Look for evidence this was more than a one-way reading. Did the worker have a chance to ask questions? Did they receive a summary card in their language?',sev:'minor'},
+    {id:'W3',text:'(Migrant workers) Were you offered worse conditions after arriving than what was originally in your contract?',hint:'e.g. "The pay on my original contract was higher, but when I arrived I was told the rate had changed." Any material change in wages/hours/duties after arrival = Priority. Select N/A if not a migrant worker.',sev:'priority',inv:true,na:true},
   ],
   // A1.3
   a13_mgmt:[
-    {id:'M1',text:'Is there a policy of NOT retaining original worker identity documents (passports, visas, national IDs)?',sev:'priority'},
-    {id:'M2',text:'Where legally required to hold documents, can workers access them within 12 hours of any request?',sev:'major',na:true},
-    {id:'M3',text:'Is there absolutely no fee charged for safekeeping worker documents?',sev:'priority'},
+    {id:'M1',text:'Is there a policy of NOT retaining original worker identity documents (passports, visas, national IDs)?',hint:'Photocopies for HR records are fine. The ORIGINAL document must stay with the worker at all times (or in a locker the worker controls). If originals are in the HR office filing cabinet = Priority finding.',sev:'priority'},
+    {id:'M2',text:'Where legally required to hold documents, can workers access them within 12 hours of any request?',hint:'Some countries (e.g. certain Gulf states) legally require employers to hold migrant worker passports during visa processing. In these cases only: a worker must still be able to get their document back within 12 hours of asking — no delays, no fees. Select N/A if local law does NOT require this.',sev:'major',na:true},
+    {id:'M3',text:'Is there absolutely no fee charged for safekeeping worker documents?',hint:'Even a token fee (e.g. "1 USD/month storage fee") is prohibited. Any charge to a worker for holding their own documents = Priority finding.',sev:'priority'},
   ],
   a13_doc:[
     {id:'D1',text:'Are there no original identity documents found in personnel files? (Only copies should be retained)',sev:'priority'},
@@ -261,9 +261,9 @@ const Q={
   ],
   // A2.1
   a21_mgmt:[
-    {id:'M1',text:'Is there a documented minimum hiring age policy meeting or exceeding local law and the RBA minimum of 15 years?',sev:'major'},
-    {id:'M2',text:'Is age verification (government-issued ID check) performed for every new hire?',sev:'major'},
-    {id:'M3',text:'If an underage worker is found, is there a remediation plan that maintains their income and supports return to schooling?',sev:'major'},
+    {id:'M1',text:'Is there a documented minimum hiring age policy meeting or exceeding local law and the RBA minimum of 15 years?',hint:'If local law sets a higher minimum (e.g. 18 in some regions), the higher threshold applies. The policy must be written down — a verbal "we don\'t hire children" is not sufficient.',sev:'major'},
+    {id:'M2',text:'Is age verification (government-issued ID check) performed for every new hire?',hint:'Acceptable verification: national ID card, birth certificate, passport. Checking age verbally or by appearance only is NOT acceptable. All verification documents must be copied and filed.',sev:'major'},
+    {id:'M3',text:'If an underage worker is found, is there a remediation plan that maintains their income and supports return to schooling?',hint:'RBA does NOT allow simply firing the underage worker. The company must: (1) remove them from work, (2) continue paying them, (3) help them return to school, (4) offer re-employment when they reach legal age.',sev:'major'},
   ],
   a21_doc:[
     {id:'D1',text:'Do all personnel files confirm every worker meets the minimum age requirement?',sev:'priority'},
@@ -276,29 +276,29 @@ const Q={
   ],
   // A2.2
   a22_mgmt:[
-    {id:'M1',text:'Are all workers under 18 identified and assigned exclusively to non-hazardous roles?',sev:'major'},
-    {id:'M2',text:'Do workers under 18 ever perform night work or overtime?',sev:'priority',inv:true},
-    {id:'M3',text:'Are health checks conducted for young workers where required by local law?',sev:'minor'},
+    {id:'M1',text:'Are all workers under 18 identified and assigned exclusively to non-hazardous roles?',hint:'Hazardous roles include: operating heavy machinery, working with chemicals, working at heights, carrying heavy loads, or any task listed as restricted for minors under local law.',sev:'major'},
+    {id:'M2',text:'Do workers under 18 ever perform night work or overtime?',hint:'⚠️ Inverted — "Yes" = violation. Night work = any shift that includes hours between roughly 10 PM–7 AM. Overtime = any hours beyond the standard daily limit set by local law.',sev:'priority',inv:true},
+    {id:'M3',text:'Are health checks conducted for young workers where required by local law?',hint:'Many countries require a pre-employment or periodic medical check for workers under 18. If required: check that records exist for all young workers currently employed.',sev:'minor'},
   ],
   a22_doc:[
-    {id:'D1',text:'Do personnel files and job assignments confirm all workers under 18 are in non-hazardous roles?',sev:'priority'},
-    {id:'D2',text:'Do working time records confirm workers under 18 never work night shifts or overtime?',sev:'priority'},
-    {id:'D3',text:'Where required by law, are health check records maintained for young workers?',sev:'minor',na:true},
+    {id:'D1',text:'Do personnel files and job assignments confirm all workers under 18 are in non-hazardous roles?',hint:'Cross-reference: list of workers under 18 (from roster) vs. job codes assigned to them. If any are assigned to machine operation, chemical handling, or other restricted tasks = Priority.',sev:'priority'},
+    {id:'D2',text:'Do working time records confirm workers under 18 never work night shifts or overtime?',hint:'⚠️ Inverted. Confirm records show NO night/OT for under-18s. e.g. If a 17-year-old clocks out past 10 PM, or total weekly hours exceed the standard limit = Priority finding.',sev:'priority'},
+    {id:'D3',text:'Where required by law, are health check records maintained for young workers?',hint:'Select N/A if no workers under 18, OR if local law does not require health checks for this age group.',sev:'minor',na:true},
   ],
   a22_worker:[
-    {id:'W1',text:'(Workers under 18 only) Do you perform any hazardous tasks, night shifts, or overtime?',sev:'priority',inv:true,na:true},
-    {id:'W2',text:'Are you aware of any workers under 18 performing hazardous tasks, night work, or overtime here?',sev:'priority',inv:true},
+    {id:'W1',text:'(Workers under 18 only) Do you perform any hazardous tasks, night shifts, or overtime?',hint:'⚠️ Inverted — "Yes" = violation. Only ask workers who are under 18. If no workers under 18 are present, select N/A.',sev:'priority',inv:true,na:true},
+    {id:'W2',text:'Are you aware of any workers under 18 performing hazardous tasks, night work, or overtime here?',hint:'⚠️ Inverted — "Yes" = violation. Ask general workers, not just those under 18. This can surface issues not visible in records.',sev:'priority',inv:true},
   ],
   // A2.3
   a23_mgmt:[
-    {id:'M1',text:'Are student workers, interns, and apprentices assigned only to tasks related to their field of study or vocational learning?',sev:'major'},
-    {id:'M2',text:'Are tri-partite agreements (student, school, facility) in place where required by law?',sev:'minor'},
-    {id:'M3',text:'Are learners paid at least minimum wage (or a legally permitted lower rate for a limited period only)?',sev:'major'},
+    {id:'M1',text:'Are student workers, interns, and apprentices assigned only to tasks related to their field of study or vocational learning?',hint:'e.g. An electronics engineering student assigned to PCB assembly = OK. The same student assigned to general warehouse packing = Not OK. The work must genuinely complement their academic program.',sev:'major'},
+    {id:'M2',text:'Are tri-partite agreements (student, school, facility) in place where required by law?',hint:'Tri-partite agreement = a formal 3-way contract signed by the student (or guardian), their school, and the employer. It specifies learning goals, hours, and pay. Required in many countries for student worker programs.',sev:'minor'},
+    {id:'M3',text:'Are learners paid at least minimum wage (or a legally permitted lower rate for a limited period only)?',hint:'Some countries allow a sub-minimum training wage for the first 3–6 months of an apprenticeship only. After that, full minimum wage applies. Zero-pay "internships" for production work are prohibited.',sev:'major'},
   ],
   a23_doc:[
-    {id:'D1',text:'Do learner records include learning objectives, work assignments, and progress evaluations?',sev:'minor'},
-    {id:'D2',text:'Is there no evidence of labor agencies being used to recruit or manage student workers or interns?',sev:'major'},
-    {id:'D3',text:'Are learner working hours recorded and confirmed not to conflict with school or training schedules?',sev:'major'},
+    {id:'D1',text:'Do learner records include learning objectives, work assignments, and progress evaluations?',hint:'A learner file should contain more than just attendance records. Look for: a learning plan signed by the school, periodic performance evaluations, and records of skills acquired.',sev:'minor'},
+    {id:'D2',text:'Is there no evidence of labor agencies being used to recruit or manage student workers or interns?',hint:'RBA prohibits staffing agencies as intermediaries for student workers. The arrangement must go directly through the school. Agency involvement (invoices, placement fees, agency contracts) = Major finding.',sev:'major'},
+    {id:'D3',text:'Are learner working hours recorded and confirmed not to conflict with school or training schedules?',hint:'e.g. If a student has class on Tuesday and Thursday mornings, those times should not appear as working hours. Cross-check time records against school timetables.',sev:'major'},
   ],
   a23_worker:[
     {id:'W1',text:'(Student/intern/apprentice) Are your assigned tasks directly related to your course of study or vocational training?',sev:'major',na:true},
@@ -311,23 +311,23 @@ const Q={
     {id:'M3',text:'Are workers under 18 confirmed to never perform any overtime whatsoever?',sev:'priority'},
   ],
   a31_doc:[
-    {id:'D1',text:'Do time records (3-month sample: peak, average, and low months) show no worker exceeds 60 hrs/week?',hint:'⚠ "Not Confirmed" adds the working hours matrix screen',sev:'hours'},
-    {id:'D2',text:'Are time records accurate and confirmed free from any falsification or manipulation?',sev:'major'},
-    {id:'D3',text:'Do records confirm workers under 18 perform no overtime?',hint:'Select N/A if no workers under 18 on site',sev:'priority',na:true},
+    {id:'D1',text:'Do time records (3-month sample: peak, average, and low months) show no worker exceeds 60 hrs/week?',hint:'Sample must cover 3 different months: 1 peak (busiest) month, 1 average month, 1 quiet month. Check both individual time cards AND summary reports. ⚠ "Not Confirmed" opens the hours matrix.',sev:'hours'},
+    {id:'D2',text:'Are time records accurate and confirmed free from any falsification or manipulation?',hint:'Warning signs: all workers recorded at exactly 59.5 hrs/week (just under the limit); time records that appear copy-pasted across multiple weeks; clock-in/out logs that don\'t match supervisors\' shift logs.',sev:'major'},
+    {id:'D3',text:'Do records confirm workers under 18 perform no overtime?',hint:'Cross-reference the under-18 worker list against OT records. Even one instance of overtime for a worker under 18 = Priority finding. Select N/A if no workers under 18 on site.',sev:'priority',na:true},
   ],
   a31_worker:[
-    {id:'W1',text:'Are you ever required or pressured to work more than 60 hours in a week?',sev:'major',inv:true},
-    {id:'W2',text:'Can you refuse overtime without facing any negative consequences?',sev:'major'},
-    {id:'W3',text:'Have you ever been asked to sign time records that do not reflect your actual hours?',sev:'major',inv:true},
+    {id:'W1',text:'Are you ever required or pressured to work more than 60 hours in a week?',hint:'⚠️ Inverted — "Yes" = violation. Probe: "Have you felt you had to stay late even when you didn\'t want to?" "What would happen if you refused extra hours?"',sev:'major',inv:true},
+    {id:'W2',text:'Can you refuse overtime without facing any negative consequences?',hint:'Common pressure tactics: being moved to a less desirable shift, losing access to bonuses, or being told "if you don\'t do OT you might not have a job next month."',sev:'major'},
+    {id:'W3',text:'Have you ever been asked to sign time records that do not reflect your actual hours?',hint:'⚠️ Inverted — "Yes" = Major finding. e.g. "My supervisor asked me to sign a sheet showing 59 hours but I actually worked 68 that week." = falsification.',sev:'major',inv:true},
   ],
   // A3.2
   a32_mgmt:[
-    {id:'M1',text:'Do all workers receive at least one full day off per seven days?',sev:'major'},
-    {id:'M2',text:'Have there been any periods where workers worked more than 6 consecutive days?',sev:'major',inv:true},
+    {id:'M1',text:'Do all workers receive at least one full day off per seven days?',hint:'"Full day off" = a continuous 24-hour period free from work obligations. A half-day off does not qualify. This applies to ALL workers including night shift and rotating shift workers.',sev:'major'},
+    {id:'M2',text:'Have there been any periods where workers worked more than 6 consecutive days?',hint:'⚠️ Inverted — "Yes" = violation. Ask specifically about peak production periods or pre-holiday seasons when consecutive days are most likely to occur.',sev:'major',inv:true},
   ],
   a32_doc:[
-    {id:'D1',text:'Do time records (3-month sample) confirm no worker works more than 6 consecutive days?',hint:'⚠ "Not Confirmed" adds the rest days matrix screen',sev:'days'},
-    {id:'D2',text:'Where exceptions exist, are they documented as emergency or unusual situations?',sev:'minor',na:true},
+    {id:'D1',text:'Do time records (3-month sample) confirm no worker works more than 6 consecutive days?',hint:'Look at each individual worker\'s attendance across the 3-month sample. A string of 7+ consecutive days with no day off = violation. ⚠ "Not Confirmed" opens the rest days matrix.',sev:'days'},
+    {id:'D2',text:'Where exceptions exist, are they documented as emergency or unusual situations?',hint:'Emergency exceptions (e.g. natural disaster, critical equipment failure) must be formally recorded with: the date, the reason, management sign-off, and evidence the situation was genuinely exceptional. Select N/A if no exceptions found.',sev:'minor',na:true},
   ],
   a32_worker:[
     {id:'W1',text:'Do you receive at least one full day off every week?',sev:'major'},
@@ -350,19 +350,19 @@ const Q={
   ],
   // A4.1
   a41_mgmt:[
-    {id:'M1',text:'Are all workers paid at least the agreed/minimum wage for all regular hours, and equal pay for equal work is applied?',sev:'major'},
-    {id:'M2',text:'Is overtime compensated at a rate of at least 125% of the regular hourly rate?',sev:'major'},
-    {id:'M3',text:'Are resigned or terminated workers paid all outstanding wages within one month of their last working day?',sev:'major'},
+    {id:'M1',text:'Are all workers paid at least the agreed/minimum wage for all regular hours, and equal pay for equal work is applied?',hint:'"Equal pay for equal work" = a female and male worker doing the same job must receive the same base pay. Dispatch/temporary workers doing the same work as direct hires must also receive equal pay.',sev:'major'},
+    {id:'M2',text:'Is overtime compensated at a rate of at least 125% of the regular hourly rate?',hint:'e.g. Regular rate = 5 USD/hour → any overtime hour must be paid at least 6.25 USD (125%). Paying overtime at the same flat rate as regular hours = Major. Check if local law requires a higher rate — use whichever is stricter.',sev:'major'},
+    {id:'M3',text:'Are resigned or terminated workers paid all outstanding wages within one month of their last working day?',hint:'Outstanding wages include: remaining salary, unused leave payout, and any bonuses earned. Delaying payment by more than 1 month = Major. More than 1 month delayed for >5% of leavers = Priority.',sev:'major'},
   ],
   a41_doc:[
-    {id:'D1',text:'Do payroll records confirm all workers are paid at or above the agreed/minimum wage for all regular hours?',sev:'major'},
-    {id:'D2',text:'Do records confirm overtime is paid at a minimum rate of 125% of regular pay?',sev:'major'},
-    {id:'D3',text:'Are wages paid directly to workers with no unauthorized deductions (including for discipline or PPE)?',sev:'major'},
+    {id:'D1',text:'Do payroll records confirm all workers are paid at or above the agreed/minimum wage for all regular hours?',hint:'Compare: payslip amounts vs. local minimum wage rates. Also check whether temporary, dispatch, or part-time workers are receiving a lower rate than direct hires doing the same work.',sev:'major'},
+    {id:'D2',text:'Do records confirm overtime is paid at a minimum rate of 125% of regular pay?',hint:'Check the OT pay rate formula used in payroll. If the calculation base excludes bonuses or allowances that should be included, the effective rate may fall below 125% even though the stated rate looks correct.',sev:'major'},
+    {id:'D3',text:'Are wages paid directly to workers with no unauthorized deductions (including for discipline or PPE)?',hint:'Unauthorized deductions include: fines for breaking equipment, charges for uniform/PPE the worker is required to use, or any deduction used as punishment. These are prohibited regardless of whether the worker signed an agreement permitting them.',sev:'major'},
   ],
   a41_worker:[
-    {id:'W1',text:'Are you paid at least minimum wage for all hours worked, and at a higher rate for overtime?',sev:'major'},
-    {id:'W2',text:'Is your wage paid on time with no unexplained delays?',sev:'major'},
-    {id:'W3',text:'Have wages ever been deducted as a disciplinary measure or for PPE?',sev:'major',inv:true},
+    {id:'W1',text:'Are you paid at least minimum wage for all hours worked, and at a higher rate for overtime?',hint:'Ask: "Do you know what the minimum wage is here?" and "What rate do you receive for overtime hours?"',sev:'major'},
+    {id:'W2',text:'Is your wage paid on time with no unexplained delays?',hint:'Probe: "Has your pay ever been late? By how many days?" Delays of more than 2 days beyond the agreed payday = finding. More than 1 month late = Priority.',sev:'major'},
+    {id:'W3',text:'Have wages ever been deducted as a disciplinary measure or for PPE?',hint:'⚠️ Inverted — "Yes" = violation. e.g. "My wages were cut because I broke a machine" or "I had to pay for my own safety gloves" = prohibited deductions.',sev:'major',inv:true},
   ],
   // A4.2
   a42_mgmt:[
@@ -379,26 +379,26 @@ const Q={
   ],
   // A4.3
   a43_mgmt:[
-    {id:'M1',text:'Are all legally required statutory deductions (taxes, social insurance) calculated correctly?',sev:'major'},
-    {id:'M2',text:'Are these deductions submitted to the relevant government agencies within the legally required timeframe?',sev:'priority'},
+    {id:'M1',text:'Are all legally required statutory deductions (taxes, social insurance) calculated correctly?',hint:'Statutory deductions typically include: income tax, pension/retirement fund, health insurance, work injury insurance, unemployment insurance. Ask to see the rate table used and compare it against the current legal rates.',sev:'major'},
+    {id:'M2',text:'Are these deductions submitted to the relevant government agencies within the legally required timeframe?',hint:'Most countries require monthly remittance. Submissions more than 3 months overdue = Priority finding. The worker has already had money deducted but the employer hasn\'t forwarded it to the government.',sev:'priority'},
   ],
   a43_doc:[
-    {id:'D1',text:'Do records confirm employer contributions to statutory insurance schemes are calculated correctly by individual worker?',sev:'major'},
-    {id:'D2',text:'Do payment records confirm contributions are submitted to government agencies on time?',sev:'priority'},
+    {id:'D1',text:'Do records confirm employer contributions to statutory insurance schemes are calculated correctly by individual worker?',hint:'Check that the calculation base is correct (should typically include base pay + OT pay + regular bonuses). Errors to look for: applying last year\'s rates, excluding OT pay from the base, or not enrolling all eligible workers.',sev:'major'},
+    {id:'D2',text:'Do payment records confirm contributions are submitted to government agencies on time?',hint:'Ask to see government receipts, bank transfer records, or online submission confirmations. Compare submission dates against the legal deadline. Missing receipts for any month = flag for follow-up.',sev:'priority'},
   ],
   a43_worker:[
     {id:'W1',text:'Have deductions been made from your wages that you did not agree to or cannot explain?',sev:'major',inv:true},
   ],
   // A5.1
   a51_mgmt:[
-    {id:'M1',text:'Is there a clear anti-discrimination and anti-harassment policy covering hiring, pay, promotion, training, and termination?',sev:'major'},
-    {id:'M2',text:'Are workers subjected to pregnancy, virginity, or discriminatory medical tests as a condition of employment?',sev:'priority',inv:true},
-    {id:'M3',text:'Is there a functioning, accessible grievance mechanism for reporting discrimination or harassment?',sev:'major'},
+    {id:'M1',text:'Is there a clear anti-discrimination and anti-harassment policy covering hiring, pay, promotion, training, and termination?',hint:'The policy must name specific protected characteristics (gender, race, religion, nationality, age, disability, pregnancy, etc.) and apply to ALL stages of employment — not just hiring.',sev:'major'},
+    {id:'M2',text:'Are workers subjected to pregnancy, virginity, or discriminatory medical tests as a condition of employment?',hint:'⚠️ Inverted — "Yes" = Priority. e.g. Requiring female applicants to take a pregnancy test as part of hiring = prohibited. Requiring a worker to prove they are not pregnant to keep their job = prohibited.',sev:'priority',inv:true},
+    {id:'M3',text:'Is there a functioning, accessible grievance mechanism for reporting discrimination or harassment?',hint:'Look for: a dedicated HR hotline, anonymous suggestion box, email address, or grievance form in workers\' languages. "Functioning" means reports are actually investigated and responded to — not just received.',sev:'major'},
   ],
   a51_doc:[
-    {id:'D1',text:'Do HR records (payroll, benefits, hiring, promotions, discipline, termination) show no evidence of discrimination by protected characteristics?',sev:'major'},
-    {id:'D2',text:'Do grievance records show no unresolved cases of harassment or inhumane treatment?',sev:'priority'},
-    {id:'D3',text:'Are there no discriminatory conditions in job postings, application forms, or employment contracts?',sev:'major'},
+    {id:'D1',text:'Do HR records (payroll, benefits, hiring, promotions, discipline, termination) show no evidence of discrimination by protected characteristics?',hint:'Check: Are male and female workers in the same role paid differently? Are promotion records dominated by one nationality? Do disciplinary records disproportionately target one ethnic group or gender?',sev:'major'},
+    {id:'D2',text:'Do grievance records show no unresolved cases of harassment or inhumane treatment?',hint:'A grievance filed but never investigated or closed with no explanation = Priority finding. Look for: date filed, investigator assigned, outcome documented, worker notified.',sev:'priority'},
+    {id:'D3',text:'Are there no discriminatory conditions in job postings, application forms, or employment contracts?',hint:'e.g. Job posting saying "Female only, age 18–25" or application form asking about marital status, religion, or pregnancy = discriminatory. Check both printed materials and online job ads.',sev:'major'},
   ],
   a51_worker:[
     {id:'W1',text:'Have you personally experienced or witnessed discrimination, harassment, or inhumane treatment at this facility?',sev:'priority',inv:true},
@@ -407,11 +407,11 @@ const Q={
   ],
   // A5.2
   a52_mgmt:[
-    {id:'M1',text:'Are all disciplinary actions formally documented and reviewed by management?',sev:'major'},
-    {id:'M2',text:'Are workers informed of the reasons for disciplinary action and given the opportunity to respond?',sev:'major'},
+    {id:'M1',text:'Are all disciplinary actions formally documented and reviewed by management?',hint:'Verbal warnings given informally with no record kept = non-conformance. Each disciplinary action should generate a written record that goes through an HR or management review process.',sev:'major'},
+    {id:'M2',text:'Are workers informed of the reasons for disciplinary action and given the opportunity to respond?',hint:'The worker must: (1) be told exactly what they did wrong, (2) have a chance to give their side of the story, and (3) receive a copy of the written disciplinary record. Surprise terminations with no prior communication = Major.',sev:'major'},
   ],
   a52_doc:[
-    {id:'D1',text:'Do disciplinary records show all cases are documented with the worker\'s signature or written acknowledgment?',sev:'major'},
+    {id:'D1',text:'Do disciplinary records show all cases are documented with the worker\'s signature or written acknowledgment?',hint:'The worker\'s signature = confirmation they were informed (not agreement). If a worker refuses to sign, there should be a note from a witness. Missing signatures across multiple records = systemic issue.',sev:'major'},
     {id:'D2',text:'Are there no records of inhumane, discriminatory, or harassing disciplinary measures (physical punishment, public shaming, verbal abuse)?',sev:'priority'},
   ],
   a52_worker:[
@@ -420,8 +420,8 @@ const Q={
   ],
   // A5.3
   a53_mgmt:[
-    {id:'M1',text:'Are reasonable requests for religious accommodation (prayer time, dress, dietary) considered and documented?',sev:'major'},
-    {id:'M2',text:'Where religious accommodation is refused, is a written reason communicated to the requesting worker in a timely manner?',sev:'major'},
+    {id:'M1',text:'Are reasonable requests for religious accommodation (prayer time, dress, dietary) considered and documented?',hint:'e.g. A Muslim worker requests a 10-minute prayer break twice per shift; a Sikh worker requests exemption from a standard hardhat over their turban; a Jewish worker requests a shift swap for a religious holiday. All must be formally considered.',sev:'major'},
+    {id:'M2',text:'Where religious accommodation is refused, is a written reason communicated to the requesting worker in a timely manner?',hint:'A refusal is only valid if documented with a specific business reason (e.g. safety concern, operational impossibility). Refusing without explanation, or simply ignoring the request = Major finding.',sev:'major'},
   ],
   a53_doc:[
     {id:'D1',text:'Are records of religious accommodation requests maintained, showing the decision and reason provided?',sev:'major'},
@@ -432,8 +432,8 @@ const Q={
   ],
   // A5.4
   a54_mgmt:[
-    {id:'M1',text:'Are reasonable requests for disability accommodation considered, documented, and implemented where possible?',sev:'major'},
-    {id:'M2',text:'Are disability assessment and effectiveness evaluation reports maintained for all identified disabilities?',sev:'major'},
+    {id:'M1',text:'Are reasonable requests for disability accommodation considered, documented, and implemented where possible?',hint:'e.g. A worker with a back injury needs an ergonomic chair; a worker with low vision needs larger print on work instructions; a worker with ADHD needs written task lists instead of verbal-only briefings. Disability includes physical, mental, and emotional conditions.',sev:'major'},
+    {id:'M2',text:'Are disability assessment and effectiveness evaluation reports maintained for all identified disabilities?',hint:'For each worker with a disability: there should be an initial assessment (what accommodation is needed) AND a follow-up evaluation (is the accommodation actually working?). A periodic review is required — not just a one-time setup.',sev:'major'},
   ],
   a54_doc:[
     {id:'D1',text:'Are disability accommodation request records available showing the decision and reasoning given to the worker?',sev:'major'},
@@ -444,11 +444,11 @@ const Q={
   ],
   // A6.1
   a61_mgmt:[
-    {id:'M1',text:'Are workers free to form, join, or refrain from joining any trade union or worker representative body without management interference?',sev:'major'},
-    {id:'M2',text:'Is management neutral regarding union activities, limiting any contribution to providing meeting space or materials only?',sev:'major'},
+    {id:'M1',text:'Are workers free to form, join, or refrain from joining any trade union or worker representative body without management interference?',hint:'Ask: "What would happen to a worker who tried to organize a union here?" Threats of termination, demotion, or transfer for union activity = Priority. This also covers the right NOT to join — workers cannot be forced to join a union.',sev:'major'},
+    {id:'M2',text:'Is management neutral regarding union activities, limiting any contribution to providing meeting space or materials only?',hint:'Allowed: providing a meeting room. NOT allowed: attending union meetings uninvited, funding the union, influencing who leads it, or paying union officers more than comparable workers. Management control of a union = Major finding.',sev:'major'},
   ],
   a61_doc:[
-    {id:'D1',text:'Do records show no episodes of violence, threats, or retaliation related to union activities or freedom of association?',sev:'priority'},
+    {id:'D1',text:'Do records show no episodes of violence, threats, or retaliation related to union activities or freedom of association?',hint:'Look for: disciplinary records that followed a worker\'s union activity, transfer records targeting known union members, termination records coinciding with union organizing drives.',sev:'priority'},
     {id:'D2',text:'Do payroll records confirm union representatives or members are paid the same as comparable workers in similar roles?',sev:'major'},
     {id:'D3',text:'Do communication records show no restrictions on freedom of association communications among workers?',sev:'major'},
   ],
@@ -458,11 +458,11 @@ const Q={
   ],
   // A6.2
   a62_mgmt:[
-    {id:'M1',text:'Does management engage in good-faith negotiations with the worker representative body whenever requested?',sev:'major'},
-    {id:'M2',text:'Are the terms and conditions of any Collective Bargaining Agreement (CBA) fully implemented?',sev:'major',na:true},
+    {id:'M1',text:'Does management engage in good-faith negotiations with the worker representative body whenever requested?',hint:'"Good faith" = genuinely engaging in discussions with an open mind. NOT good faith: ignoring meeting requests, attending once and rejecting everything without counter-proposal, or sending a low-level proxy with no authority to decide anything.',sev:'major'},
+    {id:'M2',text:'Are the terms and conditions of any Collective Bargaining Agreement (CBA) fully implemented?',hint:'CBA = Collective Bargaining Agreement. A formal written agreement between the employer and the union setting out wages, hours, and working conditions. If a CBA exists, every clause must be actively applied — not just acknowledged. Select N/A if no CBA exists.',sev:'major',na:true},
   ],
   a62_doc:[
-    {id:'D1',text:'Are there no records of management refusing to enter negotiations requested by the worker representative body?',sev:'major'},
+    {id:'D1',text:'Are there no records of management refusing to enter negotiations requested by the worker representative body?',hint:'Look for: union meeting request letters with no management response, union grievance records citing management stonewalling, or documented instances where management walked out of or cancelled scheduled negotiations.',sev:'major'},
     {id:'D2',text:'Where a CBA exists, do records confirm all its terms and conditions are being implemented?',sev:'major',na:true},
   ],
   a62_worker:[
