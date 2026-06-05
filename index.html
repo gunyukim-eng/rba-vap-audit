@@ -191,6 +191,7 @@ const ITEMS={
   a54:{code:'A5.4',title:'Disability Accommodation',desc:'Reasonable disability requests considered',grp:'A5'},
   a61:{code:'A6.1',title:'Freedom of Association',desc:'Workers free to join/form unions',grp:'A6'},
   a62:{code:'A6.2',title:'Collective Bargaining',desc:'Bargaining rights respected in good faith',grp:'A6'},
+  a63:{code:'A6.3',title:'Peaceful Assembly',desc:'Workers may peacefully assemble and voice concerns',grp:'A6'},
   am11:{code:'AM.1.1',title:'Compliance Process',desc:'Quarterly process to track applicable laws',grp:'AM'},
   am12:{code:'AM.1.2',title:'Risk Assessment',desc:'Due diligence on actual and potential labor risks',grp:'AM'},
   am21:{code:'AM.2.1',title:'Roles & Responsibilities',desc:'Labor compliance responsibilities assigned at all levels',grp:'AM'},
@@ -200,8 +201,33 @@ const ITEMS={
   am32:{code:'AM.3.2',title:'Grievance Mechanism',desc:'Anonymous reporting without fear of reprisal',grp:'AM'},
   am41:{code:'AM.4.1',title:'Performance Review',desc:'Annual management review of labor system',grp:'AM'},
   am42:{code:'AM.4.2',title:'Self-Audit',desc:'Periodic self-audit against RBA Code',grp:'AM'},
+  am43:{code:'AM.4.3',title:'Corrective Action',desc:'Corrective actions are established to close non-conformances',grp:'AM'},
+  d11:{code:'D1',title:'Business Integrity',desc:'Prevents corruption and improper advantage',grp:'D'},
+  d12:{code:'D2',title:'Disclosure of Information',desc:'Ensures accurate and timely reporting',grp:'D'},
+  d13:{code:'D3',title:'Intellectual Property',desc:'Protects IP and confidential information',grp:'D'},
+  d14:{code:'D4',title:'Fair Business Practices',desc:'Supports fair competition and honest advertising',grp:'D'},
+  d15:{code:'D5',title:'Identity Protection',desc:'Protects privacy and non-retaliation for reporters',grp:'D'},
+  d16:{code:'D6',title:'Privacy',desc:'Ensures lawful handling of personal information',grp:'D'},
+  dm11:{code:'D.M.1.1',title:'Ethics Compliance Process',desc:'Ethics compliance risks are monitored and managed',grp:'DM'},
+  dm12:{code:'D.M.1.2',title:'Ethics Risk Due Diligence',desc:'Ethics risks are identified and assessed proactively',grp:'DM'},
+  dm21:{code:'D.M.2.1',title:'Ethics Roles & Responsibilities',desc:'Ethics responsibilities are assigned and authorized',grp:'DM'},
+  dm22:{code:'D.M.2.2',title:'Ethics Policies & Controls',desc:'Ethics policies and control processes are implemented',grp:'DM'},
+  dm23:{code:'D.M.2.3',title:'Ethics Training',desc:'Ethics training is provided for managers and workers',grp:'DM'},
+  dm31:{code:'D.M.3.1',title:'Ethics Communications',desc:'Two-way ethics communication and feedback is established',grp:'DM'},
+  dm32:{code:'D.M.3.2',title:'Ethics Grievance Reporting',desc:'Anonymous ethics grievances can be reported without reprisal',grp:'DM'},
+  dm41:{code:'D.M.4.1',title:'Ethics Management Review',desc:'Ethics management reviews continually improve performance',grp:'DM'},
+  dm42:{code:'D.M.4.2',title:'Ethics Self-Audit',desc:'Ethics self-audits assess conformance with the RBA Code',grp:'DM'},
+  dm43:{code:'D.M.4.3',title:'Ethics Corrective Actions',desc:'Ethics corrective action processes close identified gaps',grp:'DM'},
+  e11:{code:'E1.1',title:'Company Commitment',desc:'Establishes supply chain responsibility commitment',grp:'E'},
+  e12:{code:'E2.1',title:'Materials Restrictions',desc:'Manages restricted and hazardous materials',grp:'E'},
+  e13:{code:'E3.1',title:'Responsible Minerals',desc:'Ensures responsible sourcing of minerals',grp:'E'},
+  e14:{code:'E4.1',title:'Supplier Communication',desc:'Requires suppliers to follow RBA codes',grp:'E'},
+  e15:{code:'E4.2',title:'Supplier Identification',desc:'Next-tier major suppliers are identified and assessed',grp:'E'},
+  e16:{code:'E4.3',title:'Supplier Implementation',desc:'Suppliers are required to implement the RBA code',grp:'E'},
+  e17:{code:'E4.4',title:'Supplier Monitoring',desc:'Supplier RBA code performance and improvement are tracked',grp:'E'},
 };
-const GRPS={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System'};
+const GRPS={A:'Labor Standards',A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',D:'Ethics',DM:'Ethics Mgmt System',E:'Supply Chain'};
+const TOP_GRP_MAP={A:['A1','A2','A3','A4','A5','A6'],AM:['AM'],D:['D'],DM:['DM'],E:['E']};
 
 // ─── QUESTIONS ────────────────────────────────
 const Q={
@@ -479,6 +505,267 @@ const Q={
     {id:'W2',text:'Do you know your rights regarding collective bargaining at this facility?',sev:'minor'},
   ],
 
+  a63_mgmt:[
+    {id:'M1',text:'Are workers free to peacefully assemble and express non-violent concerns without interference?',hint:'Peaceful assembly includes union meetings, worker groups, and petitions. Any restriction or punishment for peaceful gatherings = Major.',sev:'major'},
+  ],
+  a63_doc:[
+    {id:'D1',text:'Do records and policies show no restrictions on peaceful worker assembly or group representation?',sev:'major'},
+  ],
+  a63_worker:[
+    {id:'W1',text:'Can you join or form a peaceful group or meeting at work without fear of reprisal?',sev:'major',inv:true},
+  ],
+
+  // D1 Ethics
+  d11_mgmt:[
+    {id:'M1',text:'Is there a documented business integrity policy covering corruption, bribery, and improper advantages?',hint:'Look for a policy that addresses gifts, facilitation payments, conflicts of interest, and third-party interactions.',sev:'major'},
+  ],
+  d11_doc:[
+    {id:'D1',text:'Is the business integrity policy documented, approved, and communicated to relevant personnel?',sev:'major'},
+  ],
+  d11_worker:[
+    {id:'W1',text:'Are workers aware of the facility\'s business integrity expectations and how to report concerns?',sev:'minor'},
+  ],
+
+  d12_mgmt:[
+    {id:'M1',text:'Is there a process to ensure disclosure of information is accurate and complete?',hint:'This process should cover financial, operational, and regulatory disclosures and identify responsible owners.',sev:'major'},
+  ],
+  d12_doc:[
+    {id:'D1',text:'Do disclosure controls and records show information is reviewed for accuracy before release?',sev:'major'},
+  ],
+  d12_worker:[
+    {id:'W1',text:'Do workers understand how relevant business information is disclosed and who is responsible?',sev:'minor'},
+  ],
+
+  d13_mgmt:[
+    {id:'M1',text:'Is there a policy or procedure to protect intellectual property and confidential information?',hint:'This should cover employee confidentiality obligations, IP ownership, and restrictions on sharing proprietary data.',sev:'major'},
+  ],
+  d13_doc:[
+    {id:'D1',text:'Are intellectual property protection measures documented and enforced?',sev:'major'},
+  ],
+  d13_worker:[
+    {id:'W1',text:'Are workers aware of their responsibilities to protect confidential and proprietary information?',sev:'minor'},
+  ],
+
+  d14_mgmt:[
+    {id:'M1',text:'Are fair business and competition policies in place to prohibit anti-competitive practices?',hint:'Check for policies addressing pricing, market allocation, bid-rigging, and misleading advertising.',sev:'major'},
+  ],
+  d14_doc:[
+    {id:'D1',text:'Do records show the facility follows fair business practices and complies with competition laws?',sev:'major'},
+  ],
+  d14_worker:[
+    {id:'W1',text:'Do workers understand the facility\'s expectations on fair business conduct and honest advertising?',sev:'minor'},
+  ],
+
+  d15_mgmt:[
+    {id:'M1',text:'Is there a policy to protect identity and ensure non-retaliation for reporting concerns?',hint:'The policy should explicitly prohibit retaliation against anyone who reports misconduct in good faith.',sev:'major'},
+  ],
+  d15_doc:[
+    {id:'D1',text:'Are non-retaliation and identity protection measures documented and communicated?',sev:'major'},
+  ],
+  d15_worker:[
+    {id:'W1',text:'Do workers feel safe reporting concerns without fear of retaliation?',sev:'major',inv:true},
+  ],
+
+  d16_mgmt:[
+    {id:'M1',text:'Is there a privacy policy covering lawful collection, use, and protection of personal data?',hint:'Privacy controls should cover employee and customer data, access restrictions, and data retention requirements.',sev:'major'},
+  ],
+  d16_doc:[
+    {id:'D1',text:'Do privacy records show personal data is handled according to policy and applicable law?',sev:'major'},
+  ],
+  d16_worker:[
+    {id:'W1',text:'Are workers aware of how their personal information is protected by the facility?',sev:'minor'},
+  ],
+
+  dm11_mgmt:[
+    {id:'M1',text:'Is there a formal ethics risk assessment process for identifying and evaluating ethics risks?',hint:'A good process covers corruption, disclosure, IP, competition, privacy, and reporting risks across the facility.',sev:'major'},
+  ],
+  dm11_doc:[
+    {id:'D1',text:'Are ethics risk assessment records documented, current, and reviewed periodically?',sev:'major'},
+  ],
+  dm11_worker:[
+    {id:'W1',text:'Do workers know how ethics risks are assessed and managed at this facility?',sev:'minor'},
+  ],
+
+  dm12_mgmt:[
+    {id:'M1',text:'Are ethics control processes implemented to prevent and detect misconduct?',hint:'Controls may include approval workflows, third-party due diligence, audit checks, and escalation routines.',sev:'major'},
+  ],
+  dm12_doc:[
+    {id:'D1',text:'Are ethics control process documents available and followed in practice?',sev:'major'},
+  ],
+  dm12_worker:[
+    {id:'W1',text:'Do workers understand the controls in place to prevent and report ethics issues?',sev:'minor'},
+  ],
+
+  dm13_mgmt:[
+    {id:'M1',text:'Does the facility communicate ethics expectations clearly to workers and suppliers?',hint:'Communication should include policies, reporting channels, and training on key ethics topics.',sev:'major'},
+  ],
+  dm13_doc:[
+    {id:'D1',text:'Are ethics communication materials documented and distributed appropriately?',sev:'minor'},
+  ],
+  dm13_worker:[
+    {id:'W1',text:'Have workers received information on ethics policies and reporting channels?',sev:'minor'},
+  ],
+
+  dm14_mgmt:[
+    {id:'M1',text:'Does senior management review ethics performance and improvement actions regularly?',hint:'Reviews should include incident trends, corrective actions, and progress on ethics objectives.',sev:'major'},
+  ],
+  dm14_doc:[
+    {id:'D1',text:'Are ethics review records documented with findings and agreed follow-up actions?',sev:'major'},
+  ],
+  dm14_worker:[
+    {id:'W1',text:'Do workers believe the facility follows through on ethics commitments and improvements?',sev:'minor'},
+  ],
+
+  dm21_mgmt:[
+    {id:'M1',text:'Are ethics responsibilities and authorities clearly defined and assigned for all employee levels?',hint:'This should include senior management, supervisors, HR, and anyone responsible for ethics compliance.',sev:'major'},
+  ],
+  dm21_doc:[
+    {id:'D1',text:'Are ethics roles and responsibilities documented and enforced through job descriptions or policies?',sev:'major'},
+  ],
+  dm21_worker:[
+    {id:'W1',text:'Do workers know who is responsible for ethics and integrity issues at this facility?',sev:'minor'},
+  ],
+
+  dm22_mgmt:[
+    {id:'M1',text:'Are ethics policies and control processes implemented to prevent misconduct and protect confidential information?',hint:'Controls should cover bribery, conflicts of interest, fair competition, privacy, and whistleblower protection.',sev:'major'},
+  ],
+  dm22_doc:[
+    {id:'D1',text:'Are ethics policy documents and control procedures available and followed in practice?',sev:'major'},
+  ],
+  dm22_worker:[
+    {id:'W1',text:'Do workers understand the facility’s ethics policies and the controls in place to enforce them?',sev:'minor'},
+  ],
+
+  dm23_mgmt:[
+    {id:'M1',text:'Is there an ethics training process for managers and workers covering policies, reporting, and expected conduct?',hint:'Training should include anti-corruption, privacy, whistleblowing, and fair competition topics.',sev:'major'},
+  ],
+  dm23_doc:[
+    {id:'D1',text:'Are ethics training materials and attendance records maintained for managers and workers?',sev:'major'},
+  ],
+  dm23_worker:[
+    {id:'W1',text:'Have you received training on ethics expectations and how to report concerns?',sev:'minor'},
+  ],
+
+  dm31_mgmt:[
+    {id:'M1',text:'Is there a two-way ethics communication process allowing workers and suppliers to give feedback?',hint:'Two-way means workers can both receive information and provide input through meetings, surveys, or hotlines.',sev:'major'},
+  ],
+  dm31_doc:[
+    {id:'D1',text:'Are records kept of ethics communication and feedback activities, including follow-up actions?',sev:'minor'},
+  ],
+  dm31_worker:[
+    {id:'W1',text:'Do you feel able to give input or raise ethics concerns without being ignored?',sev:'minor'},
+  ],
+
+  dm32_mgmt:[
+    {id:'M1',text:'Is there an anonymous ethics grievance reporting process with protection against retaliation?',hint:'Anonymous complaints must be possible and should not be routed through the accused party or their supervisor.',sev:'major'},
+  ],
+  dm32_doc:[
+    {id:'D1',text:'Are anonymous ethics grievance channels documented and accessible to workers?',sev:'major'},
+  ],
+  dm32_worker:[
+    {id:'W1',text:'Do you know how to report an ethics concern anonymously if needed?',sev:'minor'},
+  ],
+
+  dm41_mgmt:[
+    {id:'M1',text:'Does management regularly review ethics performance and improvement actions?',hint:'Reviews should include ethics incidents, training results, grievance outcomes, and corrective actions.',sev:'major'},
+  ],
+  dm41_doc:[
+    {id:'D1',text:'Are ethics management review records documented with findings and corrective actions?',sev:'major'},
+  ],
+  dm41_worker:[
+    {id:'W1',text:'Do workers see that ethics issues are taken seriously by management?',sev:'minor'},
+  ],
+
+  dm42_mgmt:[
+    {id:'M1',text:'Is there a regular ethics self-audit process to assess compliance and identify improvement opportunities?',sev:'major'},
+  ],
+  dm42_doc:[
+    {id:'D1',text:'Are ethics self-audit reports and action plans documented and reviewed?',sev:'major'},
+  ],
+  dm42_worker:[
+    {id:'W1',text:'Are workers aware of internal ethics reviews and any resulting improvements?',sev:'minor'},
+  ],
+
+  dm43_mgmt:[
+    {id:'M1',text:'Is there a corrective action process to address and close ethics non-conformances?',hint:'Corrective actions should include root cause analysis, assigned owners, deadlines, and verification of closure.',sev:'major'},
+  ],
+  dm43_doc:[
+    {id:'D1',text:'Are ethics corrective action plans recorded and tracked to closure?',sev:'major'},
+  ],
+  dm43_worker:[
+    {id:'W1',text:'Do you believe ethics problems are corrected and not just ignored?',sev:'minor'},
+  ],
+
+  e11_mgmt:[
+    {id:'M1',text:'Has the company publicly committed to supply chain responsibility and RBA code compliance?',hint:'Commitment may be in a supplier code of conduct, policy statement, or customer-facing commitment document.',sev:'major'},
+  ],
+  e11_doc:[
+    {id:'D1',text:'Is the supply chain commitment documented and available to interested stakeholders?',sev:'major'},
+  ],
+  e11_worker:[
+    {id:'W1',text:'Do workers know the company has a commitment to responsible supply chain practices?',sev:'minor'},
+  ],
+
+  e12_mgmt:[
+    {id:'M1',text:'Are materials restrictions and prohibited substances controlled through documented processes?',hint:'This should include restricted materials lists, sourcing controls, and supplier declarations where needed.',sev:'major'},
+  ],
+  e12_doc:[
+    {id:'D1',text:'Are restricted materials and hazardous substance controls documented and enforced?',sev:'major'},
+  ],
+  e12_worker:[
+    {id:'W1',text:'Are workers aware of any material restrictions or hazardous substance controls affecting their work?',sev:'minor'},
+  ],
+
+  e13_mgmt:[
+    {id:'M1',text:'Does the company have a process for responsible sourcing of minerals and related reporting?',hint:'This should include due diligence on conflict minerals and supplier traceability for key commodities.',sev:'major'},
+  ],
+  e13_doc:[
+    {id:'D1',text:'Are responsible minerals sourcing records maintained and reviewed?',sev:'major'},
+  ],
+  e13_worker:[
+    {id:'W1',text:'Are workers aware of responsible minerals sourcing requirements for the company?',sev:'minor'},
+  ],
+
+  e14_mgmt:[
+    {id:'M1',text:'Are suppliers required to comply with the RBA code and subject to due diligence?',hint:'Supplier responsibility should be included in contracts, audits, or onboarding procedures.',sev:'major'},
+  ],
+  e14_doc:[
+    {id:'D1',text:'Do supplier records demonstrate verification of supplier responsibility and RBA compliance?',sev:'major'},
+  ],
+  e14_worker:[
+    {id:'W1',text:'Do workers know suppliers are expected to meet the company\'s RBA requirements?',sev:'minor'},
+  ],
+
+  e15_mgmt:[
+    {id:'M1',text:'Are next-tier major suppliers identified and assessed for risk using documented criteria?',hint:'Suppliers should be prioritized based on spending, criticality, and risk. This must include labor agents, contractors, and service providers.',sev:'major'},
+  ],
+  e15_doc:[
+    {id:'D1',text:'Are records available showing the identification of next-tier major suppliers and the basis for their selection?',sev:'major'},
+  ],
+  e15_worker:[
+    {id:'W1',text:'Do workers know whether key suppliers and contractors are identified and monitored?',sev:'minor'},
+  ],
+
+  e16_mgmt:[
+    {id:'M1',text:'Is there a process to ensure next-tier major suppliers implement the RBA code?',hint:'This may include contracts, supplier assessments, audits, or follow-up verification activities.',sev:'major'},
+  ],
+  e16_doc:[
+    {id:'D1',text:'Are supplier management records available showing how suppliers are required to implement the RBA code?',sev:'major'},
+  ],
+  e16_worker:[
+    {id:'W1',text:'Do workers understand that suppliers must comply with the company\'s labor and ethics standards?',sev:'minor'},
+  ],
+
+  e17_mgmt:[
+    {id:'M1',text:'Is supplier RBA code performance monitored and continuously improved through documented follow-up?',hint:'Monitoring should include corrective actions, ongoing review, and improvements for suppliers with identified gaps.',sev:'major'},
+  ],
+  e17_doc:[
+    {id:'D1',text:'Are supplier performance monitoring records available and reviewed for improvement?',sev:'major'},
+  ],
+  e17_worker:[
+    {id:'W1',text:'Do workers know the company tracks supplier performance and follows up on supplier issues?',sev:'minor'},
+  ],
+
   // ── A.M LABOR MANAGEMENT SYSTEM ──
   am11_mgmt:[
     {id:'M1',text:'Is there a quarterly process to identify, track, and update compliance with applicable labor laws and customer requirements?',hint:'This should be a scheduled, documented process — not just reacting when an audit occurs. Ask to see the last quarterly review records.',sev:'major'},
@@ -576,6 +863,16 @@ const Q={
   ],
   am42_doc:[
     {id:'D1',text:'Are self-audit reports available covering all facility areas, all policies, physical conditions, records, and interviews?',hint:'A self-audit report should be similar in scope to a VAP audit report — covering all A1-A6 and AM items. A surface-level checklist covering only easy items is not an adequate self-audit.',sev:'major'},
+  ],
+
+  am43_mgmt:[
+    {id:'M1',text:'Is there a corrective action process for labor non-conformances that includes root cause analysis, owners, and closure verification?',hint:'The process should require documented actions, deadlines, owners, and verification that the issue is closed.',sev:'major'},
+  ],
+  am43_doc:[
+    {id:'D1',text:'Are corrective action records documented, tracked, and verified as closed for labor system findings?',sev:'major'},
+  ],
+  am43_worker:[
+    {id:'W1',text:'Do workers believe corrective actions for labor issues are actually completed and monitored?',sev:'minor'},
   ],
 };
 
@@ -1245,7 +1542,8 @@ function calcItem(id){
 }
 
 function calcGrp(g){
-  const its=Object.keys(ITEMS).filter(k=>ITEMS[k].grp===g&&S.done[k]);
+  const groups=TOP_GRP_MAP[g]||[g];
+  const its=Object.keys(ITEMS).filter(k=>groups.includes(ITEMS[k].grp)&&S.done[k]);
   return its.length?its.map(calcItem).reduce(maxR,'conformance'):null;
 }
 
@@ -1369,7 +1667,7 @@ function screenSetup(){
 }
 
 function screenHome(){
-  const grpList=['A1','A2','A3','A4','A5','A6','AM'];
+  const grpList=['A','AM','D','DM','E'];
 
   const icard=id=>{
     const m=ITEMS[id],done=S.done[id],inprog=!done&&hasAns(id);
@@ -1387,7 +1685,8 @@ function screenHome(){
   const grpSec=g=>{
     const gr=calcGrp(g),k=RK[gr]||null;
     const gbdg=gr?`<span class="icbadge ${k}" style="font-size:10px">${RL[gr]}</span>`:`<span class="icbadge ns" style="font-size:10px">—</span>`;
-    const its=Object.keys(ITEMS).filter(k=>ITEMS[k].grp===g);
+    const groups=TOP_GRP_MAP[g]||[g];
+    const its=Object.keys(ITEMS).filter(k=>groups.includes(ITEMS[k].grp));
     return`<div class="grpsec">
       <div class="grplbl"><span>${g} — ${GRPS[g]}</span>${gbdg}</div>
       <div class="icards">${its.map(icard).join('')}</div>
@@ -1411,7 +1710,7 @@ function screenHome(){
       <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
     </div>
     <div class="hsum">
-      ${['A1','A2','A3','A4','A5','A6','AM'].map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
+      ${['A','AM','D','DM','E'].map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
       <div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${overall?RCOL[overall]:'rgba(255,255,255,.3)'}">${overall?RL[overall]:'—'}</div></div>
     </div>
   </div>
