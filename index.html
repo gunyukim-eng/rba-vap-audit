@@ -2367,12 +2367,14 @@ function screenHome(){
     <button class="hometab${S.homeTab==='audit'?' act':''}" onclick="S.homeTab='audit';render()">${S.lang==='ko'?'점검 항목':'Audit Items'}</button>
     <button class="hometab${S.homeTab==='docs'?' act':''}" onclick="S.homeTab='docs';render()">${S.lang==='ko'?'필요 서류':'Documents'}</button>
   </div>
+  ${(()=>{const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';return`<div style="padding:10px 16px 0">
+    <button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:13px;background:var(--blue);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📋 ${viol.length?(ko?`시정조치계획 (CAP) — ${viol.length}건 위반`:`CAP — ${viol.length} Finding${viol.length>1?'s':''}`):(ko?'시정조치계획 (CAP)':'Corrective Action Plan (CAP)')}
+    </button>
+  </div>`;})()}
   ${S.homeTab==='docs'?renderHomeDocs():`
   ${grpList.map(grpSec).join('')}
-  <div style="padding:8px 16px 24px;display:flex;flex-direction:column;gap:9px">
-    <button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:14px;background:var(--blue);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
-      📋 ${(()=>{const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';return viol.length?(ko?`시정조치계획 (CAP) — ${viol.length}건 위반`:`CAP — ${viol.length} Finding${viol.length>1?'s':''}`):(ko?'시정조치계획 (CAP)':'Corrective Action Plan (CAP)');})()}
-    </button>
+  <div style="padding:8px 16px 24px">
     <button onclick="exportCSV()" style="width:100%;padding:14px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📊 ${S.lang==='ko'?'점검 결과 Excel 내보내기':S.lang==='zh'?'导出检查结果 Excel':'Export Results to Excel (.csv)'}
     </button>
