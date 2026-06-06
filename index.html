@@ -277,6 +277,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .cap-empty-sub{font-size:13px;color:var(--muted)}
 .cap-filled-dot{width:8px;height:8px;border-radius:50%;background:var(--C);flex-shrink:0}
 
+/* SUPPLIER PRE-CHECK */
+.sup-hero{background:var(--dark);color:#fff;padding:20px 16px 16px}
+.sup-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:11px;font-weight:700;
+  letter-spacing:1px;padding:4px 12px;border-radius:var(--pill);margin-bottom:10px;text-transform:uppercase}
+.sup-hero-title{font-size:20px;font-weight:700;margin-bottom:3px}
+.sup-hero-sub{font-size:13px;color:rgba(255,255,255,.5)}
+.sup-doc-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.sup-doc-row:last-child{border-bottom:none}
+.sup-doc-txt{flex:1;font-size:12px;line-height:1.4;color:var(--ink)}
+.sup-tog{display:flex;gap:4px;flex-shrink:0}
+.sup-btn{padding:5px 9px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--parch);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  color:var(--muted);-webkit-tap-highlight-color:transparent;transition:all .12s}
+.sup-btn:active{transform:scale(.92)}
+.sup-btn.sy{background:var(--C);border-color:var(--C);color:#fff}
+.sup-btn.sn{background:var(--P);border-color:var(--P);color:#fff}
+.sup-btn.sna{background:var(--muted);border-color:var(--muted);color:#fff}
+.sup-grp{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  margin-bottom:9px;overflow:hidden}
+.sup-grp summary{list-style:none;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent}
+.sup-grp summary::-webkit-details-marker{display:none}
+.sup-grp-body{padding:0 14px 8px;border-top:1px solid var(--line)}
+.sup-grp-prog{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+.sup-check-badge{display:inline-block;padding:2px 7px;border-radius:var(--pill);font-size:10px;font-weight:700}
+.sup-check-badge.y{background:#f0faf3;color:var(--C);border:1px solid var(--C)}
+.sup-check-badge.n{background:#fff5f4;color:var(--P);border:1px solid var(--P)}
+.sup-check-badge.na{background:var(--parch);color:var(--muted);border:1px solid var(--line)}
+
+/* LINK BOX */
+.link-box{background:var(--parch);border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:11px 13px;font-size:12px;color:var(--ink);word-break:break-all;line-height:1.5;
+  margin-bottom:10px;font-family:monospace}
+
 /* SESSION LIST */
 .sess-list{width:100%;padding:0 24px}
 .sess-card{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
@@ -734,10 +769,15 @@ function docRefBox(id){
   const ko=S.lang==='ko';
   const docs=(ko?DOC_LIST_KO:DOC_LIST)[key];
   if(!docs||!docs.length)return'';
+  const hasSupData=docs.some((_,i)=>S.supplierChecks[supKey(key,i)]);
   const label=ko?`📋 필요 서류 목록 (${key}) — ${docs.length}건`:`📋 Required Documents (${key}) — ${docs.length} items`;
   return`<details class="docref">
-    <summary>${label} <span style="font-size:10px">▼</span></summary>
-    <div class="docref-body">${docs.map(d=>`<div class="docref-item">${d}</div>`).join('')}</div>
+    <summary>${label}${hasSupData?` <span style="font-size:10px;color:var(--C);margin-left:4px">● ${ko?'사전체크':'Pre-checked'}</span>`:''} <span style="font-size:10px">▼</span></summary>
+    <div class="docref-body">${docs.map((d,i)=>{
+      const sv=S.supplierChecks[supKey(key,i)];
+      const badge=sv?`<span class="sup-check-badge ${sv}" style="margin-left:6px;font-size:10px">${sv==='y'?(ko?'준비됨':'Ready'):sv==='n'?(ko?'미준비':'Not Ready'):'N/A'}</span>`:'';
+      return`<div class="docref-item">${d}${badge}</div>`;
+    }).join('')}</div>
   </details>`;
 }
 
@@ -2080,6 +2120,7 @@ const initState=()=>({
   noteOpen:{},
   cap:{},
   capOpen:{},
+  supplierChecks:{},
 });
 let S=initState();
 
@@ -2374,8 +2415,11 @@ function screenHome(){
   </div>`;})()}
   ${S.homeTab==='docs'?renderHomeDocs():`
   ${grpList.map(grpSec).join('')}
-  <div style="padding:8px 16px 24px">
-    <button onclick="exportCSV()" style="width:100%;padding:14px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+  <div style="padding:8px 16px 24px;display:flex;flex-direction:column;gap:9px">
+    <button onclick="S.screen='supgen';render()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--M);border-radius:var(--r-lg);color:var(--M);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📤 ${(()=>{const ko=S.lang==='ko';const hasSup=Object.keys(S.supplierChecks||{}).length>0;return hasSup?(ko?'사전점검 결과 반영됨':'Pre-Check Imported ✓'):(ko?'협력사 사전점검 요청':'Request Supplier Pre-Check');})()}
+    </button>
+    <button onclick="exportCSV()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📊 ${S.lang==='ko'?'점검 결과 Excel 내보내기':S.lang==='zh'?'导出检查结果 Excel':'Export Results to Excel (.csv)'}
     </button>
   </div>`}`;
@@ -2791,6 +2835,224 @@ function screenLanding(){
   </div>`;
 }
 
+// ─── SUPPLIER PRE-CHECK ───────────────────────
+let _supChecks={};   // supplier's own check state (ephemeral, not in S)
+let _supVendor='';
+let _supLang='ko';
+let _importData=null;
+
+const SUP_SECTIONS=[
+  {id:'A',label:'A — Labor Standards',ko:'A — 노동기준',groups:['A1','A2','A3','A4','A5','A6','AM']},
+  {id:'D',label:'D — Ethics',ko:'D — 윤리',groups:['D1','D2','D3','D4','D5','D6','DM']},
+  {id:'E',label:'E — Supply Chain',ko:'E — 공급망',groups:['E1','E2','E3','E4']},
+];
+const SUP_GRP_NAMES={
+  A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',
+  A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',
+  D1:'Business Integrity',D2:'Disclosure',D3:'Intellectual Property',D4:'Fair Business',
+  D5:'Identity Protection',D6:'Privacy',DM:'Ethics Mgmt System',
+  E1:'Company Commitment',E2:'Materials Restrictions',E3:'Responsible Minerals',E4:'Supplier Responsibility'
+};
+const SUP_GRP_NAMES_KO={
+  A1:'강제 노동',A2:'연소 근로자',A3:'근무 시간',A4:'임금 및 복리후생',
+  A5:'비차별',A6:'결사의 자유',AM:'노동 관리 시스템',
+  D1:'비즈니스 무결성',D2:'정보 공개',D3:'지식재산권',D4:'공정 거래',
+  D5:'신원 보호',D6:'개인정보 보호',DM:'윤리 관리 시스템',
+  E1:'기업 책임',E2:'물질 제한',E3:'책임 광물 조달',E4:'공급업체 책임'
+};
+
+function supKey(grp,idx){return grp+'_'+idx;}
+
+function setSupCheck(grp,idx,val){
+  const k=supKey(grp,idx);
+  _supChecks[k]=_supChecks[k]===val?null:val;
+  render();
+}
+
+function getSupBase(){return window.location.origin+window.location.pathname;}
+
+function genSupplierURL(){
+  return getSupBase()+'?sup='+encodeURIComponent(S.vendorCode)+'&lang='+S.lang;
+}
+
+function copyText(txt,btn){
+  navigator.clipboard.writeText(txt).then(()=>{
+    const orig=btn.textContent;btn.textContent='✓ Copied!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  }).catch(()=>{
+    prompt('Copy this link:',txt);
+  });
+}
+
+function submitSupplier(){
+  const resultData={v:_supVendor,lang:_supLang,ts:new Date().toISOString(),checks:_supChecks};
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(resultData))));
+  const url=getSupBase()+'?supresult='+encodeURIComponent(encoded);
+  _supResultURL=url;
+  render();
+}
+
+let _supResultURL=null;
+
+function importSupplierResult(){
+  if(!_importData)return;
+  S.supplierChecks=_importData.checks||{};
+  S.screen='home';
+  render();window.scrollTo(0,0);
+  history.replaceState(null,'',window.location.pathname);
+}
+
+function screenSupGen(){
+  const ko=S.lang==='ko';
+  const url=genSupplierURL();
+  return`${nav(ko?'사전점검 요청':'Supplier Pre-Check','goHome()')}
+  <div class="content">
+    <span class="stag" style="background:var(--M)">📤 ${ko?'공유':'Share'}</span>
+    <h2 class="stitle">${ko?'협력사 사전점검 링크':'Supplier Pre-Check Link'}</h2>
+    <p class="ssub" style="margin-bottom:20px">${ko?'아래 링크를 협력사에 전달하세요. 협력사가 서류 준비 현황을 체크하면 결과를 감사에 반영할 수 있습니다.':'Share this link with the supplier. They can pre-check their document readiness before your visit.'}</p>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${ko?'협력사 링크':'Supplier Link'} — ${S.vendorCode}</div>
+    <div class="link-box">${url}</div>
+    <button id="copyBtn" onclick="copyText('${url}',this)" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:20px">
+      📋 ${ko?'링크 복사':'Copy Link'}
+    </button>
+    <div style="background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-lg);padding:14px;font-size:13px;color:var(--ink);line-height:1.6">
+      <strong>${ko?'사용 방법:':'How it works:'}</strong><br>
+      ${ko?'① 위 링크를 협력사에 카카오톡/이메일로 전달<br>② 협력사가 서류 준비 현황 체크 후 결과 코드 생성<br>③ 결과 코드 URL을 감사원에게 전달<br>④ 감사원이 URL을 열어 "감사에 반영" 클릭':'① Send the link to supplier via email/messenger<br>② Supplier checks document readiness & generates result<br>③ Supplier sends the result URL back to auditor<br>④ Auditor opens URL and clicks "Import to Audit"'}
+    </div>
+  </div>`;
+}
+
+function screenSupplier(){
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const grpNames=ko?SUP_GRP_NAMES_KO:SUP_GRP_NAMES;
+  if(_supResultURL){
+    return`<div style="min-height:100vh;background:var(--parch);display:flex;flex-direction:column">
+      <div style="background:var(--dark);color:#fff;padding:16px;font-size:16px;font-weight:700">RBA VAP — ${ko?'제출 완료':'Submitted'}</div>
+      <div style="padding:24px 16px;flex:1">
+        <div style="font-size:40px;text-align:center;margin-bottom:16px">✅</div>
+        <h2 style="font-size:20px;font-weight:700;text-align:center;margin-bottom:8px">${ko?'체크 완료!':'All Done!'}</h2>
+        <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px">${ko?'아래 링크를 감사원에게 전달해주세요.':'Send the link below to the auditor.'}</p>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${ko?'결과 링크':'Result Link'}</div>
+        <div class="link-box">${_supResultURL}</div>
+        <button onclick="copyText('${_supResultURL}',this)" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">
+          📋 ${ko?'링크 복사':'Copy Link'}
+        </button>
+      </div>
+    </div>`;
+  }
+
+  const allDocs=SUP_SECTIONS.flatMap(s=>s.groups.flatMap(g=>(dl[g]||[]).map((_,i)=>supKey(g,i))));
+  const checked=allDocs.filter(k=>_supChecks[k]==='y'||_supChecks[k]==='na').length;
+  const pct=allDocs.length?Math.round(checked/allDocs.length*100):0;
+
+  const grpBlock=g=>{
+    const docs=dl[g];if(!docs||!docs.length)return'';
+    const grpChecked=docs.filter((_,i)=>_supChecks[supKey(g,i)]==='y'||_supChecks[supKey(g,i)]==='na').length;
+    return`<details class="sup-grp">
+      <summary>
+        <span><span style="color:var(--blue);margin-right:5px">${g}</span>${grpNames[g]||g}
+          <span class="sup-grp-prog">${grpChecked}/${docs.length}</span>
+        </span><span style="font-size:10px;color:var(--muted)">▼</span>
+      </summary>
+      <div class="sup-grp-body">
+        ${docs.map((d,i)=>{
+          const k=supKey(g,i),v=_supChecks[k]||null;
+          return`<div class="sup-doc-row">
+            <div class="sup-doc-txt">${d}</div>
+            <div class="sup-tog">
+              <button class="sup-btn${v==='y'?' sy':''}" onclick="setSupCheck('${g}',${i},'y')">✓</button>
+              <button class="sup-btn${v==='n'?' sn':''}" onclick="setSupCheck('${g}',${i},'n')">✗</button>
+              <button class="sup-btn${v==='na'?' sna':''}" onclick="setSupCheck('${g}',${i},'na')">N/A</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </details>`;
+  };
+
+  return`<div style="min-height:100vh;background:var(--parch);display:flex;flex-direction:column">
+    <div class="sup-hero">
+      <div class="sup-hero-badge">📋 ${ko?'사전 서류 체크':'Pre-Check'}</div>
+      <div class="sup-hero-title">${_supVendor}</div>
+      <div class="sup-hero-sub">${ko?'필요 서류 준비 현황을 체크해주세요':'Check the readiness of required documents'}</div>
+      <div style="margin-top:12px;background:rgba(255,255,255,.1);height:4px;border-radius:2px;overflow:hidden">
+        <div style="height:100%;background:var(--C);border-radius:2px;width:${pct}%;transition:width .3s"></div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:5px">${checked} / ${allDocs.length} ${ko?'확인':'checked'} (${pct}%)</div>
+    </div>
+    <div style="padding:14px 16px;flex:1">
+      ${SUP_SECTIONS.map(sec=>`
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 7px">${ko?sec.ko:sec.label}</div>
+        ${sec.groups.map(grpBlock).join('')}`).join('')}
+      <div style="height:90px"></div>
+    </div>
+    <div style="position:sticky;bottom:0;padding:12px 16px;background:var(--canvas);border-top:1px solid var(--line)">
+      <button onclick="submitSupplier()" style="width:100%;padding:14px;background:${pct>=50?'var(--blue)':'var(--muted)'};color:#fff;border:none;border-radius:var(--pill);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">
+        ${ko?`완료 & 결과 코드 생성 (${pct}%)`:`Submit & Generate Result (${pct}%)`}
+      </button>
+    </div>
+  </div>`;
+}
+
+function screenSupImport(){
+  const ko=S.lang==='ko';
+  if(!_importData)return`${nav('Import','goHome()')}`;
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const grpNames=ko?SUP_GRP_NAMES_KO:SUP_GRP_NAMES;
+  const checks=_importData.checks||{};
+  const ts=_importData.ts?new Date(_importData.ts).toLocaleString():'—';
+
+  const allKeys=Object.keys(checks);
+  const ready=allKeys.filter(k=>checks[k]==='y').length;
+  const notReady=allKeys.filter(k=>checks[k]==='n').length;
+  const na=allKeys.filter(k=>checks[k]==='na').length;
+
+  const grpBlock=g=>{
+    const docs=dl[g];if(!docs||!docs.length)return'';
+    const hasData=docs.some((_,i)=>checks[supKey(g,i)]);
+    if(!hasData)return'';
+    return`<details class="sup-grp">
+      <summary><span><span style="color:var(--blue);margin-right:5px">${g}</span>${grpNames[g]||g}</span><span style="font-size:10px;color:var(--muted)">▼</span></summary>
+      <div class="sup-grp-body">
+        ${docs.map((d,i)=>{
+          const v=checks[supKey(g,i)];if(!v)return'';
+          return`<div class="sup-doc-row">
+            <div class="sup-doc-txt">${d}</div>
+            <span class="sup-check-badge ${v}">${v==='y'?(ko?'준비됨':'Ready'):v==='n'?(ko?'미준비':'Not Ready'):'N/A'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </details>`;
+  };
+
+  return`${nav(ko?'사전점검 결과 가져오기':'Import Pre-Check','S.screen=\'home\';render();history.replaceState(null,\'\',window.location.pathname)')}
+  <div class="content">
+    <span class="stag" style="background:var(--C)">📥 ${ko?'가져오기':'Import'}</span>
+    <h2 class="stitle">${ko?'협력사 사전점검 결과':'Supplier Pre-Check Result'}</h2>
+    <p class="ssub">${_importData.v} · ${ts}</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="flex:1;background:#f0faf3;border:1.5px solid var(--C);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--C)">${ready}</div>
+        <div style="font-size:11px;color:var(--muted)">${ko?'준비됨':'Ready'}</div>
+      </div>
+      <div style="flex:1;background:#fff5f4;border:1.5px solid var(--P);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--P)">${notReady}</div>
+        <div style="font-size:11px;color:var(--muted)">${ko?'미준비':'Not Ready'}</div>
+      </div>
+      <div style="flex:1;background:var(--parch);border:1.5px solid var(--line);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--muted)">${na}</div>
+        <div style="font-size:11px;color:var(--muted)">N/A</div>
+      </div>
+    </div>
+    ${SUP_SECTIONS.map(sec=>sec.groups.map(grpBlock).join('')).join('')}
+  </div>
+  <div class="bot">
+    <button class="bs" onclick="S.screen='home';render();history.replaceState(null,'',window.location.pathname)">${ko?'취소':'Cancel'}</button>
+    <button class="bp" onclick="importSupplierResult()">${ko?'감사에 반영':'Import to Audit'}</button>
+  </div>`;
+}
+
 // ─── STORAGE ──────────────────────────────────
 function getSessions(){
   try{return JSON.parse(localStorage.getItem('vap_sessions'))||[];}catch{return[];}
@@ -3029,9 +3291,29 @@ function render(){
     S.screen==='setup'?screenSetup():
     S.screen==='home'?screenHome():
     S.screen==='item'?screenItem():
-    S.screen==='cap'?screenCAP():'';
-  if(S.vendorCode&&S.screen!=='landing'&&S.screen!=='setup')saveToStorage();
+    S.screen==='cap'?screenCAP():
+    S.screen==='supgen'?screenSupGen():
+    S.screen==='supplier'?screenSupplier():
+    S.screen==='supimport'?screenSupImport():'';
+  if(S.vendorCode&&!['landing','setup','supplier','supimport'].includes(S.screen))saveToStorage();
 }
+
+// Detect URL params for supplier flow
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const sup=p.get('sup'),res=p.get('supresult');
+  if(sup){
+    _supVendor=decodeURIComponent(sup);
+    _supLang=p.get('lang')||'ko';
+    S.screen='supplier';
+  } else if(res){
+    try{
+      _importData=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(res)))));
+      S.screen='supimport';
+    }catch(e){console.error('Import parse error',e);}
+  }
+})();
+
 render();
 </script>
 </body>
