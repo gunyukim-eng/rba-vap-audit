@@ -192,6 +192,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .land-hint{margin-top:16px;font-size:12px;color:var(--muted)}
 .land-footer{position:absolute;bottom:24px;font-size:11px;color:var(--line)}
 
+/* NOTE & PHOTO */
+.qnote-area{margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.qnote-toolbar{display:flex;gap:6px}
+.qntbtn{padding:5px 11px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--parch);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  color:var(--muted);-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:4px;
+  transition:all .15s}
+.qntbtn:active{transform:scale(.95)}
+.qntbtn.has{border-color:var(--blue);color:var(--blue);background:rgba(0,102,204,.07)}
+.qnote-input{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:13px;font-family:inherit;color:var(--ink);background:var(--canvas);
+  -webkit-appearance:none;resize:none;line-height:1.45;margin-top:8px;display:block}
+.qnote-input:focus{outline:none;border-color:var(--blue)}
+.qphoto-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.qphoto-thumb{position:relative;width:66px;height:66px;border-radius:var(--r-md);
+  overflow:hidden;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0}
+.qphoto-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.qphoto-del{position:absolute;top:3px;right:3px;width:20px;height:20px;
+  background:rgba(0,0,0,.65);border:none;border-radius:50%;color:#fff;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.qphoto-add{width:66px;height:66px;border-radius:var(--r-md);border:1.5px dashed var(--line);
+  background:var(--parch);cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.qphoto-add-icon{font-size:22px;line-height:1;color:var(--muted)}
+.qphoto-add-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* PHOTO VIEWER */
+#photoViewer{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+#photoViewer img{max-width:100%;max-height:82vh;object-fit:contain;border-radius:var(--r-md)}
+#photoViewerClose{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);
+  border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:22px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;
+  -webkit-tap-highlight-color:transparent}
+
 /* Reset btn */
 .reset-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--pill);
   color:rgba(255,255,255,.7);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;
@@ -255,6 +291,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 </head>
 <body>
 <div id="app"></div>
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput(event)">
+<div id="photoViewer" onclick="closePhotoViewer()">
+  <button id="photoViewerClose" onclick="closePhotoViewer()">×</button>
+  <img id="photoViewerImg" src="" alt="">
+</div>
 <script>
 // ─── ITEM DEFINITIONS ─────────────────────────
 const ITEMS={
@@ -1967,6 +2008,9 @@ const initState=()=>({
   hours31:{maxHours:'',pctOver:''},
   days32:{maxDays:'',pctOver:''},
   done:{},
+  notes:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
+  photos:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
+  noteOpen:{},
 });
 let S=initState();
 
@@ -2083,7 +2127,8 @@ function stepName(s){return{mgmt:t('mgmt'),doc:t('doc'),worker:t('worker'),fee:t
 function badge(r){const k=RK[r]||'ns';return`<span class="icbadge ${k}">${RL[r]||'—'}</span>`}
 
 function qcard(q,id,type,ans){
-  const a=ans[q.id.toLowerCase()];
+  const qid=q.id.toLowerCase();
+  const a=ans[qid];
   const viol=a?(q.inv?(a==='yes'):(a==='no')):false;
   let cc='qcard';
   if(a){cc+=a==='na'?' vna':viol?' vn':' vy'}
@@ -2092,6 +2137,40 @@ function qcard(q,id,type,ans){
   const nac=a==='na'?'sna':'';
   const isDoc=type==='doc';
   const txt=qt(id,type,q.id)||q.text;
+
+  // Note & photo
+  const note=(S.notes[id]&&S.notes[id][type][qid])||'';
+  const photos=(S.photos[id]&&S.photos[id][type][qid])||[];
+  const nkey=`${id}_${type}_${qid}`;
+  const noteOpen=S.noteOpen[nkey]||viol||!!note;
+  const ko=S.lang==='ko';
+
+  const noteArea=a?`
+    <div class="qnote-area">
+      <div class="qnote-toolbar">
+        <button class="qntbtn${note?' has':''}" onclick="S.noteOpen['${nkey}']=!S.noteOpen['${nkey}'];render()">
+          📝 ${note?(ko?'메모':'Note ✓'):(ko?'메모':'Note')}
+        </button>
+        <button class="qntbtn${photos.length?' has':''}" onclick="openPhotoInput('${id}','${type}','${qid}')">
+          📷 ${photos.length?`(${photos.length}) `:''}${ko?'사진':'Photo'}
+        </button>
+      </div>
+      ${noteOpen?`<textarea class="qnote-input" rows="2"
+        placeholder="${ko?'위반 내용, 근거 서류명, 관찰 내용 등...':'Details, evidence, document names, observations...'}"
+        onblur="saveNote('${id}','${type}','${qid}',this.value)"
+      >${note}</textarea>`:''}
+      ${photos.length?`<div class="qphoto-row">
+        ${photos.map((p,i)=>`<div class="qphoto-thumb" onclick="viewPhoto('${id}','${type}','${qid}',${i})">
+          <img src="${p}">
+          <button class="qphoto-del" onclick="event.stopPropagation();removePhoto('${id}','${type}','${qid}',${i})">×</button>
+        </div>`).join('')}
+        <button class="qphoto-add" onclick="openPhotoInput('${id}','${type}','${qid}')">
+          <span class="qphoto-add-icon">+</span>
+          <span class="qphoto-add-lbl">${ko?'사진':'Photo'}</span>
+        </button>
+      </div>`:''}
+    </div>`:''
+
   return`<div class="${cc}">
     <div class="qid">${q.id}</div>
     <div class="qtxt">${txt}</div>
@@ -2101,6 +2180,7 @@ function qcard(q,id,type,ans){
       <button class="qbtn ${nc}" onclick="setAns('${id}','${type}','${q.id}','no')">${isDoc?t('notConfirmed'):t('no')}</button>
       ${q.na?`<button class="qbtn ${nac}" onclick="setAns('${id}','${type}','${q.id}','na')">${t('na')}</button>`:''}
     </div>
+    ${noteArea}
   </div>`;
 }
 
@@ -2504,7 +2584,7 @@ function screenResult(id,steps,idx,tot){
 // ─── EXCEL / CSV EXPORT ───────────────────────
 function exportCSV(){
   const BOM='﻿';
-  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details'];
+  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details','Notes','Photos'];
 
   const rows=Object.entries(ITEMS).map(([id,meta])=>{
     const grpName=GRPS[meta.grp]||meta.grp;
@@ -2528,6 +2608,21 @@ function exportCSV(){
 
     const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
 
+    // Collect notes
+    const noteEntries=[];
+    ['mgmt','doc','worker'].forEach(step=>{
+      const stepNotes=S.notes[id]&&S.notes[id][step]||{};
+      Object.entries(stepNotes).forEach(([qid,txt])=>{if(txt&&txt.trim())noteEntries.push(`[${qid.toUpperCase()}] ${txt.trim()}`);});
+    });
+    const noteTxt=noteEntries.join(' | ');
+
+    // Collect photo counts
+    let photoCount=0;
+    ['mgmt','doc','worker'].forEach(step=>{
+      const stepPhotos=S.photos[id]&&S.photos[id][step]||{};
+      Object.values(stepPhotos).forEach(arr=>{photoCount+=arr.length;});
+    });
+
     return[
       section,
       meta.code,
@@ -2538,6 +2633,8 @@ function exportCSV(){
       Object.keys(a.worker).length?RL[wr]:'—',
       finds.length.toString(),
       findTxt,
+      noteTxt,
+      photoCount?photoCount.toString():'',
     ];
   });
 
@@ -2591,6 +2688,60 @@ function screenLanding(){
     </div>
     <div class="land-footer">RBA VAP Standard · January 2024</div>
   </div>`;
+}
+
+// ─── NOTE & PHOTO ─────────────────────────────
+let _photoPending=null;
+
+function saveNote(id,type,qid,val){
+  if(!S.notes[id])S.notes[id]={mgmt:{},doc:{},worker:{}};
+  S.notes[id][type][qid]=val;
+  // no re-render — saves silently on blur
+}
+
+function openPhotoInput(id,type,qid){
+  _photoPending={id,type,qid};
+  document.getElementById('photoInput').click();
+}
+
+function handlePhotoInput(e){
+  const f=e.target.files[0];
+  if(!f||!_photoPending)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=900,scale=Math.min(1,maxW/img.width);
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      const compressed=canvas.toDataURL('image/jpeg',0.72);
+      const{id,type,qid}=_photoPending;
+      if(!S.photos[id])S.photos[id]={mgmt:{},doc:{},worker:{}};
+      if(!S.photos[id][type][qid])S.photos[id][type][qid]=[];
+      S.photos[id][type][qid].push(compressed);
+      _photoPending=null;
+      e.target.value='';
+      render();
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+function removePhoto(id,type,qid,idx){
+  S.photos[id][type][qid].splice(idx,1);
+  render();
+}
+
+function viewPhoto(id,type,qid,idx){
+  document.getElementById('photoViewerImg').src=S.photos[id][type][qid][idx];
+  document.getElementById('photoViewer').style.display='flex';
+}
+
+function closePhotoViewer(){
+  document.getElementById('photoViewer').style.display='none';
 }
 
 // ─── MAIN ─────────────────────────────────────
