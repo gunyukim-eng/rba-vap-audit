@@ -2276,7 +2276,7 @@ function screenSetup(){
       <label class="slbl" style="display:flex;align-items:center;gap:4px">
         Vendor Code <span style="color:var(--P);font-size:13px">*</span>
       </label>
-      <input class="sinput" type="text" placeholder="e.g. VND-001, SAMSUNG-VN"
+      <input class="sinput" type="text" placeholder="e.g. BMSS, VND-001"
         value="${S.vendorCode}" oninput="S.vendorCode=this.value.trim().toUpperCase()"
         style="${!S.vendorCode?'border-color:var(--line)':'border-color:var(--blue)'}">
       <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기':'Identifies this audit session — reconnecting with the same code resumes your progress'}</div>
