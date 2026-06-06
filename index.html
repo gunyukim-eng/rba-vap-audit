@@ -228,6 +228,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
   cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;
   -webkit-tap-highlight-color:transparent}
 
+/* CAP */
+.cap-summary{background:var(--canvas);padding:14px 16px 12px;border-bottom:1px solid var(--line)}
+.cap-summary-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cap-summary-title{font-size:16px;font-weight:700}
+.cap-summary-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.cap-prog-bar{background:var(--line);height:6px;border-radius:3px;overflow:hidden}
+.cap-prog-fill{height:100%;border-radius:3px;background:var(--C);transition:width .4s}
+.cap-item{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  margin-bottom:10px;overflow:hidden}
+.cap-item.sv-P{border-color:var(--P)}.cap-item.sv-M{border-color:var(--M)}.cap-item.sv-m{border-color:var(--m)}
+.cap-item-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+.cap-item-hdr:active{background:var(--parch)}
+.cap-item-info{flex:1;min-width:0}
+.cap-item-code{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.cap-item-title{font-size:14px;font-weight:600;letter-spacing:-.224px;margin-top:1px}
+.cap-item-chev{font-size:10px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.cap-form{padding:0 14px 14px;border-top:1px solid var(--line)}
+.cap-finds{background:var(--parch);border-radius:var(--r-md);padding:10px 12px;margin:12px 0}
+.cap-finds-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.cap-find-row{font-size:12px;line-height:1.4;padding:4px 0 4px 14px;position:relative;
+  border-bottom:1px solid var(--line);color:var(--ink)}
+.cap-find-row:last-child{border-bottom:none}
+.cap-find-dot{position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:50%}
+.cap-field{margin-bottom:12px}
+.cap-field:last-child{margin-bottom:0}
+.cap-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  display:block;margin-bottom:5px}
+.cap-input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:14px;font-family:inherit;color:var(--ink);background:var(--canvas);-webkit-appearance:none}
+.cap-input:focus{outline:none;border-color:var(--blue)}
+.cap-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:13px;font-family:inherit;color:var(--ink);background:var(--canvas);
+  resize:none;line-height:1.45;-webkit-appearance:none;display:block}
+.cap-textarea:focus{outline:none;border-color:var(--blue)}
+.cap-status{display:flex;gap:6px}
+.cap-sbtn{flex:1;padding:9px 4px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--canvas);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  color:var(--muted);text-align:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.cap-sbtn.s-open.sel{background:var(--P);border-color:var(--P);color:#fff}
+.cap-sbtn.s-prog.sel{background:var(--M);border-color:var(--M);color:#fff}
+.cap-sbtn.s-done.sel{background:var(--C);border-color:var(--C);color:#fff}
+.cap-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:55vh;text-align:center;padding:24px}
+.cap-empty-icon{font-size:56px;margin-bottom:16px}
+.cap-empty-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.cap-empty-sub{font-size:13px;color:var(--muted)}
+.cap-filled-dot{width:8px;height:8px;border-radius:50%;background:var(--C);flex-shrink:0}
+
 /* Reset btn */
 .reset-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--pill);
   color:rgba(255,255,255,.7);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;
@@ -2011,6 +2060,8 @@ const initState=()=>({
   notes:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
   photos:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
   noteOpen:{},
+  cap:{},
+  capOpen:{},
 });
 let S=initState();
 
@@ -2291,7 +2342,11 @@ function screenHome(){
   </div>
   ${S.homeTab==='docs'?renderHomeDocs():`
   ${grpList.map(grpSec).join('')}
-  <div style="padding:8px 16px 24px">
+  <div style="padding:8px 16px 24px;display:flex;flex-direction:column;gap:9px">
+    ${(()=>{const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';
+    return viol.length?`<button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:14px;background:var(--P);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📋 ${ko?`시정조치계획 (CAP) — ${viol.length}건 위반`:`Corrective Action Plan — ${viol.length} Finding${viol.length>1?'s':''}`}
+    </button>`:'';})()}
     <button onclick="exportCSV()" style="width:100%;padding:14px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📊 ${S.lang==='ko'?'점검 결과 Excel 내보내기':S.lang==='zh'?'导出检查结果 Excel':'Export Results to Excel (.csv)'}
     </button>
@@ -2690,6 +2745,129 @@ function screenLanding(){
   </div>`;
 }
 
+// ─── CAP ──────────────────────────────────────
+function setCAPField(id,field,val,rerender){
+  if(!S.cap[id])S.cap[id]={cause:'',action:'',owner:'',due:'',status:'open'};
+  S.cap[id][field]=val;
+  if(rerender)render();
+}
+
+function exportCAP(){
+  const ko=S.lang==='ko';
+  const BOM='﻿';
+  const hdr=ko
+    ?['구분','코드','항목','심각도','위반 내용','근본 원인','시정 조치','담당자','목표 완료일','상태']
+    :['Section','Code','Title','Severity','Findings','Root Cause','Corrective Action','Responsible','Target Date','Status'];
+  const violItems=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');
+  violItems.sort((a,b)=>LVL.indexOf(calcItem(b))-LVL.indexOf(calcItem(a)));
+  const statusLbl=s=>ko?{open:'미완료',inprogress:'진행 중',closed:'완료'}[s||'open']:{open:'Open',inprogress:'In Progress',closed:'Closed'}[s||'open'];
+  const rows=violItems.map(id=>{
+    const m=ITEMS[id],r=calcItem(id),c=S.cap[id]||{},a=S.ans[id];
+    const finds=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+    return[`${m.grp} — ${GRPS[m.grp]||m.grp}`,m.code,iTitle(id),RL[r],
+      finds.map(f=>f.text).join('; '),c.cause||'',c.action||'',c.owner||'',c.due||'',statusLbl(c.status)];
+  });
+  const csv=BOM+[hdr,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a2=document.createElement('a');a2.href=url;a2.download=`CAP_${new Date().toISOString().slice(0,10)}.csv`;a2.click();URL.revokeObjectURL(url);
+}
+
+function screenCAP(){
+  const ko=S.lang==='ko';
+  const violItems=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');
+  violItems.sort((a,b)=>LVL.indexOf(calcItem(b))-LVL.indexOf(calcItem(a)));
+
+  if(!violItems.length)return`${nav(ko?'시정조치계획 (CAP)':'Corrective Action Plan','goHome()')}
+    <div class="cap-empty">
+      <div class="cap-empty-icon">✅</div>
+      <div class="cap-empty-title">${ko?'위반 사항 없음':'No Findings'}</div>
+      <div class="cap-empty-sub">${ko?'완료된 항목에 위반이 없습니다.':'No violations found in completed items.'}</div>
+    </div>`;
+
+  const total=violItems.length;
+  const filled=violItems.filter(id=>{const c=S.cap[id];return c&&(c.cause||c.action);}).length;
+  const closed=violItems.filter(id=>S.cap[id]&&S.cap[id].status==='closed').length;
+  const pct=Math.round(closed/total*100);
+
+  const capCard=id=>{
+    const m=ITEMS[id],r=calcItem(id),k=RK[r];
+    const c=S.cap[id]||{};
+    const open=!!S.capOpen[id];
+    const a=S.ans[id];
+    const finds=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+    const hasCap=c.cause||c.action||c.owner||c.due;
+    const statusLabels=ko?['미완료','진행 중','완료']:['Open','In Progress','Closed'];
+    const statusKeys=['open','inprogress','closed'];
+    const statusCls=['s-open','s-prog','s-done'];
+    return`<div class="cap-item sv-${k}">
+      <div class="cap-item-hdr" onclick="S.capOpen['${id}']=!S.capOpen['${id}'];render()">
+        <span class="icbadge ${k}" style="font-size:10px;padding:3px 8px;flex-shrink:0">${RL[r]}</span>
+        <div class="cap-item-info">
+          <div class="cap-item-code">${m.code}</div>
+          <div class="cap-item-title">${iTitle(id)}</div>
+        </div>
+        ${hasCap?`<div class="cap-filled-dot"></div>`:''}
+        <span class="cap-item-chev">${open?'▲':'▼'}</span>
+      </div>
+      ${open?`<div class="cap-form">
+        ${finds.length?`<div class="cap-finds">
+          <div class="cap-finds-lbl">${ko?'위반 내용':'Findings'}</div>
+          ${finds.map(f=>`<div class="cap-find-row">
+            <span class="cap-find-dot" style="background:${RCOL[f.sev]||RCOL.minor}"></span>${f.text}
+          </div>`).join('')}
+        </div>`:''}
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'근본 원인 (Root Cause)':'Root Cause'}</label>
+          <textarea class="cap-textarea" rows="2"
+            placeholder="${ko?'왜 이 위반이 발생했습니까?':'Why did this non-conformance occur?'}"
+            onblur="setCAPField('${id}','cause',this.value)">${c.cause||''}</textarea>
+        </div>
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'시정 조치 (Corrective Action)':'Corrective Action'}</label>
+          <textarea class="cap-textarea" rows="2"
+            placeholder="${ko?'어떤 조치를 취할 것입니까?':'What action will be taken to address this?'}"
+            onblur="setCAPField('${id}','action',this.value)">${c.action||''}</textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="cap-field" style="flex:1">
+            <label class="cap-lbl">${ko?'담당자':'Responsible'}</label>
+            <input class="cap-input" type="text"
+              placeholder="${ko?'이름 / 부서':'Name / Dept'}"
+              value="${c.owner||''}"
+              onblur="setCAPField('${id}','owner',this.value)">
+          </div>
+          <div class="cap-field" style="flex:1">
+            <label class="cap-lbl">${ko?'목표 완료일':'Target Date'}</label>
+            <input class="cap-input" type="date" value="${c.due||''}"
+              onchange="setCAPField('${id}','due',this.value)">
+          </div>
+        </div>
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'상태':'Status'}</label>
+          <div class="cap-status">
+            ${statusKeys.map((s,i)=>`<button class="cap-sbtn ${statusCls[i]}${(c.status||'open')===s?' sel':''}"
+              onclick="setCAPField('${id}','status','${s}',true)">${statusLabels[i]}</button>`).join('')}
+          </div>
+        </div>
+      </div>`:''}</div>`;
+  };
+
+  return`${nav(ko?'시정조치계획 (CAP)':'Corrective Action Plan','goHome()')}
+  <div class="cap-summary">
+    <div class="cap-summary-top">
+      <div>
+        <div class="cap-summary-title">${ko?`총 ${total}건 위반`:`${total} Finding${total>1?'s':''}`}</div>
+        <div class="cap-summary-sub">${ko?`${filled}건 작성 · ${closed}건 완료 (${pct}%)`:`${filled} filled · ${closed} closed (${pct}%)`}</div>
+      </div>
+      <button onclick="exportCAP()" style="padding:10px 18px;background:var(--blue);color:#fff;border:none;border-radius:var(--pill);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;flex-shrink:0">
+        📥 ${ko?'내보내기':'Export'}
+      </button>
+    </div>
+    <div class="cap-prog-bar"><div class="cap-prog-fill" style="width:${pct}%"></div></div>
+  </div>
+  <div class="content">${violItems.map(capCard).join('')}</div>`;
+}
+
 // ─── NOTE & PHOTO ─────────────────────────────
 let _photoPending=null;
 
@@ -2750,7 +2928,8 @@ function render(){
     S.screen==='landing'?screenLanding():
     S.screen==='setup'?screenSetup():
     S.screen==='home'?screenHome():
-    S.screen==='item'?screenItem():'';
+    S.screen==='item'?screenItem():
+    S.screen==='cap'?screenCAP():'';
 }
 render();
 </script>
