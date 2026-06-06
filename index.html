@@ -2836,7 +2836,8 @@ function screenLanding(){
 }
 
 // ─── SUPPLIER PRE-CHECK ───────────────────────
-let _supChecks={};   // supplier's own check state (ephemeral, not in S)
+let _supChecks={};
+let _supOpenGroups={};  // track which groups are open in supplier view
 let _supVendor='';
 let _supLang='ko';
 let _importData=null;
@@ -2866,7 +2867,62 @@ function supKey(grp,idx){return grp+'_'+idx;}
 function setSupCheck(grp,idx,val){
   const k=supKey(grp,idx);
   _supChecks[k]=_supChecks[k]===val?null:val;
-  render();
+  // partial re-render: only update the group body, not the whole screen
+  _renderSupGroup(grp);
+  _updateSupHeader(grp);
+  _updateSupProgress();
+}
+
+function _renderSupGroup(grp){
+  const el=document.getElementById('supbody_'+grp);
+  if(!el)return;
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const docs=dl[grp]||[];
+  el.innerHTML=docs.map((d,i)=>{
+    const k=supKey(grp,i),v=_supChecks[k]||null;
+    return`<div class="sup-doc-row">
+      <div class="sup-doc-txt">${d}</div>
+      <div class="sup-tog">
+        <button class="sup-btn${v==='y'?' sy':''}" onclick="setSupCheck('${grp}',${i},'y')">✓</button>
+        <button class="sup-btn${v==='n'?' sn':''}" onclick="setSupCheck('${grp}',${i},'n')">✗</button>
+        <button class="sup-btn${v==='na'?' sna':''}" onclick="setSupCheck('${grp}',${i},'na')">N/A</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _updateSupHeader(grp){
+  const el=document.getElementById('supcount_'+grp);
+  if(!el)return;
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const docs=dl[grp]||[];
+  const cnt=docs.filter((_,i)=>_supChecks[supKey(grp,i)]==='y'||_supChecks[supKey(grp,i)]==='na').length;
+  el.textContent=cnt+'/'+docs.length;
+}
+
+function _updateSupProgress(){
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const allDocs=SUP_SECTIONS.flatMap(s=>s.groups.flatMap(g=>(dl[g]||[]).map((_,i)=>supKey(g,i))));
+  const checked=allDocs.filter(k=>_supChecks[k]==='y'||_supChecks[k]==='na').length;
+  const pct=allDocs.length?Math.round(checked/allDocs.length*100):0;
+  const bar=document.getElementById('supProgBar');
+  const lbl=document.getElementById('supProgLbl');
+  const btn=document.getElementById('supSubmitBtn');
+  if(bar)bar.style.width=pct+'%';
+  if(lbl)lbl.textContent=checked+' / '+allDocs.length+' '+(ko?'확인':'checked')+' ('+pct+'%)';
+  if(btn){btn.textContent=(ko?`완료 & 결과 코드 생성 (${pct}%)`:`Submit & Generate Result (${pct}%)`);
+    btn.style.background=pct>=50?'var(--blue)':'var(--muted)';}
+}
+
+function toggleSupGrp(grp){
+  _supOpenGroups[grp]=!_supOpenGroups[grp];
+  const body=document.getElementById('supbody_'+grp);
+  const chev=document.getElementById('supchev_'+grp);
+  if(body)body.style.display=_supOpenGroups[grp]?'block':'none';
+  if(chev)chev.style.transform=_supOpenGroups[grp]?'rotate(180deg)':'';
 }
 
 function getSupBase(){return window.location.origin+window.location.pathname;}
@@ -2915,9 +2971,18 @@ function screenSupGen(){
     <button id="copyBtn" onclick="copyText('${url}',this)" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:20px">
       📋 ${ko?'링크 복사':'Copy Link'}
     </button>
+    ${Object.keys(S.supplierChecks||{}).length?`
+    <div style="background:#f0faf3;border:1.5px solid var(--C);border-radius:var(--r-lg);padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--C);margin-bottom:8px">✅ ${ko?'사전점검 결과 반영됨':'Pre-Check Data Imported'}</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.7">
+        ${ko?'반영 위치:':'Where to see it:'}<br>
+        <strong>${ko?'각 점검 항목 → Document Review 탭':'Each audit item → Document Review step'}</strong><br>
+        <span style="font-size:12px;color:var(--muted)">${ko?'서류 목록 옆에 ✓ 준비됨 / ✗ 미준비 배지가 표시됩니다.':'Each required document shows a ✓ Ready or ✗ Not Ready badge.'}</span>
+      </div>
+    </div>`:''}
     <div style="background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-lg);padding:14px;font-size:13px;color:var(--ink);line-height:1.6">
       <strong>${ko?'사용 방법:':'How it works:'}</strong><br>
-      ${ko?'① 위 링크를 협력사에 카카오톡/이메일로 전달<br>② 협력사가 서류 준비 현황 체크 후 결과 코드 생성<br>③ 결과 코드 URL을 감사원에게 전달<br>④ 감사원이 URL을 열어 "감사에 반영" 클릭':'① Send the link to supplier via email/messenger<br>② Supplier checks document readiness & generates result<br>③ Supplier sends the result URL back to auditor<br>④ Auditor opens URL and clicks "Import to Audit"'}
+      ${ko?'① 위 링크를 협력사에 카카오톡/이메일로 전달<br>② 협력사가 서류 준비 현황 체크 후 결과 링크 생성<br>③ 결과 링크를 감사원에게 전달<br>④ 감사원이 링크를 열어 "감사에 반영" 클릭<br>⑤ 각 항목 Document Review에서 준비 현황 확인':'① Send the link to supplier via email/messenger<br>② Supplier checks document readiness & generates result link<br>③ Supplier sends the result link back to auditor<br>④ Auditor opens link and clicks "Import to Audit"<br>⑤ Check badges appear in each item\'s Document Review step'}
     </div>
   </div>`;
 }
@@ -2946,16 +3011,23 @@ function screenSupplier(){
   const checked=allDocs.filter(k=>_supChecks[k]==='y'||_supChecks[k]==='na').length;
   const pct=allDocs.length?Math.round(checked/allDocs.length*100):0;
 
+  // Init all groups open on first render
+  const allGrps=SUP_SECTIONS.flatMap(s=>s.groups);
+  if(!Object.keys(_supOpenGroups).length) allGrps.forEach(g=>{_supOpenGroups[g]=true;});
+
   const grpBlock=g=>{
     const docs=dl[g];if(!docs||!docs.length)return'';
     const grpChecked=docs.filter((_,i)=>_supChecks[supKey(g,i)]==='y'||_supChecks[supKey(g,i)]==='na').length;
-    return`<details class="sup-grp">
-      <summary>
+    const open=_supOpenGroups[g];
+    return`<div class="sup-grp">
+      <div style="padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent;font-size:13px;font-weight:700"
+        onclick="toggleSupGrp('${g}')">
         <span><span style="color:var(--blue);margin-right:5px">${g}</span>${grpNames[g]||g}
-          <span class="sup-grp-prog">${grpChecked}/${docs.length}</span>
-        </span><span style="font-size:10px;color:var(--muted)">▼</span>
-      </summary>
-      <div class="sup-grp-body">
+          <span id="supcount_${g}" class="sup-grp-prog">${grpChecked}/${docs.length}</span>
+        </span>
+        <span id="supchev_${g}" style="font-size:10px;color:var(--muted);transition:transform .2s;${open?'transform:rotate(180deg)':''}">▼</span>
+      </div>
+      <div id="supbody_${g}" class="sup-grp-body" style="display:${open?'block':'none'}">
         ${docs.map((d,i)=>{
           const k=supKey(g,i),v=_supChecks[k]||null;
           return`<div class="sup-doc-row">
@@ -2968,7 +3040,7 @@ function screenSupplier(){
           </div>`;
         }).join('')}
       </div>
-    </details>`;
+    </div>`;
   };
 
   return`<div style="min-height:100vh;background:var(--parch);display:flex;flex-direction:column">
@@ -2977,9 +3049,9 @@ function screenSupplier(){
       <div class="sup-hero-title">${_supVendor}</div>
       <div class="sup-hero-sub">${ko?'필요 서류 준비 현황을 체크해주세요':'Check the readiness of required documents'}</div>
       <div style="margin-top:12px;background:rgba(255,255,255,.1);height:4px;border-radius:2px;overflow:hidden">
-        <div style="height:100%;background:var(--C);border-radius:2px;width:${pct}%;transition:width .3s"></div>
+        <div id="supProgBar" style="height:100%;background:var(--C);border-radius:2px;width:${pct}%;transition:width .3s"></div>
       </div>
-      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:5px">${checked} / ${allDocs.length} ${ko?'확인':'checked'} (${pct}%)</div>
+      <div id="supProgLbl" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:5px">${checked} / ${allDocs.length} ${ko?'확인':'checked'} (${pct}%)</div>
     </div>
     <div style="padding:14px 16px;flex:1">
       ${SUP_SECTIONS.map(sec=>`
@@ -2988,7 +3060,7 @@ function screenSupplier(){
       <div style="height:90px"></div>
     </div>
     <div style="position:sticky;bottom:0;padding:12px 16px;background:var(--canvas);border-top:1px solid var(--line)">
-      <button onclick="submitSupplier()" style="width:100%;padding:14px;background:${pct>=50?'var(--blue)':'var(--muted)'};color:#fff;border:none;border-radius:var(--pill);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">
+      <button id="supSubmitBtn" onclick="submitSupplier()" style="width:100%;padding:14px;background:${pct>=50?'var(--blue)':'var(--muted)'};color:#fff;border:none;border-radius:var(--pill);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">
         ${ko?`완료 & 결과 코드 생성 (${pct}%)`:`Submit & Generate Result (${pct}%)`}
       </button>
     </div>
