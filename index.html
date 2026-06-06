@@ -277,6 +277,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .cap-empty-sub{font-size:13px;color:var(--muted)}
 .cap-filled-dot{width:8px;height:8px;border-radius:50%;background:var(--C);flex-shrink:0}
 
+/* SESSION LIST */
+.sess-list{width:100%;padding:0 24px}
+.sess-card{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s;text-align:left}
+.sess-card:active{background:var(--parch)}
+.sess-info{flex:1;min-width:0}
+.sess-code{font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+.sess-meta{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-del{padding:6px 10px;border-radius:var(--pill);border:1px solid var(--line);
+  background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.sess-del:active{background:#fff0ee;border-color:var(--P);color:var(--P)}
+.sess-resume{padding:7px 14px;border-radius:var(--pill);background:var(--blue);color:#fff;
+  border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent}
+
 /* Reset btn */
 .reset-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--pill);
   color:rgba(255,255,255,.7);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;
@@ -2049,6 +2066,7 @@ const initState=()=>({
   screen:'landing', item:null, step:null,
   lang:'en',
   country:'',
+  vendorCode:'',
   homeTab:'audit',
   docTab:'A',
   law:{resignNotice:'',docRetention:null,minAge:'',minWage:'',maxWeekHrs:'',otPremium:''},
@@ -2248,12 +2266,21 @@ function screenSetup(){
   const lp=`<div style="display:flex;gap:5px;margin-bottom:16px">
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:5px 12px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'var(--blue)':'var(--line)'};background:${S.lang===l?'var(--blue)':'transparent'};color:${S.lang===l?'#fff':'var(--muted)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
-  return`${nav('RBA VAP Audit',null,t('skip'),'S.screen=\'home\';render()')}
+  return`${nav('RBA VAP Audit','S.screen=\'landing\';render()')}
   <div class="content">
     <span class="stag">${t('setup')}</span>
     <h2 class="stitle">${t('facilitySetup')}</h2>
     <p class="ssub">${t('setupDesc')}</p>
     ${lp}
+    <div class="sfield">
+      <label class="slbl" style="display:flex;align-items:center;gap:4px">
+        Vendor Code <span style="color:var(--P);font-size:13px">*</span>
+      </label>
+      <input class="sinput" type="text" placeholder="e.g. VND-001, SAMSUNG-VN"
+        value="${S.vendorCode}" oninput="S.vendorCode=this.value.trim().toUpperCase()"
+        style="${!S.vendorCode?'border-color:var(--line)':'border-color:var(--blue)'}">
+      <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기':'Identifies this audit session — reconnecting with the same code resumes your progress'}</div>
+    </div>
     <div class="sfield"><label class="slbl">${t('country')}</label>
       <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
       <div class="shint">${t('countryHint')}</div>
@@ -2285,7 +2312,7 @@ function screenSetup(){
     </div>
     <div class="snote"><strong>${t('roadmap')}</strong></div>
   </div>
-  <div class="bot"><button class="bp" onclick="S.screen='home';render();window.scrollTo(0,0)">${t('start')}</button></div>`;
+  <div class="bot"><button class="bp" onclick="startAudit()">${t('start')}</button></div>`;
 }
 
 function screenHome(){
@@ -2322,7 +2349,7 @@ function screenHome(){
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:4px 10px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'#fff':'rgba(255,255,255,.3)'};background:${S.lang===l?'rgba(255,255,255,.2)':'transparent'};color:${S.lang===l?'#fff':'rgba(255,255,255,.5)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
 
-  return`${nav('RBA VAP Audit',null,t('setupBtn'),'S.screen=\'setup\';render()')}
+  return`${nav(S.vendorCode?`VAP · ${S.vendorCode}`:'RBA VAP Audit','S.screen=\'landing\';render()',t('setupBtn'),'S.screen=\'setup\';render()')}
   <div class="hhero">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="htitle">${t('laborAudit')}</div>
@@ -2725,23 +2752,95 @@ function exportCSV(){
 }
 
 function screenLanding(){
+  const sessions=getSessions().sort((a,b)=>new Date(b.lastUpdated)-new Date(a.lastUpdated));
+  const fmt=iso=>{const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  const rateCol=r=>r===null?'var(--muted)':r===100?'var(--C)':r>=80?'var(--m)':r>=60?'var(--M)':'var(--P)';
+
+  const sessionCards=sessions.length?`
+    <div style="width:100%;padding:0 24px;margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Recent Audits</div>
+      ${sessions.map(s=>`
+        <div class="sess-card" onclick="loadSession('${s.code}')">
+          <div class="sess-info">
+            <div class="sess-code">${s.code}</div>
+            <div class="sess-meta">${s.country||'—'} · ${s.done||0}/${s.total||0} items · ${fmt(s.lastUpdated)}</div>
+          </div>
+          ${s.rate!==null?`<span style="font-size:13px;font-weight:700;color:${rateCol(s.rate)};flex-shrink:0">${s.rate}%</span>`:''}
+          <button class="sess-resume" onclick="event.stopPropagation();loadSession('${s.code}')">Resume</button>
+          <button class="sess-del" onclick="deleteSession('${s.code}',event)">✕</button>
+        </div>`).join('')}
+    </div>`:''
+
   return`<div class="landing">
-    <div class="land-grid"></div>
     <div class="land-inner">
       <div class="land-badge"><div class="land-dot-pulse"></div>RBA VAP Audit</div>
       <div class="land-title">Supplier<br><em>Audit</em></div>
       <div class="land-version">Validated Assessment Program · Rev 8.0.1</div>
-      <div class="land-sub">Labor · Ethics · Supply Chain</div>
-      <div class="land-pills">
-        <div class="land-pill a">Priority</div>
-        <div class="land-pill b">Major</div>
-        <div class="land-pill c">Conformance</div>
+      <div class="land-sub" style="margin-bottom:${sessions.length?28:40}px">Labor · Ethics · Supply Chain</div>
+      ${sessionCards}
+      <div style="width:100%;padding:0 24px">
+        <button class="land-start" style="width:100%;box-sizing:border-box" onclick="S=initState();S.screen='setup';render()">
+          ${sessions.length?'+ New Audit':'START  →'}
+        </button>
       </div>
-      <button class="land-start" onclick="S.screen='setup';render()">START  →</button>
-      <div class="land-hint">Tap to begin the on-site assessment</div>
+      ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
     </div>
     <div class="land-footer">RBA VAP Standard · January 2024</div>
   </div>`;
+}
+
+// ─── STORAGE ──────────────────────────────────
+function getSessions(){
+  try{return JSON.parse(localStorage.getItem('vap_sessions'))||[];}catch{return[];}
+}
+
+function saveToStorage(){
+  if(!S.vendorCode)return;
+  try{
+    localStorage.setItem('vap_'+S.vendorCode,JSON.stringify(S));
+  }catch(e){
+    if(e.name==='QuotaExceededError'){
+      // Retry without photos
+      try{localStorage.setItem('vap_'+S.vendorCode,JSON.stringify({...S,photos:{}}));}catch{}
+    }
+  }
+  // Update index
+  const sessions=getSessions();
+  const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);
+  const rate=allDone.length?Math.round(allDone.filter(k=>calcItem(k)==='conformance').length/allDone.length*100):null;
+  const entry={code:S.vendorCode,country:S.country,lang:S.lang,
+    lastUpdated:new Date().toISOString(),rate,
+    done:allDone.length,total:Object.keys(ITEMS).length};
+  const idx=sessions.findIndex(s=>s.code===S.vendorCode);
+  if(idx>=0)sessions[idx]=entry;else sessions.push(entry);
+  localStorage.setItem('vap_sessions',JSON.stringify(sessions));
+}
+
+function loadSession(code){
+  try{
+    const data=localStorage.getItem('vap_'+code);
+    if(!data)return;
+    const loaded=JSON.parse(data);
+    S={...initState(),...loaded,screen:'home'};
+    render();window.scrollTo(0,0);
+  }catch(e){alert('Load failed: '+e.message);}
+}
+
+function deleteSession(code,ev){
+  if(ev)ev.stopPropagation();
+  if(!confirm(`Delete audit "${code}"?`))return;
+  localStorage.removeItem('vap_'+code);
+  const s=getSessions().filter(x=>x.code!==code);
+  localStorage.setItem('vap_sessions',JSON.stringify(s));
+  render();
+}
+
+function startAudit(){
+  const vc=S.vendorCode.trim();
+  if(!vc){alert(S.lang==='ko'?'Vendor Code를 입력해주세요.':'Please enter a Vendor Code.');return;}
+  S.vendorCode=vc;
+  S.screen='home';
+  render();window.scrollTo(0,0);
 }
 
 // ─── CAP ──────────────────────────────────────
@@ -2929,6 +3028,7 @@ function render(){
     S.screen==='home'?screenHome():
     S.screen==='item'?screenItem():
     S.screen==='cap'?screenCAP():'';
+  if(S.vendorCode&&S.screen!=='landing'&&S.screen!=='setup')saveToStorage();
 }
 render();
 </script>
