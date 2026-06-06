@@ -161,46 +161,242 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .cap-li{font-size:13px;line-height:1.4;padding:4px 0 4px 16px;position:relative;color:var(--ink)}
 .cap-li::before{content:'→';position:absolute;left:0;color:var(--muted);font-size:11px;top:5px}
 
+/* LANDING */
+.landing{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  background:var(--parch);padding:40px 24px;text-align:center;position:relative;overflow:hidden}
+.landing::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,102,204,.08) 0%,transparent 70%);pointer-events:none}
+.land-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
+.land-badge{display:inline-flex;align-items:center;gap:7px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:1.5px;padding:6px 16px;border-radius:var(--pill);margin-bottom:28px;text-transform:uppercase}
+.land-dot-pulse{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.7);
+  animation:dotpulse 2s ease-in-out infinite}
+@keyframes dotpulse{0%,100%{opacity:1}50%{opacity:.2}}
+.land-title{font-size:48px;font-weight:700;color:var(--ink);letter-spacing:-.374px;line-height:1.05;margin-bottom:6px}
+.land-title em{font-style:normal;color:var(--blue)}
+.land-version{font-size:12px;color:var(--muted);margin-bottom:12px;letter-spacing:.3px}
+.land-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:40px}
+.land-pills{display:flex;gap:7px;justify-content:center;margin-bottom:44px;flex-wrap:wrap}
+.land-pill{padding:5px 13px;border-radius:var(--pill);font-size:11px;font-weight:700;
+  letter-spacing:.3px;background:var(--canvas);border:1.5px solid var(--line);color:var(--muted)}
+.land-pill.a{border-color:var(--P);color:var(--P);background:#fff5f4}
+.land-pill.b{border-color:var(--M);color:var(--M);background:#fff9f2}
+.land-pill.c{border-color:var(--C);color:var(--C);background:#f2fbf5}
+.land-start{background:var(--blue);color:#fff;border:none;border-radius:var(--pill);
+  padding:16px 56px;font-size:20px;font-weight:700;letter-spacing:.3px;cursor:pointer;
+  font-family:inherit;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 4px 24px rgba(0,102,204,.3);transition:transform .12s,background .12s,box-shadow .12s}
+.land-start:active{transform:scale(.96);background:var(--blue-dk);box-shadow:0 2px 10px rgba(0,102,204,.2)}
+.land-hint{margin-top:16px;font-size:12px;color:var(--muted)}
+.land-footer{position:absolute;bottom:24px;font-size:11px;color:var(--line)}
+
+/* NOTE & PHOTO */
+.qnote-area{margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.qnote-toolbar{display:flex;gap:6px}
+.qntbtn{padding:5px 11px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--parch);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  color:var(--muted);-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:4px;
+  transition:all .15s}
+.qntbtn:active{transform:scale(.95)}
+.qntbtn.has{border-color:var(--blue);color:var(--blue);background:rgba(0,102,204,.07)}
+.qnote-input{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:13px;font-family:inherit;color:var(--ink);background:var(--canvas);
+  -webkit-appearance:none;resize:none;line-height:1.45;margin-top:8px;display:block}
+.qnote-input:focus{outline:none;border-color:var(--blue)}
+.qphoto-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.qphoto-thumb{position:relative;width:66px;height:66px;border-radius:var(--r-md);
+  overflow:hidden;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0}
+.qphoto-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.qphoto-del{position:absolute;top:3px;right:3px;width:20px;height:20px;
+  background:rgba(0,0,0,.65);border:none;border-radius:50%;color:#fff;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.qphoto-add{width:66px;height:66px;border-radius:var(--r-md);border:1.5px dashed var(--line);
+  background:var(--parch);cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.qphoto-add-icon{font-size:22px;line-height:1;color:var(--muted)}
+.qphoto-add-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* PHOTO VIEWER */
+#photoViewer{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+#photoViewer img{max-width:100%;max-height:82vh;object-fit:contain;border-radius:var(--r-md)}
+#photoViewerClose{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);
+  border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:22px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;
+  -webkit-tap-highlight-color:transparent}
+
+/* CAP */
+.cap-summary{background:var(--canvas);padding:14px 16px 12px;border-bottom:1px solid var(--line)}
+.cap-summary-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cap-summary-title{font-size:16px;font-weight:700}
+.cap-summary-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.cap-prog-bar{background:var(--line);height:6px;border-radius:3px;overflow:hidden}
+.cap-prog-fill{height:100%;border-radius:3px;background:var(--C);transition:width .4s}
+.cap-item{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  margin-bottom:10px;overflow:hidden}
+.cap-item.sv-P{border-color:var(--P)}.cap-item.sv-M{border-color:var(--M)}.cap-item.sv-m{border-color:var(--m)}
+.cap-item-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+.cap-item-hdr:active{background:var(--parch)}
+.cap-item-info{flex:1;min-width:0}
+.cap-item-code{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.cap-item-title{font-size:14px;font-weight:600;letter-spacing:-.224px;margin-top:1px}
+.cap-item-chev{font-size:10px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.cap-form{padding:0 14px 14px;border-top:1px solid var(--line)}
+.cap-finds{background:var(--parch);border-radius:var(--r-md);padding:10px 12px;margin:12px 0}
+.cap-finds-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.cap-find-row{font-size:12px;line-height:1.4;padding:4px 0 4px 14px;position:relative;
+  border-bottom:1px solid var(--line);color:var(--ink)}
+.cap-find-row:last-child{border-bottom:none}
+.cap-find-dot{position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:50%}
+.cap-field{margin-bottom:12px}
+.cap-field:last-child{margin-bottom:0}
+.cap-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  display:block;margin-bottom:5px}
+.cap-input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:14px;font-family:inherit;color:var(--ink);background:var(--canvas);-webkit-appearance:none}
+.cap-input:focus{outline:none;border-color:var(--blue)}
+.cap-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-size:13px;font-family:inherit;color:var(--ink);background:var(--canvas);
+  resize:none;line-height:1.45;-webkit-appearance:none;display:block}
+.cap-textarea:focus{outline:none;border-color:var(--blue)}
+.cap-status{display:flex;gap:6px}
+.cap-sbtn{flex:1;padding:9px 4px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--canvas);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  color:var(--muted);text-align:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.cap-sbtn.s-open.sel{background:var(--P);border-color:var(--P);color:#fff}
+.cap-sbtn.s-prog.sel{background:var(--M);border-color:var(--M);color:#fff}
+.cap-sbtn.s-done.sel{background:var(--C);border-color:var(--C);color:#fff}
+.cap-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:55vh;text-align:center;padding:24px}
+.cap-empty-icon{font-size:56px;margin-bottom:16px}
+.cap-empty-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.cap-empty-sub{font-size:13px;color:var(--muted)}
+.cap-filled-dot{width:8px;height:8px;border-radius:50%;background:var(--C);flex-shrink:0}
+
+/* SUPPLIER PRE-CHECK */
+.sup-hero{background:var(--dark);color:#fff;padding:20px 16px 16px}
+.sup-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:11px;font-weight:700;
+  letter-spacing:1px;padding:4px 12px;border-radius:var(--pill);margin-bottom:10px;text-transform:uppercase}
+.sup-hero-title{font-size:20px;font-weight:700;margin-bottom:3px}
+.sup-hero-sub{font-size:13px;color:rgba(255,255,255,.5)}
+.sup-doc-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.sup-doc-row:last-child{border-bottom:none}
+.sup-doc-txt{flex:1;font-size:12px;line-height:1.4;color:var(--ink)}
+.sup-tog{display:flex;gap:4px;flex-shrink:0}
+.sup-btn{padding:5px 9px;border-radius:var(--pill);border:1.5px solid var(--line);
+  background:var(--parch);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  color:var(--muted);-webkit-tap-highlight-color:transparent;transition:all .12s}
+.sup-btn:active{transform:scale(.92)}
+.sup-btn.sy{background:var(--C);border-color:var(--C);color:#fff}
+.sup-btn.sn{background:var(--P);border-color:var(--P);color:#fff}
+.sup-btn.sna{background:var(--muted);border-color:var(--muted);color:#fff}
+.sup-grp{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  margin-bottom:9px;overflow:hidden}
+.sup-grp summary{list-style:none;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent}
+.sup-grp summary::-webkit-details-marker{display:none}
+.sup-grp-body{padding:0 14px 8px;border-top:1px solid var(--line)}
+.sup-grp-prog{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+.sup-check-badge{display:inline-block;padding:2px 7px;border-radius:var(--pill);font-size:10px;font-weight:700}
+.sup-check-badge.y{background:#f0faf3;color:var(--C);border:1px solid var(--C)}
+.sup-check-badge.n{background:#fff5f4;color:var(--P);border:1px solid var(--P)}
+.sup-check-badge.na{background:var(--parch);color:var(--muted);border:1px solid var(--line)}
+
+/* LINK BOX */
+.link-box{background:var(--parch);border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:11px 13px;font-size:12px;color:var(--ink);word-break:break-all;line-height:1.5;
+  margin-bottom:10px;font-family:monospace}
+
+/* SESSION LIST */
+.sess-list{width:100%;padding:0 24px}
+.sess-card{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);
+  padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s;text-align:left}
+.sess-card:active{background:var(--parch)}
+.sess-info{flex:1;min-width:0}
+.sess-code{font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+.sess-meta{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-del{padding:6px 10px;border-radius:var(--pill);border:1px solid var(--line);
+  background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.sess-del:active{background:#fff0ee;border-color:var(--P);color:var(--P)}
+.sess-resume{padding:7px 14px;border-radius:var(--pill);background:var(--blue);color:#fff;
+  border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent}
+
 /* Reset btn */
 .reset-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--pill);
   color:rgba(255,255,255,.7);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;
   -webkit-tap-highlight-color:transparent}
 .reset-btn:active{background:rgba(255,59,48,.4)}
 
-/* ── CAP SUPPLIER MODE ───────────────────────── */
-.cap-mode-banner{background:#0f2a5c;color:#fff;padding:16px 16px 13px;text-align:center}
-.cap-mode-title{font-size:17px;font-weight:700;letter-spacing:-.2px;margin-bottom:2px}
-.cap-mode-sub{font-size:12px;color:rgba(255,255,255,.6);line-height:1.4}
-.cap-mode-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:6px}
-.cap-review-banner{background:#1a3a1a;color:#fff;padding:16px 16px 13px;text-align:center}
-.cap-finding{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);margin-bottom:12px;overflow:hidden}
-.cap-finding.P{border-color:var(--P)}.cap-finding.M{border-color:var(--M)}.cap-finding.m{border-color:var(--m)}
-.cap-finding-hdr{padding:12px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line)}
-.cap-finding-title{font-size:14px;font-weight:700;line-height:1.3}
-.cap-finding-body{padding:10px 14px 14px}
-.cap-fl{font-size:13px;line-height:1.4;padding:3px 0 3px 14px;position:relative;color:var(--ink)}
-.cap-fl::before{content:'→';position:absolute;left:0;color:var(--muted);font-size:11px;top:4px}
-.cap-input-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 4px;display:block}
-.cap-input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);font-size:14px;font-family:inherit;color:var(--ink);background:var(--canvas);-webkit-appearance:none;resize:none;line-height:1.4}
-.cap-input:focus{outline:none;border-color:var(--blue)}
-.cap-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.cap-status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.cap-st{padding:6px 12px;border-radius:var(--pill);border:1.5px solid var(--line);background:var(--canvas);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--muted);-webkit-tap-highlight-color:transparent}
-.cap-st.sel{background:var(--blue);border-color:var(--blue);color:#fff}
-.cap-st.sel.done{background:var(--C);border-color:var(--C)}
-.cap-resp-box{background:var(--parch);border-radius:var(--r-md);padding:10px 12px;margin-top:8px}
-.cap-resp-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
-.cap-resp-val{font-size:13px;line-height:1.4;color:var(--ink)}
-.cap-resp-val.empty{color:var(--muted);font-style:italic}
-.cap-submitted{background:#f0faf3;border:1.5px solid var(--C);border-radius:var(--r-lg);padding:16px;text-align:center;margin-bottom:16px}
-.cap-submitted-title{font-size:15px;font-weight:700;color:#1a7a35;margin-bottom:4px}
-.cap-submitted-sub{font-size:13px;color:#1a7a35;opacity:.8;line-height:1.4;margin-bottom:12px}
-.cap-code-box{background:var(--canvas);border:1px solid var(--C);border-radius:var(--r-md);padding:10px 12px;font-size:11px;font-family:monospace;color:var(--ink);word-break:break-all;text-align:left;margin-bottom:10px;max-height:80px;overflow:hidden}
-.cap-share-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--pill);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:6px}
+/* HOME TABS */
+.hometabs{display:flex;background:var(--canvas);border-bottom:1px solid var(--line)}
+.hometab{flex:1;padding:14px 4px;text-align:center;font-size:15px;font-weight:700;cursor:pointer;
+  border:none;border-bottom:3px solid transparent;margin-bottom:-1px;color:var(--muted);
+  background:none;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.hometab.act{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* DOCUMENT TABS */
+.doctabs-wrap{background:var(--canvas);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.doctabs{display:flex}
+.doctab{flex:1;padding:14px 4px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;
+  border-bottom:3px solid transparent;color:var(--muted);background:none;border-top:none;border-left:none;border-right:none;
+  font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.doctab.act{color:var(--blue);border-bottom-color:var(--blue)}
+.doctab-content{padding:12px 16px 4px}
+.docsubgrp{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);margin-bottom:8px;overflow:hidden}
+.docsubgrp summary{list-style:none;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent;color:var(--ink)}
+.docsubgrp summary::-webkit-details-marker{display:none}
+.docsubgrp summary .dchev{font-size:10px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.docsubgrp[open] summary .dchev{transform:rotate(180deg)}
+.docsubgrp-body{padding:0 14px 10px;border-top:1px solid var(--line)}
+.docitem{font-size:12px;line-height:1.5;padding:5px 0 5px 14px;position:relative;
+  border-bottom:1px solid var(--line);color:var(--ink)}
+.docitem:last-child{border-bottom:none}
+.docitem::before{content:'·';position:absolute;left:2px;color:var(--blue);font-weight:900;font-size:14px;line-height:1.4}
+
+/* DOCUMENTS SECTION (legacy, kept for docref box) */
+.docsec{padding:4px 16px 0}
+.docsec-hdr{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+  padding:9px 0 5px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.docgroup{background:var(--canvas);border-radius:var(--r-lg);border:1.5px solid var(--line);margin-bottom:7px;overflow:hidden}
+.docgroup summary{list-style:none;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent}
+.docgroup summary::-webkit-details-marker{display:none}
+.docgroup summary .dchev{font-size:10px;color:var(--muted)}
+.docgroup[open] summary .dchev{transform:rotate(180deg)}
+.docgroup-body{padding:0 14px 10px;border-top:1px solid var(--line)}
+.docitem{font-size:12px;line-height:1.5;padding:4px 0 4px 14px;position:relative;
+  border-bottom:1px solid var(--line);color:var(--ink)}
+.docitem:last-child{border-bottom:none}
+.docitem::before{content:'·';position:absolute;left:2px;color:var(--blue);font-weight:700}
+
+/* DOC REVIEW REFERENCE BOX */
+.docref{background:#f0f7ff;border:1.5px solid #c0d8f8;border-radius:var(--r-md);margin-bottom:12px;overflow:hidden}
+.docref summary{list-style:none;padding:9px 13px;font-size:12px;font-weight:700;color:var(--blue);
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent}
+.docref summary::-webkit-details-marker{display:none}
+.docref-body{padding:2px 13px 10px;border-top:1px solid #c0d8f8}
+.docref-item{font-size:12px;line-height:1.4;padding:4px 0 4px 14px;position:relative;
+  border-bottom:1px solid rgba(0,102,204,.1);color:var(--ink)}
+.docref-item:last-child{border-bottom:none}
+.docref-item::before{content:'→';position:absolute;left:0;color:var(--blue);font-size:10px;top:5px}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput(event)">
+<div id="photoViewer" onclick="closePhotoViewer()">
+  <button id="photoViewerClose" onclick="closePhotoViewer()">×</button>
+  <img id="photoViewerImg" src="" alt="">
+</div>
 <script>
 // ─── ITEM DEFINITIONS ─────────────────────────
 const ITEMS={
@@ -259,6 +455,407 @@ const ITEMS={
 };
 const GRPS={A:'Labor Standards',A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',D:'Ethics',DM:'Ethics Mgmt System',E:'Supply Chain'};
 const TOP_GRP_MAP={A:['A1','A2','A3','A4','A5','A6'],AM:['AM'],D:['D'],DM:['DM'],E:['E']};
+
+// ─── REQUIRED DOCUMENT LISTS (On-Site Audit Rev 8.0.1) ──────────────────────────
+const DOC_LIST={
+  A1:[
+    'Contracts with labor agencies, labor brokers, labor service providers',
+    'Example of a worker contract — Permanent / Salaried / Hourly / Temporary / Seasonal / Juvenile / Apprentice / FMW (as applicable)',
+    'Records of employment incl. proof of age, identity, and government worker permits',
+    'Termination notice policy',
+    'Recruitment/hiring process/procedure',
+    'Documentation of employee loan and credit schemes',
+    'Records of fees paid by workers (if applicable) — last 24 months',
+  ],
+  A2:[
+    'Company policy for young worker protection and appropriate hours/shifts',
+    'Minimum hiring age policy',
+    'Procedure for obtaining and validating proof of age documentation',
+    'Records of training and apprenticeship programs',
+    'Child labor assistance/remediation process',
+    'Juvenile worker protection procedures',
+  ],
+  A3:[
+    'Non-traditional work hour permits or overtime waivers issued by government agencies',
+    'Information provided to workers on legal requirements for working hours and overtime',
+    'Working hours policy',
+    'Process for allocating and controlling overtime hours',
+    'Work time registration process/procedure',
+    'Worker timecards or timesheets — most recent 12-month period',
+    'Evidence that employees voluntarily agreed to overtime (e.g., signed statement)',
+    'Evidence of communication of overtime to workers',
+  ],
+  A4:[
+    'Information provided to workers on wages, deductions, calculations, and benefits',
+    'Examples of how wages were set for each job code',
+    'Disciplinary wage deductions and bonus award practices',
+    'List of allowances (e.g. food, accommodation) and procedure',
+    'Procedure for piece rate determination and calculations (if applicable)',
+    'List of worker contributions and procedure',
+    'Local minimum wage definition',
+    'Wage records / pay slips — last 12 months (all deductions, contributions, earnings)',
+    'Records of contributions to worker insurance schemes',
+    'Payment records of contributions to worker insurance schemes',
+    'Proof of purchase of all applicable insurance for workers',
+    'Proof of maternity/paternity leave policy',
+  ],
+  A5:[
+    'Facility rules and regulations on acceptable worker practices and disciplinary measures',
+    'Disciplinary process/procedure',
+    'Records of disciplinary actions',
+    'Pre-employment / pre-placement medical examination requirements',
+    'Medical confidentiality procedure and practice',
+    'Information on worker population (type, gender, function, ethnicity, age)',
+    'Current job advertisements and qualifications',
+    'Procedure for workers to request reasonable religious accommodation',
+    'Religious accommodation records',
+    'Procedure for workers to request reasonable disability accommodation',
+    'Disability accommodation records',
+  ],
+  A6:[
+    'Information provided to workers on local laws re: freedom of association and labor unions',
+    'Minutes of worker meetings and/or union-management meetings',
+    'Evidence of regular communications and feedback channels with workers',
+    'Records of workers\' complaints and actions taken (communicated to workers)',
+  ],
+  AM:[
+    '[XM.1] Copy of customer requirements (e.g., RBA)',
+    '[XM.1] Tracking system for monitoring SER laws and regulations',
+    '[XM.1] Copy of applicable laws',
+    '[XM.1] Procedure to identify, evaluate and rank risks',
+    '[XM.1] Records on risk assessment when a Significant Change occurred',
+    '[XM.1] Listing of identified risks and risk assessment review records',
+    '[XM.1] Action plans addressing highest identified risks',
+    '[XM.2] Organizational chart with roles and responsibilities',
+    '[XM.2] Records of management system reviews',
+    '[XM.2] Company policies for the corresponding section',
+    '[XM.2] Control procedures implemented',
+    '[XM.2] Training analysis, calendar, records, and evaluations',
+    '[XM.3] Factory rules (e.g., Employee Handbook)',
+    '[XM.3] Process for communicating SER performance and expectations',
+    '[XM.3] Information to workers on how to confidentially report issues',
+    '[XM.3] Policy/procedure on whistle blowing + statistics',
+    '[XM.3] Records of workers\' grievances, investigations, and actions taken',
+    '[XM.3] Worker surveys, complaints, and feedback',
+    '[XM.4] Current year performance objectives, targets, and review results',
+    '[XM.4] Current improvement initiatives and progress status',
+    '[XM.4] Assessment process and procedure',
+    '[XM.4] Copies of Assessments carried out in last 3 years',
+    '[XM.4] Corrective Action management procedure',
+    '[XM.4] Copies of corrective action plans (last 3 years) and current status',
+    '[XM.4] Records of Nonconformance tracking, closure, and management reviews',
+    '[XM.4] Legal compliance records of citations/penalties for labor/ethics violations',
+  ],
+  D1:[
+    'Policy ensuring gifts to/from suppliers and customers are not excessive in cost or frequency',
+    'Procedures for addressing workers/agents suspected of accepting improper payments or gifts',
+    'Investigation procedures and subsequent sanctions',
+    'Disciplinary procedures/policy',
+    'Disciplinary records',
+  ],
+  D2:[
+    'Non-disclosure agreement template/form',
+    'Non-disclosure agreements with suppliers and customers',
+    'Non-disclosure agreements with service providers',
+  ],
+  D3:[
+    'Intellectual property review and protection policies',
+  ],
+  D4:[
+    'Annual financial report independently assessed by financial assessment firm',
+    'Fair business / anti-collusion policy',
+    'Advertising policy/communications policy',
+    'Advert/job advert',
+  ],
+  D5:[
+    'Policy/procedure on whistle blowing',
+    'Clear communications to workers/employees on non-retaliation',
+    'Procedures to investigate possible retaliation allegations',
+  ],
+  D6:[
+    'A formal policy and program to protect privacy',
+    'Training material and training records on privacy protection',
+  ],
+  E1:[
+    'Labor, Employment, Ethics, Health & Safety and Environment Policy',
+    'Corporate Responsibility Policy / Code of Business Conduct policy or manual',
+  ],
+  E2:[
+    'Procurement and manufacturing specifications re: legal and customer product content restrictions',
+    'Records of communication of RoHS, REACH, WEEE and other restrictions to suppliers',
+    'Analytical test results',
+  ],
+  E3:[
+    'Responsible sourcing of minerals policy/procedures',
+    'Risk assessment of sources of materials (3TG + Cobalt free or conflict free)',
+    'Action plans to ensure responsible sourcing of minerals',
+    'Due Diligence records related to 3TG + Cobalt — last 2 years',
+  ],
+  E4:[
+    'Communication records with suppliers for RBA code requirements',
+    'Contract terms and conditions requiring suppliers to conform to the RBA code',
+    'Next tier Major Supplier identification analysis',
+    'Next tier Major Supplier/Labor Agent program',
+    'On-site Major Supplier code conformance verification reports',
+    'Corrective action plans for On-site Major Supplier verification findings',
+    'Working Hours and wage documentation for on-site service provider workers',
+  ],
+};
+DOC_LIST.DM=DOC_LIST.AM;
+
+const ITEM_DOC_MAP={
+  a11:'A1',a12:'A1',a13:'A1',
+  a21:'A2',a22:'A2',a23:'A2',
+  a31:'A3',a32:'A3',a33:'A3',
+  a41:'A4',a42:'A4',a43:'A4',
+  a51:'A5',a52:'A5',a53:'A5',a54:'A5',
+  a61:'A6',a62:'A6',a63:'A6',
+  am11:'AM',am12:'AM',am21:'AM',am22:'AM',am23:'AM',
+  am31:'AM',am32:'AM',am41:'AM',am42:'AM',am43:'AM',
+  d11:'D1',d12:'D2',d13:'D3',d14:'D4',d15:'D5',d16:'D6',
+  dm11:'DM',dm12:'DM',dm21:'DM',dm22:'DM',dm23:'DM',
+  dm31:'DM',dm32:'DM',dm41:'DM',dm42:'DM',dm43:'DM',
+  e11:'E1',e12:'E2',e13:'E3',e14:'E4',e15:'E4',e16:'E4',e17:'E4',
+};
+
+const DOC_LIST_KO={
+  A1:[
+    '노무 대행사, 노무 중개인, 노무 서비스 제공자와의 계약서',
+    '근로계약서 예시 — 정규직 / 월급제 / 시급제 / 임시직 / 계절직 / 연소근로자 / 수습생 / 외국인 이주근로자',
+    '고용 기록 (연령 증빙, 신분증, 정부 발급 취업 허가 포함)',
+    '퇴직 통보 정책',
+    '채용/고용 프로세스 및 절차',
+    '직원 대출 및 신용 제도 관련 문서',
+    '근로자가 지불한 비용 기록 (해당 시) — 최근 24개월',
+  ],
+  A2:[
+    '연소근로자 보호 및 적정 근무시간/교대 정책',
+    '최저 고용 연령 정책',
+    '연령 증빙 서류 수령 및 확인 절차',
+    '교육 및 수습 프로그램 기록',
+    '아동 노동 지원/구제 절차',
+    '연소근로자 보호 절차',
+  ],
+  A3:[
+    '정부 기관 발급 비표준 근무시간 허가 또는 초과근무 면제 승인서',
+    '근무시간 및 초과근무 법적 요건에 대한 근로자 안내 자료',
+    '근무시간 정책',
+    '초과근무 시간 배분 및 통제 프로세스',
+    '근무시간 등록 프로세스/절차',
+    '근로자 출퇴근 기록 또는 근무시간표 — 최근 12개월',
+    '근로자의 초과근무 자발적 동의 증빙 (예: 서명 동의서)',
+    '초과근무 통보 증빙',
+  ],
+  A4:[
+    '임금, 공제, 산정 방식 및 복리후생에 대한 근로자 안내 자료',
+    '직무 코드별 임금 책정 방식 예시',
+    '징계성 임금 공제 및 상여금 지급 기준',
+    '수당 목록 (예: 식비, 숙소) 및 절차',
+    '성과급(도급) 산정 방식 및 절차 (해당 시)',
+    '근로자 기여금 목록 및 절차',
+    '지역 최저임금 기준',
+    '임금 기록 / 급여명세서 — 최근 12개월 (모든 공제·기여금·수입 내역)',
+    '근로자 보험 기여금 납부 기록',
+    '근로자 보험 기여금 납부 증빙',
+    '근로자 전체 의무 보험 가입 증빙',
+    '육아휴직/배우자 출산휴가 정책 증빙',
+  ],
+  A5:[
+    '직장 내 허용 행위 및 징계 조치 규정',
+    '징계 프로세스/절차',
+    '징계 조치 기록',
+    '채용 전/배치 전 건강검진 요건',
+    '의료 정보 비밀 보호 절차 및 실행 현황',
+    '근로자 구성 정보 (유형, 성별, 직무, 출신 지역, 연령 등)',
+    '현행 채용 공고 및 자격 요건',
+    '종교적 편의 제공 요청 절차',
+    '종교적 편의 제공 기록',
+    '장애인 편의 제공 요청 절차',
+    '장애인 편의 제공 기록',
+  ],
+  A6:[
+    '결사의 자유 및 노동조합 관련 지역 법률에 대한 근로자 안내 자료',
+    '근로자 회의 및/또는 노사 회의 회의록',
+    '근로자와의 정기 소통 및 피드백 채널 운영 증빙',
+    '근로자 불만 사항 및 조치 결과 기록 (근로자 공유 포함)',
+  ],
+  AM:[
+    '[XM.1] 고객 요구사항 사본 (예: RBA)',
+    '[XM.1] SER 법규 및 규정 모니터링 추적 시스템',
+    '[XM.1] 적용 법규 사본',
+    '[XM.1] 리스크 식별·평가·등급화 절차',
+    '[XM.1] 중요 변경 발생 시 리스크 평가 기록',
+    '[XM.1] 식별된 리스크 목록 및 리스크 평가 검토 기록',
+    '[XM.1] 최고 위험 항목에 대한 실행 계획',
+    '[XM.2] 역할 및 책임이 포함된 조직도',
+    '[XM.2] 경영시스템 검토 기록',
+    '[XM.2] 해당 분야 회사 정책',
+    '[XM.2] 실행 중인 통제 절차',
+    '[XM.2] 교육 분석, 일정, 기록 및 평가',
+    '[XM.3] 공장 규정 (예: 직원 핸드북)',
+    '[XM.3] SER 성과 및 기대사항 소통 프로세스',
+    '[XM.3] 기밀 문제 신고 방법 근로자 안내 자료',
+    '[XM.3] 내부 고발(Whistle Blowing) 정책/절차 및 통계',
+    '[XM.3] 근로자 고충, 징계 조사 및 조치 결과 기록',
+    '[XM.3] 근로자 설문, 불만 및 경영진 피드백',
+    '[XM.4] 당해 연도 성과 목표·대상 및 검토 결과',
+    '[XM.4] 개선 이니셔티브 및 진행 현황',
+    '[XM.4] 감사 프로세스 및 절차',
+    '[XM.4] 최근 3년 이내 감사 결과 사본',
+    '[XM.4] 시정 조치 관리 절차',
+    '[XM.4] 최근 3년 이내 시정 조치 계획 사본 및 현황',
+    '[XM.4] 부적합 사항 추적·종결 및 경영 검토 기록',
+    '[XM.4] 노동/윤리 법규 위반 관련 법적 조치/과태료 기록',
+  ],
+  D1:[
+    '공급업체 및 고객에 대한 선물이 과도하지 않도록 하는 정책',
+    '부적절한 금품 수수 의혹 직원/대리인 처리 절차',
+    '조사 절차 및 제재 조치',
+    '징계 절차/정책',
+    '징계 기록',
+  ],
+  D2:[
+    '비밀유지계약서(NDA) 양식/서식',
+    '공급업체 및 고객과 체결한 NDA',
+    '서비스 제공업체와 체결한 NDA',
+  ],
+  D3:[
+    '지식재산권 검토 및 보호 정책',
+  ],
+  D4:[
+    '외부 회계법인이 감사한 연간 재무제표',
+    '공정 거래 / 담합 금지 정책',
+    '광고 정책/커뮤니케이션 정책',
+    '광고물/채용 공고',
+  ],
+  D5:[
+    '내부 고발(Whistle Blowing) 정책/절차',
+    '보복 금지에 관한 근로자 안내 자료',
+    '보복 의혹 조사 절차',
+  ],
+  D6:[
+    '개인정보 보호 공식 정책 및 프로그램',
+    '개인정보 보호 교육 자료 및 교육 기록',
+  ],
+  E1:[
+    '노동, 고용, 윤리, 안전보건 및 환경 정책',
+    '기업 사회 책임 정책 / 비즈니스 윤리 강령 또는 매뉴얼',
+  ],
+  E2:[
+    '법적·고객 제품 함유물질 제한 요건 관련 조달 및 제조 사양서',
+    '공급업체 대상 RoHS, REACH, WEEE 및 기타 제품 함유물질 제한 요건 전달 기록',
+    '분석 시험 결과',
+  ],
+  E3:[
+    '책임 있는 광물 조달 정책/절차',
+    '원재료 출처 리스크 평가 (3TG + 코발트 미사용 또는 분쟁 광물 미포함)',
+    '책임 있는 광물 조달 확보를 위한 실행 계획',
+    '3TG + 코발트 관련 실사(Due Diligence) 기록 — 최근 2년',
+  ],
+  E4:[
+    'RBA 코드 요건에 관한 공급업체 소통 기록',
+    'RBA 코드 준수를 요구하는 공급업체 계약 조건',
+    '차상위 주요 공급업체 식별 분석',
+    '차상위 주요 공급업체/노무 대행사 프로그램',
+    '현장 주요 공급업체 코드 준수 검증 보고서',
+    '현장 공급업체 검증 결과 시정 조치 계획',
+    '현장 서비스 제공업체 근로자의 근무시간 및 임금 서류 (해당 시)',
+  ],
+};
+DOC_LIST_KO.DM=DOC_LIST_KO.AM;
+
+function docRefBox(id){
+  const key=ITEM_DOC_MAP[id];
+  const ko=S.lang==='ko';
+  const docs=(ko?DOC_LIST_KO:DOC_LIST)[key];
+  if(!docs||!docs.length)return'';
+  const hasSupData=docs.some((_,i)=>S.supplierChecks[supKey(key,i)]);
+  const label=ko?`📋 필요 서류 목록 (${key}) — ${docs.length}건`:`📋 Required Documents (${key}) — ${docs.length} items`;
+  return`<details class="docref">
+    <summary>${label}${hasSupData?` <span style="font-size:10px;color:var(--C);margin-left:4px">● ${ko?'사전체크':'Pre-checked'}</span>`:''} <span style="font-size:10px">▼</span></summary>
+    <div class="docref-body">${docs.map((d,i)=>{
+      const sv=S.supplierChecks[supKey(key,i)];
+      const badge=sv?`<span class="sup-check-badge ${sv}" style="margin-left:6px;font-size:10px">${sv==='y'?(ko?'준비됨':'Ready'):sv==='n'?(ko?'미준비':'Not Ready'):'N/A'}</span>`:'';
+      return`<div class="docref-item">${d}${badge}</div>`;
+    }).join('')}</div>
+  </details>`;
+}
+
+function renderHomeDocs(){
+  const ko=S.lang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const tabs=[
+    {id:'A', label:ko?'A 노동':'A Labor', groups:['A1','A2','A3','A4','A5','A6','AM']},
+    {id:'D', label:ko?'D 윤리':'D Ethics', groups:['D1','D2','D3','D4','D5','D6','DM']},
+    {id:'E', label:ko?'E 공급망':'E Supply', groups:['E1','E2','E3','E4']},
+  ];
+  const grpNameEN={A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',
+    A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',
+    D1:'Business Integrity',D2:'Disclosure of Information',D3:'Intellectual Property',D4:'Fair Business',
+    D5:'Identity Protection',D6:'Privacy',DM:'Ethics Mgmt System',
+    E1:'Company Commitment',E2:'Materials Restrictions',E3:'Responsible Minerals',E4:'Supplier Responsibility'};
+  const grpNameKO={A1:'강제 노동',A2:'연소 근로자',A3:'근무 시간',A4:'임금 및 복리후생',
+    A5:'비차별',A6:'결사의 자유',AM:'노동 관리 시스템',
+    D1:'비즈니스 무결성',D2:'정보 공개',D3:'지식재산권',D4:'공정 거래',
+    D5:'신원 보호',D6:'개인정보 보호',DM:'윤리 관리 시스템',
+    E1:'기업 책임',E2:'물질 제한',E3:'책임 광물 조달',E4:'공급업체 책임'};
+  const grpName=ko?grpNameKO:grpNameEN;
+  const active=S.docTab||'A';
+  const activeTab=tabs.find(t=>t.id===active)||tabs[0];
+
+  const xmNameEN={'XM.1':'Risk Assessment','XM.2':'Control Processes','XM.3':'Communications','XM.4':'Performance Review'};
+  const xmNameKO={'XM.1':'리스크 평가','XM.2':'통제 프로세스','XM.3':'소통 및 고충','XM.4':'성과 검토 및 개선'};
+  const xmName=ko?xmNameKO:xmNameEN;
+
+  function renderGroupDocs(g){
+    const docs=dl[g];
+    if(!docs||!docs.length)return'';
+    if(g==='AM'||g==='DM'){
+      const sub={};
+      docs.forEach(d=>{
+        const m=d.match(/^\[XM\.(\d+)\]/);
+        const k=m?`XM.${m[1]}`:'other';
+        if(!sub[k])sub[k]=[];
+        sub[k].push(d.replace(/^\[XM\.\d+\]\s*/,''));
+      });
+      const subHtml=Object.entries(sub).map(([sk,items])=>`
+        <details class="docsubgrp" style="margin:0;border-radius:var(--r-md);border:1px solid var(--line);margin-bottom:5px">
+          <summary style="padding:9px 12px;font-size:12px">
+            <span style="flex:1"><span style="color:var(--blue);margin-right:5px;font-size:11px">${sk}</span>${xmName[sk]||sk}<span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:5px">${items.length}${ko?'건':''}</span></span>
+            <span class="dchev">▼</span>
+          </summary>
+          <div class="docsubgrp-body" style="padding:2px 12px 8px">
+            ${items.map(d=>`<div class="docitem">${d}</div>`).join('')}
+          </div>
+        </details>`).join('');
+      return`<details class="docsubgrp">
+        <summary>
+          <span style="flex:1"><span style="color:var(--blue);margin-right:6px">${g}</span>${grpName[g]||g}<span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:6px">${docs.length}${ko?'건':''}</span></span>
+          <span class="dchev">▼</span>
+        </summary>
+        <div class="docsubgrp-body">${subHtml}</div>
+      </details>`;
+    }
+    return`<details class="docsubgrp">
+      <summary>
+        <span style="flex:1"><span style="color:var(--blue);margin-right:6px">${g}</span>${grpName[g]||g}<span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:6px">${docs.length}${ko?'건':''}</span></span>
+        <span class="dchev">▼</span>
+      </summary>
+      <div class="docsubgrp-body">
+        ${docs.map(d=>`<div class="docitem">${d}</div>`).join('')}
+      </div>
+    </details>`;
+  }
+
+  const items=activeTab.groups.map(renderGroupDocs).join('');
+
+  return`<div style="background:var(--canvas);border-bottom:1px solid var(--line)">
+    <div class="doctabs">
+      ${tabs.map(tab=>`<button class="doctab${tab.id===active?' act':''}" onclick="S.docTab='${tab.id}';render()">${tab.label}</button>`).join('')}
+    </div>
+    <div class="doctab-content">${items}</div>
+  </div>`;
+}
 
 // ─── QUESTIONS ────────────────────────────────
 const Q={
@@ -954,15 +1551,6 @@ const T={
     daysQ1:'Maximum consecutive days worked found in sample',
     daysQ2:'% of sampled workers exceeding 6 consecutive days',
     complete:'Complete all fields for auto-rating.',
-    capShare:'Share CAP with Supplier',capShareSub:'Generate a link for the supplier to fill in their corrective action plan.',
-    capSupplierTitle:'Supplier CAP Response',capSupplierSub:'Please fill in the corrective action plan for each finding below.',
-    capReviewTitle:'CAP Review',capReviewSub:'Supplier responses received.',
-    capRootCause:'Root Cause',capAction:'Corrective Action',capOwner:'Responsible Person',capDueDate:'Target Date',capStatus:'Status',
-    capStatusPlanned:'Planned',capStatusInProgress:'In Progress',capStatusDone:'Completed',
-    capSubmit:'Submit CAP Response',capCopyLink:'Copy Response Link',capCopied:'Copied!',
-    capSubmittedTitle:'CAP Submitted',capSubmittedSub:'Copy the link below and send it back to the auditor.',
-    capByLbl:'Your name / company',capNoFindings:'No findings to action — all items conform.',
-    capFindingsLbl:'Findings to Address',capRecLbl:'Recommended Actions',
   },
   ko:{
     setup:'설정',skip:'건너뛰기 →',start:'점검 시작 →',back:'← 이전',items:'← 항목',
@@ -1008,15 +1596,6 @@ const T={
     daysQ1:'표본에서 발견된 최대 연속 근무일',
     daysQ2:'연속 6일 이상 근무한 근로자 비율 (%)',
     complete:'자동 판정을 위해 모든 항목을 입력하세요.',
-    capShare:'협력사에 CAP 공유',capShareSub:'협력사가 시정 계획을 직접 작성할 수 있는 링크를 생성합니다.',
-    capSupplierTitle:'협력사 CAP 작성',capSupplierSub:'아래 각 부적합 항목에 대한 시정 계획을 작성해 주세요.',
-    capReviewTitle:'CAP 검토',capReviewSub:'협력사 답변이 수신되었습니다.',
-    capRootCause:'근본 원인',capAction:'시정 조치 내용',capOwner:'담당자',capDueDate:'완료 예정일',capStatus:'진행 상태',
-    capStatusPlanned:'계획됨',capStatusInProgress:'진행 중',capStatusDone:'완료',
-    capSubmit:'CAP 답변 제출',capCopyLink:'응답 링크 복사',capCopied:'복사됨!',
-    capSubmittedTitle:'CAP 제출 완료',capSubmittedSub:'아래 링크를 복사해서 감사자에게 전달해 주세요.',
-    capByLbl:'성명 / 회사명',capNoFindings:'시정 조치가 필요한 부적합 항목이 없습니다.',
-    capFindingsLbl:'시정 대상 항목',capRecLbl:'권장 시정 조치',
   },
   zh:{
     setup:'设置',skip:'跳过 →',start:'开始检查 →',back:'← 返回',items:'← 项目',
@@ -1062,15 +1641,6 @@ const T={
     daysQ1:'样本中发现的最长连续工作天数',
     daysQ2:'连续工作超过6天的工人比例（%）',
     complete:'请填写所有字段以获得自动评级。',
-    capShare:'与供应商共享CAP',capShareSub:'生成链接，供供应商填写纠正行动计划。',
-    capSupplierTitle:'供应商CAP填写',capSupplierSub:'请在下方填写每项不符合事项的纠正行动计划。',
-    capReviewTitle:'CAP审查',capReviewSub:'已收到供应商回复。',
-    capRootCause:'根本原因',capAction:'纠正措施',capOwner:'负责人',capDueDate:'目标日期',capStatus:'状态',
-    capStatusPlanned:'已计划',capStatusInProgress:'进行中',capStatusDone:'已完成',
-    capSubmit:'提交CAP回复',capCopyLink:'复制回复链接',capCopied:'已复制!',
-    capSubmittedTitle:'CAP已提交',capSubmittedSub:'请复制下方链接并发送给审核员。',
-    capByLbl:'姓名/公司名称',capNoFindings:'无需纠正措施，所有项目均符合要求。',
-    capFindingsLbl:'待整改项目',capRecLbl:'建议纠正措施',
   },
 };
 
@@ -1533,15 +2103,24 @@ function iTitle(id){return((IT[S.lang]||{})[id]||{}).title||ITEMS[id].title}
 function iDesc(id){return((IT[S.lang]||{})[id]||{}).desc||ITEMS[id].desc}
 
 const initState=()=>({
-  screen:'setup', item:null, step:null,
+  screen:'landing', item:null, step:null,
   lang:'en',
   country:'',
+  vendorCode:'',
+  homeTab:'audit',
+  docTab:'A',
   law:{resignNotice:'',docRetention:null,minAge:'',minWage:'',maxWeekHrs:'',otPremium:''},
   ans:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
   fees:{reimbursed:null,workerPct:'',feeAmtPct:''},
   hours31:{maxHours:'',pctOver:''},
   days32:{maxDays:'',pctOver:''},
   done:{},
+  notes:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
+  photos:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,{mgmt:{},doc:{},worker:{}}])),
+  noteOpen:{},
+  cap:{},
+  capOpen:{},
+  supplierChecks:{},
 });
 let S=initState();
 
@@ -1605,6 +2184,14 @@ function calcGrp(g){
   return its.length?its.map(calcItem).reduce(maxR,'conformance'):null;
 }
 
+function calcGrpRate(g){
+  const groups=TOP_GRP_MAP[g]||[g];
+  const its=Object.keys(ITEMS).filter(k=>groups.includes(ITEMS[k].grp)&&S.done[k]);
+  if(!its.length)return null;
+  const ok=its.filter(k=>calcItem(k)==='conformance').length;
+  return Math.round(ok/its.length*100);
+}
+
 function getSteps(id){
   const b=['mgmt','doc','worker'],sp=[];
   if(id==='a11'&&S.ans.a11.doc['d6']==='no')sp.push('fee');
@@ -1650,7 +2237,8 @@ function stepName(s){return{mgmt:t('mgmt'),doc:t('doc'),worker:t('worker'),fee:t
 function badge(r){const k=RK[r]||'ns';return`<span class="icbadge ${k}">${RL[r]||'—'}</span>`}
 
 function qcard(q,id,type,ans){
-  const a=ans[q.id.toLowerCase()];
+  const qid=q.id.toLowerCase();
+  const a=ans[qid];
   const viol=a?(q.inv?(a==='yes'):(a==='no')):false;
   let cc='qcard';
   if(a){cc+=a==='na'?' vna':viol?' vn':' vy'}
@@ -1659,6 +2247,40 @@ function qcard(q,id,type,ans){
   const nac=a==='na'?'sna':'';
   const isDoc=type==='doc';
   const txt=qt(id,type,q.id)||q.text;
+
+  // Note & photo
+  const note=(S.notes[id]&&S.notes[id][type][qid])||'';
+  const photos=(S.photos[id]&&S.photos[id][type][qid])||[];
+  const nkey=`${id}_${type}_${qid}`;
+  const noteOpen=S.noteOpen[nkey]||viol||!!note;
+  const ko=S.lang==='ko';
+
+  const noteArea=a?`
+    <div class="qnote-area">
+      <div class="qnote-toolbar">
+        <button class="qntbtn${note?' has':''}" onclick="S.noteOpen['${nkey}']=!S.noteOpen['${nkey}'];render()">
+          📝 ${note?(ko?'메모':'Note ✓'):(ko?'메모':'Note')}
+        </button>
+        <button class="qntbtn${photos.length?' has':''}" onclick="openPhotoInput('${id}','${type}','${qid}')">
+          📷 ${photos.length?`(${photos.length}) `:''}${ko?'사진':'Photo'}
+        </button>
+      </div>
+      ${noteOpen?`<textarea class="qnote-input" rows="2"
+        placeholder="${ko?'위반 내용, 근거 서류명, 관찰 내용 등...':'Details, evidence, document names, observations...'}"
+        onblur="saveNote('${id}','${type}','${qid}',this.value)"
+      >${note}</textarea>`:''}
+      ${photos.length?`<div class="qphoto-row">
+        ${photos.map((p,i)=>`<div class="qphoto-thumb" onclick="viewPhoto('${id}','${type}','${qid}',${i})">
+          <img src="${p}">
+          <button class="qphoto-del" onclick="event.stopPropagation();removePhoto('${id}','${type}','${qid}',${i})">×</button>
+        </div>`).join('')}
+        <button class="qphoto-add" onclick="openPhotoInput('${id}','${type}','${qid}')">
+          <span class="qphoto-add-icon">+</span>
+          <span class="qphoto-add-lbl">${ko?'사진':'Photo'}</span>
+        </button>
+      </div>`:''}
+    </div>`:''
+
   return`<div class="${cc}">
     <div class="qid">${q.id}</div>
     <div class="qtxt">${txt}</div>
@@ -1668,6 +2290,7 @@ function qcard(q,id,type,ans){
       <button class="qbtn ${nc}" onclick="setAns('${id}','${type}','${q.id}','no')">${isDoc?t('notConfirmed'):t('no')}</button>
       ${q.na?`<button class="qbtn ${nac}" onclick="setAns('${id}','${type}','${q.id}','na')">${t('na')}</button>`:''}
     </div>
+    ${noteArea}
   </div>`;
 }
 
@@ -1684,12 +2307,21 @@ function screenSetup(){
   const lp=`<div style="display:flex;gap:5px;margin-bottom:16px">
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:5px 12px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'var(--blue)':'var(--line)'};background:${S.lang===l?'var(--blue)':'transparent'};color:${S.lang===l?'#fff':'var(--muted)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
-  return`${nav('On-Site Audit',null,t('skip'),'S.screen=\'home\';render()')}
+  return`${nav('On-Site Audit','S.screen=\'landing\';render()')}
   <div class="content">
     <span class="stag">${t('setup')}</span>
     <h2 class="stitle">${t('facilitySetup')}</h2>
     <p class="ssub">${t('setupDesc')}</p>
     ${lp}
+    <div class="sfield">
+      <label class="slbl" style="display:flex;align-items:center;gap:4px">
+        Vendor Code <span style="color:var(--P);font-size:13px">*</span>
+      </label>
+      <input class="sinput" type="text" placeholder="e.g. BMSS, VND-001"
+        value="${S.vendorCode}" oninput="S.vendorCode=this.value.trim().toUpperCase()"
+        style="${!S.vendorCode?'border-color:var(--line)':'border-color:var(--blue)'}">
+      <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기':'Identifies this audit session — reconnecting with the same code resumes your progress'}</div>
+    </div>
     <div class="sfield"><label class="slbl">${t('country')}</label>
       <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
       <div class="shint">${t('countryHint')}</div>
@@ -1721,7 +2353,7 @@ function screenSetup(){
     </div>
     <div class="snote"><strong>${t('roadmap')}</strong></div>
   </div>
-  <div class="bot"><button class="bp" onclick="S.screen='home';render();window.scrollTo(0,0)">${t('start')}</button></div>`;
+  <div class="bot"><button class="bp" onclick="startAudit()">${t('start')}</button></div>`;
 }
 
 function screenHome(){
@@ -1758,7 +2390,7 @@ function screenHome(){
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:4px 10px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'#fff':'rgba(255,255,255,.3)'};background:${S.lang===l?'rgba(255,255,255,.2)':'transparent'};color:${S.lang===l?'#fff':'rgba(255,255,255,.5)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
 
-  return`${nav('On-Site Audit',null,t('setupBtn'),'S.screen=\'setup\';render()')}
+  return`${nav(S.vendorCode?`On-Site Audit · ${S.vendorCode}`:'On-Site Audit','S.screen=\'landing\';render()',t('setupBtn'),'S.screen=\'setup\';render()')}
   <div class="hhero">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="htitle">${t('laborAudit')}</div>
@@ -1768,22 +2400,29 @@ function screenHome(){
       <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
     </div>
     <div class="hsum">
-      ${['A','AM','D','DM','E'].map(g=>{const gr=calcGrp(g);const col=gr?RCOL[gr]:'rgba(255,255,255,.3)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${gr?RL[gr]:'—'}</div></div>`;}).join('')}
-      <div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${overall?RCOL[overall]:'rgba(255,255,255,.3)'}">${overall?RL[overall]:'—'}</div></div>
+      ${['A','AM','D','DM','E'].map(g=>{const rt=calcGrpRate(g);const col=rt===null?'rgba(255,255,255,.3)':rt===100?'var(--C)':rt>=80?'var(--m)':rt>=60?'var(--M)':'var(--P)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${rt===null?'—':rt+'%'}</div></div>`;}).join('')}
+      ${(()=>{const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);const tot=allDone.length;const ok=allDone.filter(k=>calcItem(k)==='conformance').length;const rt=tot?Math.round(ok/tot*100):null;const col=rt===null?'rgba(255,255,255,.3)':rt===100?'var(--C)':rt>=80?'var(--m)':rt>=60?'var(--M)':'var(--P)';return`<div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${col}">${rt===null?'—':rt+'%'}</div></div>`;})()}
     </div>
   </div>
-  ${grpList.map(grpSec).join('')}
-  <div style="padding:0 16px 8px">
-    <button onclick="generateCAPLink()" style="width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;margin-bottom:2px">
-      🔗 ${t('capShare')}
-    </button>
-    <div style="font-size:12px;color:var(--muted);text-align:center;padding:0 8px 12px;line-height:1.4">${t('capShareSub')}</div>
+  <div class="hometabs">
+    <button class="hometab${S.homeTab==='audit'?' act':''}" onclick="S.homeTab='audit';render()">${S.lang==='ko'?'점검 항목':'Audit Items'}</button>
+    <button class="hometab${S.homeTab==='docs'?' act':''}" onclick="S.homeTab='docs';render()">${S.lang==='ko'?'필요 서류':'Documents'}</button>
   </div>
-  <div style="padding:0 16px 24px">
-    <button onclick="exportCSV()" style="width:100%;padding:14px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+  <div style="padding:10px 16px 0;display:flex;flex-direction:column;gap:8px">
+    <button onclick="S.screen='supgen';render()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--M);border-radius:var(--r-lg);color:var(--M);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📤 ${(()=>{const ko=S.lang==='ko';const hasSup=Object.keys(S.supplierChecks||{}).length>0;return hasSup?(ko?'사전점검 결과 반영됨':'Pre-Check Imported ✓'):(ko?'협력사 사전점검 요청':'Request Supplier Pre-Check');})()}
+    </button>
+    ${(()=>{const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';return`<button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:13px;background:var(--blue);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      📋 ${viol.length?(ko?`시정조치계획 (CAP) — ${viol.length}건 위반`:`CAP — ${viol.length} Finding${viol.length>1?'s':''}`):(ko?'시정조치계획 (CAP)':'Corrective Action Plan (CAP)')}
+    </button>`;})()}
+  </div>
+  ${S.homeTab==='docs'?renderHomeDocs():`
+  ${grpList.map(grpSec).join('')}
+  <div style="padding:8px 16px 24px">
+    <button onclick="exportCSV()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📊 ${S.lang==='ko'?'점검 결과 Excel 내보내기':S.lang==='zh'?'导出检查结果 Excel':'Export Results to Excel (.csv)'}
     </button>
-  </div>`;
+  </div>`}`;
 }
 
 function screenItem(){
@@ -1806,6 +2445,7 @@ function screenItem(){
     <span class="stag">${m.code}</span>
     <h2 class="stitle">${stepName(step)}</h2>
     <p class="ssub">${typeCtx[step]||''} · ${done}/${qs.length} ${t('answered')}</p>
+    ${isDoc?docRefBox(id):''}
     ${qs.map(q=>qcard(q,id,step,ans)).join('')}
   </div>
   <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
@@ -1972,7 +2612,7 @@ const CAP_ACTIONS={
     major:['Define formal labor performance indicators, objectives, and targets with clear timelines and named owners','Implement a progress tracking dashboard or report covering all labor objectives','Schedule and document annual senior management labor performance review meetings'],
     minor:['Improve meeting records to include labor performance agenda items and decisions made','Develop a labor performance scorecard for regular reporting to senior leadership']},
   am42:{priority:['Conduct an immediate comprehensive self-audit covering all RBA Code elements, all records, and worker interviews'],
-    major:['Implement a structured periodic self-audit process aligned with the on-site audit scope (minimum annually)','Ensure self-audit findings are reviewed by senior management and tracked to resolution','Generate formal corrective action plans for all findings identified in self-audit reports'],
+    major:['Implement a structured periodic self-audit process aligned with on-site audit scope (minimum annually)','Ensure self-audit findings are reviewed by senior management and tracked to resolution','Generate formal corrective action plans for all findings identified in self-audit reports'],
     minor:['Train internal auditors on RBA Code requirements and audit methodology','Establish a self-audit schedule with assigned owner and defined output format']},
 };
 const CAP_EVIDENCE={
@@ -2071,7 +2711,7 @@ function screenResult(id,steps,idx,tot){
 // ─── EXCEL / CSV EXPORT ───────────────────────
 function exportCSV(){
   const BOM='﻿';
-  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details'];
+  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details','Notes','Photos'];
 
   const rows=Object.entries(ITEMS).map(([id,meta])=>{
     const grpName=GRPS[meta.grp]||meta.grp;
@@ -2095,6 +2735,21 @@ function exportCSV(){
 
     const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
 
+    // Collect notes
+    const noteEntries=[];
+    ['mgmt','doc','worker'].forEach(step=>{
+      const stepNotes=S.notes[id]&&S.notes[id][step]||{};
+      Object.entries(stepNotes).forEach(([qid,txt])=>{if(txt&&txt.trim())noteEntries.push(`[${qid.toUpperCase()}] ${txt.trim()}`);});
+    });
+    const noteTxt=noteEntries.join(' | ');
+
+    // Collect photo counts
+    let photoCount=0;
+    ['mgmt','doc','worker'].forEach(step=>{
+      const stepPhotos=S.photos[id]&&S.photos[id][step]||{};
+      Object.values(stepPhotos).forEach(arr=>{photoCount+=arr.length;});
+    });
+
     return[
       section,
       meta.code,
@@ -2105,6 +2760,8 @@ function exportCSV(){
       Object.keys(a.worker).length?RL[wr]:'—',
       finds.length.toString(),
       findTxt,
+      noteTxt,
+      photoCount?photoCount.toString():'',
     ];
   });
 
@@ -2140,219 +2797,596 @@ function exportCSV(){
   URL.revokeObjectURL(url);
 }
 
-// ─── CAP SUPPLIER MODE ────────────────────────
+function screenLanding(){
+  const sessions=getSessions().sort((a,b)=>new Date(b.lastUpdated)-new Date(a.lastUpdated));
+  const fmt=iso=>{const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  const rateCol=r=>r===null?'var(--muted)':r===100?'var(--C)':r>=80?'var(--m)':r>=60?'var(--M)':'var(--P)';
 
-// URL-safe base64 helpers (avoids + / = breaking query params)
-function b64enc(str){return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
-function b64dec(str){const s=str.replace(/-/g,'+').replace(/_/g,'/');const pad=s.length%4?'='.repeat(4-s.length%4):'';return decodeURIComponent(escape(atob(s+pad)));}
+  const sessionCards=sessions.length?`
+    <div style="width:100%;padding:0 24px;margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Recent Audits</div>
+      ${sessions.map(s=>`
+        <div class="sess-card" onclick="loadSession('${s.code}')">
+          <div class="sess-info">
+            <div class="sess-code">${s.code}</div>
+            <div class="sess-meta">${s.country||'—'} · ${s.done||0}/${s.total||0} items · ${fmt(s.lastUpdated)}</div>
+          </div>
+          ${s.rate!==null?`<span style="font-size:13px;font-weight:700;color:${rateCol(s.rate)};flex-shrink:0">${s.rate}%</span>`:''}
+          <button class="sess-resume" onclick="event.stopPropagation();loadSession('${s.code}')">Resume</button>
+          <button class="sess-del" onclick="deleteSession('${s.code}',event)">✕</button>
+        </div>`).join('')}
+    </div>`:''
 
-function getAllFindings(){
-  const out=[];
-  Object.keys(ITEMS).forEach(id=>{
-    if(!S.done[id])return;
-    const r=calcItem(id);
-    if(r==='conformance')return;
-    const a=S.ans[id];
-    const finds=[
-      ...getFindings(id+'_mgmt',a.mgmt),
-      ...getFindings(id+'_doc',a.doc),
-      ...getFindings(id+'_worker',a.worker),
-    ];
-    if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')finds.push({text:`Prohibited fees: ${S.fees.workerPct||'?'}% workers, ${S.fees.feeAmtPct||'?'}% of monthly salary`,sev:fr});}
-    if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')finds.push({text:`Working hours: max ${S.hours31.maxHours||'?'} hrs/week, ${S.hours31.pctOver||'?'}% of sampled weeks`,sev:hr});}
-    if(id==='a32'&&a.doc['d1']==='no'){const dr=calcDaysR();if(dr!=='conformance')finds.push({text:`Consecutive days: max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr});}
-    const actions=(CAP_ACTIONS[id]||{})[r]||[];
-    out.push({id,code:ITEMS[id].code,title:iTitle(id),rating:r,timeline:CAP_TIMELINE[r]||'',recActions:actions,findings:finds.map(f=>f.text)});
-  });
-  return out;
-}
-
-function generateCAPLink(){
-  const finds=getAllFindings();
-  if(!finds.length){alert(t('capNoFindings'));return;}
-  const payload={facility:S.country||'',date:new Date().toISOString().slice(0,10),lang:S.lang,findings:finds};
-  const enc=b64enc(JSON.stringify(payload));
-  const url=location.href.split('?')[0]+'?cap='+enc;
-  navigator.clipboard.writeText(url).then(()=>{
-    alert((S.lang==='ko'?'링크가 복사되었습니다. 협력사에 전달하세요.':S.lang==='zh'?'链接已复制。请发送给供应商。':'Link copied! Send it to the supplier.'));
-  }).catch(()=>{
-    prompt((S.lang==='ko'?'이 링크를 복사하여 협력사에 전달하세요:':S.lang==='zh'?'请复制此链接并发送给供应商：':'Copy this link and send to the supplier:'),url);
-  });
-}
-
-// CAP status state (in-memory for supplier session)
-let capStatus={};
-let capSubmitted=false;
-
-function screenCAPSupplier(payload,respData){
-  const lang=payload.lang||'en';
-  const oldLang=S.lang;S.lang=lang;
-  const tr=k=>T[lang]&&T[lang][k]?T[lang][k]:T.en[k]||k;
-  const RL2={priority:lang==='ko'?'우선':lang==='zh'?'优先':'Priority',major:lang==='ko'?'중대':lang==='zh'?'重大':'Major',minor:lang==='ko'?'경미':lang==='zh'?'轻微':'Minor'};
-  const RK2={priority:'P',major:'M',minor:'m'};
-  const isReview=!!respData;
-  const submitted=capSubmitted&&!isReview;
-
-  const findingCard=f=>{
-    const k=RK2[f.rating]||'M';
-    const resp=respData?(respData.caps||{})[f.id]:null;
-    const st=capStatus[f.id]||'planned';
-    return`<div class="cap-finding ${k}">
-      <div class="cap-finding-hdr">
-        <div class="cap-finding-title">${f.code} · ${f.title}</div>
-        <span class="icbadge ${k}" style="flex-shrink:0;font-size:10px">${RL2[f.rating]||f.rating}</span>
+  return`<div class="landing">
+    <div class="land-inner">
+      <div class="land-badge"><div class="land-dot-pulse"></div>On-Site Audit</div>
+      <div class="land-title">Supplier<br><em>Audit</em></div>
+      <div class="land-version">Validated Assessment Program · Rev 8.0.1</div>
+      <div class="land-sub" style="margin-bottom:${sessions.length?28:40}px">Labor · Ethics · Supply Chain</div>
+      ${sessionCards}
+      <div style="width:100%;padding:0 24px">
+        <button class="land-start" style="width:100%;box-sizing:border-box" onclick="S=initState();S.screen='setup';render()">
+          ${sessions.length?'+ New Audit':'START  →'}
+        </button>
       </div>
-      <div class="cap-finding-body">
-        ${f.findings.length?`<div class="cap-section" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px">${tr('capFindingsLbl')}</div>${f.findings.map(x=>`<div class="cap-fl">${x}</div>`).join('')}`:''}
-        ${f.recActions.length?`<div class="cap-section" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:8px 0 4px">${tr('capRecLbl')}</div>${f.recActions.map(x=>`<div class="cap-fl" style="color:var(--muted)">${x}</div>`).join('')}`:''}
-        <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
-        ${isReview||submitted?`
-          <div class="cap-resp-box">
-            <div class="cap-resp-lbl">${tr('capRootCause')}</div>
-            <div class="cap-resp-val ${(resp&&resp.rootCause)||submitted?'':'empty'}">${(resp&&resp.rootCause)||(submitted?(document.querySelector('#rc_'+f.id)||{}).value||'—':'—')||'—'}</div>
-          </div>
-          <div class="cap-resp-box" style="margin-top:6px">
-            <div class="cap-resp-lbl">${tr('capAction')}</div>
-            <div class="cap-resp-val ${(resp&&resp.action)||submitted?'':'empty'}">${(resp&&resp.action)||(submitted?(document.querySelector('#ac_'+f.id)||{}).value||'—':'—')||'—'}</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
-            <div class="cap-resp-box"><div class="cap-resp-lbl">${tr('capOwner')}</div><div class="cap-resp-val">${(resp&&resp.owner)||'—'}</div></div>
-            <div class="cap-resp-box"><div class="cap-resp-lbl">${tr('capDueDate')}</div><div class="cap-resp-val">${(resp&&resp.dueDate)||'—'}</div></div>
-          </div>
-          <div class="cap-resp-box" style="margin-top:6px"><div class="cap-resp-lbl">${tr('capStatus')}</div>
-            <div class="cap-resp-val">${resp?({planned:tr('capStatusPlanned'),inProgress:tr('capStatusInProgress'),done:tr('capStatusDone')}[resp.status]||resp.status):tr('capStatusPlanned')}</div>
-          </div>
-        `:`
-          <span class="cap-input-lbl">${tr('capRootCause')} *</span>
-          <textarea id="rc_${f.id}" class="cap-input" rows="2" placeholder="..."></textarea>
-          <span class="cap-input-lbl">${tr('capAction')} *</span>
-          <textarea id="ac_${f.id}" class="cap-input" rows="3" placeholder="..."></textarea>
-          <div class="cap-row2">
-            <div><span class="cap-input-lbl">${tr('capOwner')}</span><input id="ow_${f.id}" class="cap-input" type="text" placeholder="..."></div>
-            <div><span class="cap-input-lbl">${tr('capDueDate')}</span><input id="dd_${f.id}" class="cap-input" type="date"></div>
-          </div>
-          <span class="cap-input-lbl">${tr('capStatus')}</span>
-          <div class="cap-status-row">
-            ${['planned','inProgress','done'].map(s=>`<button class="cap-st${(capStatus[f.id]||'planned')===s?' sel'+(s==='done'?' done':''):''}" onclick="capStatus['${f.id}']='${s}';refreshCAPStatus()">${{planned:tr('capStatusPlanned'),inProgress:tr('capStatusInProgress'),done:tr('capStatusDone')}[s]}</button>`).join('')}
-          </div>
-        `}
-        </div>
+      ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
+    </div>
+    <div class="land-footer">On-Site Audit Standard · January 2024</div>
+  </div>`;
+}
+
+// ─── SUPPLIER PRE-CHECK ───────────────────────
+let _supChecks={};
+let _supOpenGroups={};  // track which groups are open in supplier view
+let _supVendor='';
+let _supLang='ko';
+let _importData=null;
+
+const SUP_SECTIONS=[
+  {id:'A',label:'A — Labor Standards',ko:'A — 노동기준',groups:['A1','A2','A3','A4','A5','A6','AM']},
+  {id:'D',label:'D — Ethics',ko:'D — 윤리',groups:['D1','D2','D3','D4','D5','D6','DM']},
+  {id:'E',label:'E — Supply Chain',ko:'E — 공급망',groups:['E1','E2','E3','E4']},
+];
+const SUP_GRP_NAMES={
+  A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',
+  A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',
+  D1:'Business Integrity',D2:'Disclosure',D3:'Intellectual Property',D4:'Fair Business',
+  D5:'Identity Protection',D6:'Privacy',DM:'Ethics Mgmt System',
+  E1:'Company Commitment',E2:'Materials Restrictions',E3:'Responsible Minerals',E4:'Supplier Responsibility'
+};
+const SUP_GRP_NAMES_KO={
+  A1:'강제 노동',A2:'연소 근로자',A3:'근무 시간',A4:'임금 및 복리후생',
+  A5:'비차별',A6:'결사의 자유',AM:'노동 관리 시스템',
+  D1:'비즈니스 무결성',D2:'정보 공개',D3:'지식재산권',D4:'공정 거래',
+  D5:'신원 보호',D6:'개인정보 보호',DM:'윤리 관리 시스템',
+  E1:'기업 책임',E2:'물질 제한',E3:'책임 광물 조달',E4:'공급업체 책임'
+};
+
+function supKey(grp,idx){return grp+'_'+idx;}
+
+function setSupCheck(grp,idx,val){
+  const k=supKey(grp,idx);
+  _supChecks[k]=_supChecks[k]===val?null:val;
+  // partial re-render: only update the group body, not the whole screen
+  _renderSupGroup(grp);
+  _updateSupHeader(grp);
+  _updateSupProgress();
+}
+
+function _renderSupGroup(grp){
+  const el=document.getElementById('supbody_'+grp);
+  if(!el)return;
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const docs=dl[grp]||[];
+  el.innerHTML=docs.map((d,i)=>{
+    const k=supKey(grp,i),v=_supChecks[k]||null;
+    return`<div class="sup-doc-row">
+      <div class="sup-doc-txt">${d}</div>
+      <div class="sup-tog">
+        <button class="sup-btn${v==='y'?' sy':''}" onclick="setSupCheck('${grp}',${i},'y')">✓</button>
+        <button class="sup-btn${v==='n'?' sn':''}" onclick="setSupCheck('${grp}',${i},'n')">✗</button>
+        <button class="sup-btn${v==='na'?' sna':''}" onclick="setSupCheck('${grp}',${i},'na')">N/A</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _updateSupHeader(grp){
+  const el=document.getElementById('supcount_'+grp);
+  if(!el)return;
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const docs=dl[grp]||[];
+  const cnt=docs.filter((_,i)=>_supChecks[supKey(grp,i)]==='y'||_supChecks[supKey(grp,i)]==='na').length;
+  el.textContent=cnt+'/'+docs.length;
+}
+
+function _updateSupProgress(){
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const allDocs=SUP_SECTIONS.flatMap(s=>s.groups.flatMap(g=>(dl[g]||[]).map((_,i)=>supKey(g,i))));
+  const checked=allDocs.filter(k=>_supChecks[k]==='y'||_supChecks[k]==='na').length;
+  const pct=allDocs.length?Math.round(checked/allDocs.length*100):0;
+  const bar=document.getElementById('supProgBar');
+  const lbl=document.getElementById('supProgLbl');
+  const btn=document.getElementById('supSubmitBtn');
+  if(bar)bar.style.width=pct+'%';
+  if(lbl)lbl.textContent=checked+' / '+allDocs.length+' '+(ko?'확인':'checked')+' ('+pct+'%)';
+  if(btn){btn.textContent=(ko?`완료 & 결과 코드 생성 (${pct}%)`:`Submit & Generate Result (${pct}%)`);
+    btn.style.background=pct>=50?'var(--blue)':'var(--muted)';}
+}
+
+function toggleSupGrp(grp){
+  _supOpenGroups[grp]=!_supOpenGroups[grp];
+  const body=document.getElementById('supbody_'+grp);
+  const chev=document.getElementById('supchev_'+grp);
+  if(body)body.style.display=_supOpenGroups[grp]?'block':'none';
+  if(chev)chev.style.transform=_supOpenGroups[grp]?'rotate(180deg)':'';
+}
+
+function getSupBase(){return window.location.origin+window.location.pathname;}
+
+function genSupplierURL(){
+  return getSupBase()+'?sup='+encodeURIComponent(S.vendorCode)+'&lang='+S.lang;
+}
+
+function copyText(txt,btn){
+  navigator.clipboard.writeText(txt).then(()=>{
+    const orig=btn.textContent;btn.textContent='✓ Copied!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  }).catch(()=>{
+    prompt('Copy this link:',txt);
+  });
+}
+
+function submitSupplier(){
+  const resultData={v:_supVendor,lang:_supLang,ts:new Date().toISOString(),checks:_supChecks};
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(resultData))));
+  const url=getSupBase()+'?supresult='+encodeURIComponent(encoded);
+  _supResultURL=url;
+  render();
+}
+
+let _supResultURL=null;
+
+function importSupplierResult(){
+  if(!_importData)return;
+  S.supplierChecks=_importData.checks||{};
+  S.screen='home';
+  render();window.scrollTo(0,0);
+  history.replaceState(null,'',window.location.pathname);
+}
+
+function screenSupGen(){
+  const ko=S.lang==='ko';
+  const url=genSupplierURL();
+  return`${nav(ko?'사전점검 요청':'Supplier Pre-Check','goHome()')}
+  <div class="content">
+    <span class="stag" style="background:var(--M)">📤 ${ko?'공유':'Share'}</span>
+    <h2 class="stitle">${ko?'협력사 사전점검 링크':'Supplier Pre-Check Link'}</h2>
+    <p class="ssub" style="margin-bottom:20px">${ko?'아래 링크를 협력사에 전달하세요. 협력사가 서류 준비 현황을 체크하면 결과를 감사에 반영할 수 있습니다.':'Share this link with the supplier. They can pre-check their document readiness before your visit.'}</p>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${ko?'협력사 링크':'Supplier Link'} — ${S.vendorCode}</div>
+    <div class="link-box">${url}</div>
+    <button id="copyBtn" onclick="copyText('${url}',this)" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:20px">
+      📋 ${ko?'링크 복사':'Copy Link'}
+    </button>
+    ${Object.keys(S.supplierChecks||{}).length?`
+    <div style="background:#f0faf3;border:1.5px solid var(--C);border-radius:var(--r-lg);padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--C);margin-bottom:8px">✅ ${ko?'사전점검 결과 반영됨':'Pre-Check Data Imported'}</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.7">
+        ${ko?'반영 위치:':'Where to see it:'}<br>
+        <strong>${ko?'각 점검 항목 → Document Review 탭':'Each audit item → Document Review step'}</strong><br>
+        <span style="font-size:12px;color:var(--muted)">${ko?'서류 목록 옆에 ✓ 준비됨 / ✗ 미준비 배지가 표시됩니다.':'Each required document shows a ✓ Ready or ✗ Not Ready badge.'}</span>
+      </div>
+    </div>`:''}
+    <div style="background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-lg);padding:14px;font-size:13px;color:var(--ink);line-height:1.6">
+      <strong>${ko?'사용 방법:':'How it works:'}</strong><br>
+      ${ko?'① 위 링크를 협력사에 카카오톡/이메일로 전달<br>② 협력사가 서류 준비 현황 체크 후 결과 링크 생성<br>③ 결과 링크를 감사원에게 전달<br>④ 감사원이 링크를 열어 "감사에 반영" 클릭<br>⑤ 각 항목 Document Review에서 준비 현황 확인':'① Send the link to supplier via email/messenger<br>② Supplier checks document readiness & generates result link<br>③ Supplier sends the result link back to auditor<br>④ Auditor opens link and clicks "Import to Audit"<br>⑤ Check badges appear in each item\'s Document Review step'}
+    </div>
+  </div>`;
+}
+
+function screenSupplier(){
+  const ko=_supLang==='ko';
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const grpNames=ko?SUP_GRP_NAMES_KO:SUP_GRP_NAMES;
+  if(_supResultURL){
+    return`<div style="min-height:100vh;background:var(--parch);display:flex;flex-direction:column">
+      <div style="background:var(--dark);color:#fff;padding:16px;font-size:16px;font-weight:700">On-Site Audit — ${ko?'제출 완료':'Submitted'}</div>
+      <div style="padding:24px 16px;flex:1">
+        <div style="font-size:40px;text-align:center;margin-bottom:16px">✅</div>
+        <h2 style="font-size:20px;font-weight:700;text-align:center;margin-bottom:8px">${ko?'체크 완료!':'All Done!'}</h2>
+        <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px">${ko?'아래 링크를 감사원에게 전달해주세요.':'Send the link below to the auditor.'}</p>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${ko?'결과 링크':'Result Link'}</div>
+        <div class="link-box">${_supResultURL}</div>
+        <button onclick="copyText('${_supResultURL}',this)" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">
+          📋 ${ko?'링크 복사':'Copy Link'}
+        </button>
+      </div>
+    </div>`;
+  }
+
+  const allDocs=SUP_SECTIONS.flatMap(s=>s.groups.flatMap(g=>(dl[g]||[]).map((_,i)=>supKey(g,i))));
+  const checked=allDocs.filter(k=>_supChecks[k]==='y'||_supChecks[k]==='na').length;
+  const pct=allDocs.length?Math.round(checked/allDocs.length*100):0;
+
+  // Init all groups open on first render
+  const allGrps=SUP_SECTIONS.flatMap(s=>s.groups);
+  if(!Object.keys(_supOpenGroups).length) allGrps.forEach(g=>{_supOpenGroups[g]=true;});
+
+  const grpBlock=g=>{
+    const docs=dl[g];if(!docs||!docs.length)return'';
+    const grpChecked=docs.filter((_,i)=>_supChecks[supKey(g,i)]==='y'||_supChecks[supKey(g,i)]==='na').length;
+    const open=_supOpenGroups[g];
+    return`<div class="sup-grp">
+      <div style="padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent;font-size:13px;font-weight:700"
+        onclick="toggleSupGrp('${g}')">
+        <span><span style="color:var(--blue);margin-right:5px">${g}</span>${grpNames[g]||g}
+          <span id="supcount_${g}" class="sup-grp-prog">${grpChecked}/${docs.length}</span>
+        </span>
+        <span id="supchev_${g}" style="font-size:10px;color:var(--muted);transition:transform .2s;${open?'transform:rotate(180deg)':''}">▼</span>
+      </div>
+      <div id="supbody_${g}" class="sup-grp-body" style="display:${open?'block':'none'}">
+        ${docs.map((d,i)=>{
+          const k=supKey(g,i),v=_supChecks[k]||null;
+          return`<div class="sup-doc-row">
+            <div class="sup-doc-txt">${d}</div>
+            <div class="sup-tog">
+              <button class="sup-btn${v==='y'?' sy':''}" onclick="setSupCheck('${g}',${i},'y')">✓</button>
+              <button class="sup-btn${v==='n'?' sn':''}" onclick="setSupCheck('${g}',${i},'n')">✗</button>
+              <button class="sup-btn${v==='na'?' sna':''}" onclick="setSupCheck('${g}',${i},'na')">N/A</button>
+            </div>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   };
 
-  const bannerClass=isReview?'cap-review-banner':'cap-mode-banner';
-  const bannerTitle=isReview?tr('capReviewTitle'):tr('capSupplierTitle');
-  const bannerSub=isReview?tr('capReviewSub')+' — '+(respData.submittedBy||''):tr('capSupplierSub');
-
-  const submitSection=isReview?'':`
-    ${submitted?`
-      <div class="cap-submitted">
-        <div class="cap-submitted-title">✓ ${tr('capSubmittedTitle')}</div>
-        <div class="cap-submitted-sub">${tr('capSubmittedSub')}</div>
-        <button class="cap-share-btn" onclick="copyCAPResponseLink()">${tr('capCopyLink')}</button>
+  return`<div style="min-height:100vh;background:var(--parch);display:flex;flex-direction:column">
+    <div class="sup-hero">
+      <div class="sup-hero-badge">📋 ${ko?'사전 서류 체크':'Pre-Check'}</div>
+      <div class="sup-hero-title">${_supVendor}</div>
+      <div class="sup-hero-sub">${ko?'필요 서류 준비 현황을 체크해주세요':'Check the readiness of required documents'}</div>
+      <div style="margin-top:12px;background:rgba(255,255,255,.1);height:4px;border-radius:2px;overflow:hidden">
+        <div id="supProgBar" style="height:100%;background:var(--C);border-radius:2px;width:${pct}%;transition:width .3s"></div>
       </div>
-    `:`
-      <div style="padding:0 16px 8px">
-        <span class="cap-input-lbl">${tr('capByLbl')}</span>
-        <input id="cap_by" class="cap-input" type="text" placeholder="...">
-      </div>
-      <div style="padding:0 16px 16px">
-        <button class="bp" onclick="submitCAPResponse('${b64enc(JSON.stringify(payload))}')">${tr('capSubmit')}</button>
-      </div>
-    `}
-  `;
-
-  S.lang=oldLang;
-  return`<div class="${bannerClass}">
-    <div class="cap-mode-title">${bannerTitle}</div>
-    <div class="cap-mode-sub">${bannerSub}</div>
-    ${payload.facility?`<div class="cap-mode-meta">📍 ${payload.facility} · ${payload.date||''}</div>`:''}
-  </div>
-  <div class="content" style="padding-top:14px">
-    ${payload.findings.map(findingCard).join('')}
-  </div>
-  ${submitSection}`;
+      <div id="supProgLbl" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:5px">${checked} / ${allDocs.length} ${ko?'확인':'checked'} (${pct}%)</div>
+    </div>
+    <div style="padding:14px 16px;flex:1">
+      ${SUP_SECTIONS.map(sec=>`
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 7px">${ko?sec.ko:sec.label}</div>
+        ${sec.groups.map(grpBlock).join('')}`).join('')}
+      <div style="height:90px"></div>
+    </div>
+    <div style="position:sticky;bottom:0;padding:12px 16px;background:var(--canvas);border-top:1px solid var(--line)">
+      <button id="supSubmitBtn" onclick="submitSupplier()" style="width:100%;padding:14px;background:${pct>=50?'var(--blue)':'var(--muted)'};color:#fff;border:none;border-radius:var(--pill);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">
+        ${ko?`완료 & 결과 코드 생성 (${pct}%)`:`Submit & Generate Result (${pct}%)`}
+      </button>
+    </div>
+  </div>`;
 }
 
-function refreshCAPStatus(){
-  // Re-render just the status buttons without losing input values
-  const app=document.getElementById('app');
-  // Preserve textarea/input values before re-render
-  const vals={};
-  app.querySelectorAll('[id^="rc_"],[id^="ac_"],[id^="ow_"],[id^="dd_"],[id="cap_by"]').forEach(el=>{vals[el.id]=el.value;});
-  const params=new URLSearchParams(location.search);
-  const capEnc=params.get('cap');
-  if(!capEnc)return;
+function screenSupImport(){
+  const ko=S.lang==='ko';
+  if(!_importData)return`${nav('Import','goHome()')}`;
+  const dl=ko?DOC_LIST_KO:DOC_LIST;
+  const grpNames=ko?SUP_GRP_NAMES_KO:SUP_GRP_NAMES;
+  const checks=_importData.checks||{};
+  const ts=_importData.ts?new Date(_importData.ts).toLocaleString():'—';
+
+  const allKeys=Object.keys(checks);
+  const ready=allKeys.filter(k=>checks[k]==='y').length;
+  const notReady=allKeys.filter(k=>checks[k]==='n').length;
+  const na=allKeys.filter(k=>checks[k]==='na').length;
+
+  const grpBlock=g=>{
+    const docs=dl[g];if(!docs||!docs.length)return'';
+    const hasData=docs.some((_,i)=>checks[supKey(g,i)]);
+    if(!hasData)return'';
+    return`<details class="sup-grp">
+      <summary><span><span style="color:var(--blue);margin-right:5px">${g}</span>${grpNames[g]||g}</span><span style="font-size:10px;color:var(--muted)">▼</span></summary>
+      <div class="sup-grp-body">
+        ${docs.map((d,i)=>{
+          const v=checks[supKey(g,i)];if(!v)return'';
+          return`<div class="sup-doc-row">
+            <div class="sup-doc-txt">${d}</div>
+            <span class="sup-check-badge ${v}">${v==='y'?(ko?'준비됨':'Ready'):v==='n'?(ko?'미준비':'Not Ready'):'N/A'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </details>`;
+  };
+
+  return`${nav(ko?'사전점검 결과 가져오기':'Import Pre-Check','S.screen=\'home\';render();history.replaceState(null,\'\',window.location.pathname)')}
+  <div class="content">
+    <span class="stag" style="background:var(--C)">📥 ${ko?'가져오기':'Import'}</span>
+    <h2 class="stitle">${ko?'협력사 사전점검 결과':'Supplier Pre-Check Result'}</h2>
+    <p class="ssub">${_importData.v} · ${ts}</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="flex:1;background:#f0faf3;border:1.5px solid var(--C);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--C)">${ready}</div>
+        <div style="font-size:11px;color:var(--muted)">${ko?'준비됨':'Ready'}</div>
+      </div>
+      <div style="flex:1;background:#fff5f4;border:1.5px solid var(--P);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--P)">${notReady}</div>
+        <div style="font-size:11px;color:var(--muted)">${ko?'미준비':'Not Ready'}</div>
+      </div>
+      <div style="flex:1;background:var(--parch);border:1.5px solid var(--line);border-radius:var(--r-md);padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--muted)">${na}</div>
+        <div style="font-size:11px;color:var(--muted)">N/A</div>
+      </div>
+    </div>
+    ${SUP_SECTIONS.map(sec=>sec.groups.map(grpBlock).join('')).join('')}
+  </div>
+  <div class="bot">
+    <button class="bs" onclick="S.screen='home';render();history.replaceState(null,'',window.location.pathname)">${ko?'취소':'Cancel'}</button>
+    <button class="bp" onclick="importSupplierResult()">${ko?'감사에 반영':'Import to Audit'}</button>
+  </div>`;
+}
+
+// ─── STORAGE ──────────────────────────────────
+function getSessions(){
+  try{return JSON.parse(localStorage.getItem('vap_sessions'))||[];}catch{return[];}
+}
+
+function saveToStorage(){
+  if(!S.vendorCode)return;
   try{
-    const payload=JSON.parse(b64dec(capEnc));
-    app.innerHTML=screenCAPSupplier(payload,null);
-    Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
-  }catch(e){}
+    localStorage.setItem('vap_'+S.vendorCode,JSON.stringify(S));
+  }catch(e){
+    if(e.name==='QuotaExceededError'){
+      // Retry without photos
+      try{localStorage.setItem('vap_'+S.vendorCode,JSON.stringify({...S,photos:{}}));}catch{}
+    }
+  }
+  // Update index
+  const sessions=getSessions();
+  const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);
+  const rate=allDone.length?Math.round(allDone.filter(k=>calcItem(k)==='conformance').length/allDone.length*100):null;
+  const entry={code:S.vendorCode,country:S.country,lang:S.lang,
+    lastUpdated:new Date().toISOString(),rate,
+    done:allDone.length,total:Object.keys(ITEMS).length};
+  const idx=sessions.findIndex(s=>s.code===S.vendorCode);
+  if(idx>=0)sessions[idx]=entry;else sessions.push(entry);
+  localStorage.setItem('vap_sessions',JSON.stringify(sessions));
 }
 
-function submitCAPResponse(capEnc){
-  let payload;
-  try{payload=JSON.parse(b64dec(capEnc));}catch(e){return;}
-  const lang=payload.lang||'en';
-  const tr=k=>T[lang]&&T[lang][k]?T[lang][k]:T.en[k]||k;
+function loadSession(code){
+  try{
+    const data=localStorage.getItem('vap_'+code);
+    if(!data)return;
+    const loaded=JSON.parse(data);
+    S={...initState(),...loaded,screen:'home'};
+    render();window.scrollTo(0,0);
+  }catch(e){alert('Load failed: '+e.message);}
+}
 
-  const caps={};
-  payload.findings.forEach(f=>{
-    caps[f.id]={
-      rootCause:(document.getElementById('rc_'+f.id)||{}).value||'',
-      action:(document.getElementById('ac_'+f.id)||{}).value||'',
-      owner:(document.getElementById('ow_'+f.id)||{}).value||'',
-      dueDate:(document.getElementById('dd_'+f.id)||{}).value||'',
-      status:capStatus[f.id]||'planned',
+function deleteSession(code,ev){
+  if(ev)ev.stopPropagation();
+  if(!confirm(`Delete audit "${code}"?`))return;
+  localStorage.removeItem('vap_'+code);
+  const s=getSessions().filter(x=>x.code!==code);
+  localStorage.setItem('vap_sessions',JSON.stringify(s));
+  render();
+}
+
+function startAudit(){
+  const vc=S.vendorCode.trim();
+  if(!vc){alert(S.lang==='ko'?'Vendor Code를 입력해주세요.':'Please enter a Vendor Code.');return;}
+  S.vendorCode=vc;
+  S.screen='home';
+  render();window.scrollTo(0,0);
+}
+
+// ─── CAP ──────────────────────────────────────
+function setCAPField(id,field,val,rerender){
+  if(!S.cap[id])S.cap[id]={cause:'',action:'',owner:'',due:'',status:'open'};
+  S.cap[id][field]=val;
+  if(rerender)render();
+}
+
+function exportCAP(){
+  const ko=S.lang==='ko';
+  const BOM='﻿';
+  const hdr=ko
+    ?['구분','코드','항목','심각도','위반 내용','근본 원인','시정 조치','담당자','목표 완료일','상태']
+    :['Section','Code','Title','Severity','Findings','Root Cause','Corrective Action','Responsible','Target Date','Status'];
+  const violItems=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');
+  violItems.sort((a,b)=>LVL.indexOf(calcItem(b))-LVL.indexOf(calcItem(a)));
+  const statusLbl=s=>ko?{open:'미완료',inprogress:'진행 중',closed:'완료'}[s||'open']:{open:'Open',inprogress:'In Progress',closed:'Closed'}[s||'open'];
+  const rows=violItems.map(id=>{
+    const m=ITEMS[id],r=calcItem(id),c=S.cap[id]||{},a=S.ans[id];
+    const finds=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+    return[`${m.grp} — ${GRPS[m.grp]||m.grp}`,m.code,iTitle(id),RL[r],
+      finds.map(f=>f.text).join('; '),c.cause||'',c.action||'',c.owner||'',c.due||'',statusLbl(c.status)];
+  });
+  const csv=BOM+[hdr,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a2=document.createElement('a');a2.href=url;a2.download=`CAP_${new Date().toISOString().slice(0,10)}.csv`;a2.click();URL.revokeObjectURL(url);
+}
+
+function screenCAP(){
+  const ko=S.lang==='ko';
+  const violItems=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');
+  violItems.sort((a,b)=>LVL.indexOf(calcItem(b))-LVL.indexOf(calcItem(a)));
+
+  if(!violItems.length)return`${nav(ko?'시정조치계획 (CAP)':'Corrective Action Plan','goHome()')}
+    <div class="cap-empty">
+      <div class="cap-empty-icon">✅</div>
+      <div class="cap-empty-title">${ko?'위반 사항 없음':'No Findings'}</div>
+      <div class="cap-empty-sub">${ko?'완료된 항목에 위반이 없습니다.':'No violations found in completed items.'}</div>
+    </div>`;
+
+  const total=violItems.length;
+  const filled=violItems.filter(id=>{const c=S.cap[id];return c&&(c.cause||c.action);}).length;
+  const closed=violItems.filter(id=>S.cap[id]&&S.cap[id].status==='closed').length;
+  const pct=Math.round(closed/total*100);
+
+  const capCard=id=>{
+    const m=ITEMS[id],r=calcItem(id),k=RK[r];
+    const c=S.cap[id]||{};
+    const open=!!S.capOpen[id];
+    const a=S.ans[id];
+    const finds=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+    const hasCap=c.cause||c.action||c.owner||c.due;
+    const statusLabels=ko?['미완료','진행 중','완료']:['Open','In Progress','Closed'];
+    const statusKeys=['open','inprogress','closed'];
+    const statusCls=['s-open','s-prog','s-done'];
+    return`<div class="cap-item sv-${k}">
+      <div class="cap-item-hdr" onclick="S.capOpen['${id}']=!S.capOpen['${id}'];render()">
+        <span class="icbadge ${k}" style="font-size:10px;padding:3px 8px;flex-shrink:0">${RL[r]}</span>
+        <div class="cap-item-info">
+          <div class="cap-item-code">${m.code}</div>
+          <div class="cap-item-title">${iTitle(id)}</div>
+        </div>
+        ${hasCap?`<div class="cap-filled-dot"></div>`:''}
+        <span class="cap-item-chev">${open?'▲':'▼'}</span>
+      </div>
+      ${open?`<div class="cap-form">
+        ${finds.length?`<div class="cap-finds">
+          <div class="cap-finds-lbl">${ko?'위반 내용':'Findings'}</div>
+          ${finds.map(f=>`<div class="cap-find-row">
+            <span class="cap-find-dot" style="background:${RCOL[f.sev]||RCOL.minor}"></span>${f.text}
+          </div>`).join('')}
+        </div>`:''}
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'근본 원인 (Root Cause)':'Root Cause'}</label>
+          <textarea class="cap-textarea" rows="2"
+            placeholder="${ko?'왜 이 위반이 발생했습니까?':'Why did this non-conformance occur?'}"
+            onblur="setCAPField('${id}','cause',this.value)">${c.cause||''}</textarea>
+        </div>
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'시정 조치 (Corrective Action)':'Corrective Action'}</label>
+          <textarea class="cap-textarea" rows="2"
+            placeholder="${ko?'어떤 조치를 취할 것입니까?':'What action will be taken to address this?'}"
+            onblur="setCAPField('${id}','action',this.value)">${c.action||''}</textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="cap-field" style="flex:1">
+            <label class="cap-lbl">${ko?'담당자':'Responsible'}</label>
+            <input class="cap-input" type="text"
+              placeholder="${ko?'이름 / 부서':'Name / Dept'}"
+              value="${c.owner||''}"
+              onblur="setCAPField('${id}','owner',this.value)">
+          </div>
+          <div class="cap-field" style="flex:1">
+            <label class="cap-lbl">${ko?'목표 완료일':'Target Date'}</label>
+            <input class="cap-input" type="date" value="${c.due||''}"
+              onchange="setCAPField('${id}','due',this.value)">
+          </div>
+        </div>
+        <div class="cap-field">
+          <label class="cap-lbl">${ko?'상태':'Status'}</label>
+          <div class="cap-status">
+            ${statusKeys.map((s,i)=>`<button class="cap-sbtn ${statusCls[i]}${(c.status||'open')===s?' sel':''}"
+              onclick="setCAPField('${id}','status','${s}',true)">${statusLabels[i]}</button>`).join('')}
+          </div>
+        </div>
+      </div>`:''}</div>`;
+  };
+
+  return`${nav(ko?'시정조치계획 (CAP)':'Corrective Action Plan','goHome()')}
+  <div class="cap-summary">
+    <div class="cap-summary-top">
+      <div>
+        <div class="cap-summary-title">${ko?`총 ${total}건 위반`:`${total} Finding${total>1?'s':''}`}</div>
+        <div class="cap-summary-sub">${ko?`${filled}건 작성 · ${closed}건 완료 (${pct}%)`:`${filled} filled · ${closed} closed (${pct}%)`}</div>
+      </div>
+      <button onclick="exportCAP()" style="padding:10px 18px;background:var(--blue);color:#fff;border:none;border-radius:var(--pill);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;flex-shrink:0">
+        📥 ${ko?'내보내기':'Export'}
+      </button>
+    </div>
+    <div class="cap-prog-bar"><div class="cap-prog-fill" style="width:${pct}%"></div></div>
+  </div>
+  <div class="content">${violItems.map(capCard).join('')}</div>`;
+}
+
+// ─── NOTE & PHOTO ─────────────────────────────
+let _photoPending=null;
+
+function saveNote(id,type,qid,val){
+  if(!S.notes[id])S.notes[id]={mgmt:{},doc:{},worker:{}};
+  S.notes[id][type][qid]=val;
+  // no re-render — saves silently on blur
+}
+
+function openPhotoInput(id,type,qid){
+  _photoPending={id,type,qid};
+  document.getElementById('photoInput').click();
+}
+
+function handlePhotoInput(e){
+  const f=e.target.files[0];
+  if(!f||!_photoPending)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=900,scale=Math.min(1,maxW/img.width);
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      const compressed=canvas.toDataURL('image/jpeg',0.72);
+      const{id,type,qid}=_photoPending;
+      if(!S.photos[id])S.photos[id]={mgmt:{},doc:{},worker:{}};
+      if(!S.photos[id][type][qid])S.photos[id][type][qid]=[];
+      S.photos[id][type][qid].push(compressed);
+      _photoPending=null;
+      e.target.value='';
+      render();
     };
-  });
-  const by=(document.getElementById('cap_by')||{}).value||'';
-  const resp={submittedBy:by,submittedAt:new Date().toISOString().slice(0,10),caps};
-  const respEnc=b64enc(JSON.stringify(resp));
-
-  // Store response in URL and mark submitted
-  const newURL=location.href.split('?')[0]+'?cap='+capEnc+'&resp='+respEnc;
-  history.replaceState(null,'',newURL);
-  capSubmitted=true;
-  window._capRespEnc=respEnc;
-  window._capPayload=payload;
-
-  document.getElementById('app').innerHTML=screenCAPSupplier(payload,null);
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
 }
 
-function copyCAPResponseLink(){
-  const url=location.href;
-  navigator.clipboard.writeText(url).then(()=>{
-    alert(S.lang==='ko'?'링크가 복사되었습니다!':S.lang==='zh'?'链接已复制！':'Link copied!');
-  }).catch(()=>{
-    prompt('Copy this link:',url);
-  });
+function removePhoto(id,type,qid,idx){
+  S.photos[id][type][qid].splice(idx,1);
+  render();
+}
+
+function viewPhoto(id,type,qid,idx){
+  document.getElementById('photoViewerImg').src=S.photos[id][type][qid][idx];
+  document.getElementById('photoViewer').style.display='flex';
+}
+
+function closePhotoViewer(){
+  document.getElementById('photoViewer').style.display='none';
 }
 
 // ─── MAIN ─────────────────────────────────────
 function render(){
   document.getElementById('app').innerHTML=
+    S.screen==='landing'?screenLanding():
     S.screen==='setup'?screenSetup():
     S.screen==='home'?screenHome():
-    S.screen==='item'?screenItem():'';
+    S.screen==='item'?screenItem():
+    S.screen==='cap'?screenCAP():
+    S.screen==='supgen'?screenSupGen():
+    S.screen==='supplier'?screenSupplier():
+    S.screen==='supimport'?screenSupImport():'';
+  if(S.vendorCode&&!['landing','setup','supplier','supimport'].includes(S.screen))saveToStorage();
 }
 
-// Check URL for CAP mode before first render
-(function initCAPMode(){
-  const params=new URLSearchParams(location.search);
-  const capEnc=params.get('cap');
-  const respEnc=params.get('resp');
-  if(!capEnc)return render();
-  try{
-    const payload=JSON.parse(b64dec(capEnc));
-    let respData=null;
-    if(respEnc){
-      try{respData=JSON.parse(b64dec(respEnc));}catch(e){}
-    }
-    document.getElementById('app').innerHTML=screenCAPSupplier(payload,respData);
-  }catch(e){render();}
+// Detect URL params for supplier flow
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const sup=p.get('sup'),res=p.get('supresult');
+  if(sup){
+    _supVendor=decodeURIComponent(sup);
+    _supLang=p.get('lang')||'ko';
+    S.screen='supplier';
+  } else if(res){
+    try{
+      _importData=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(res)))));
+      S.screen='supimport';
+    }catch(e){console.error('Import parse error',e);}
+  }
 })();
+
+render();
 </script>
 </body>
 </html>
