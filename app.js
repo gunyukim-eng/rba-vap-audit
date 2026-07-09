@@ -1726,6 +1726,7 @@ const initState=()=>({
   nsupOpen:{},
   nsupAI:{},
   nsupItem:null,
+  auditType:null,
 });
 let S=initState();
 
@@ -2311,11 +2312,13 @@ function screenHome(){
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:4px 10px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'#fff':'rgba(255,255,255,.3)'};background:${S.lang===l?'rgba(255,255,255,.2)':'transparent'};color:${S.lang===l?'#fff':'rgba(255,255,255,.5)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
 
-  return`${nav(S.vendorCode?`On-Site Audit · ${S.vendorCode}`:'On-Site Audit','S.screen=\'landing\';render()',t('setupBtn'),'S.screen=\'setup\';render()')}
+  const isNsup=S.auditType==='nsup';
+  const heroTitle=isNsup?(S.lang==='ko'?'신규협력사 점검':'New Supplier Check'):t('laborAudit');
+  return`${nav(S.vendorCode?`On-Site Audit · ${S.vendorCode}`:'On-Site Audit','S.screen=\'pick\';render()',t('setupBtn'),'S.screen=\'setup\';render()')}
   <div class="hhero">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div><div class="htitle">${t('laborAudit')}</div>
-      <div class="hsub">${t('selectItem')}</div>
+      <div><div class="htitle">${heroTitle}</div>
+      <div class="hsub">${isNsup?(S.lang==='ko'?'항목을 눌러 예/아니오로 답하세요':'Tap an item and answer Yes/No'):t('selectItem')}</div>
       ${S.country?`<div class="hcountry">📍 ${S.country}</div>`:''}
       ${langPills}</div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
@@ -2323,16 +2326,15 @@ function screenHome(){
         <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
       </div>
     </div>
-    <div class="hsum">
+    ${isNsup?'':`<div class="hsum">
       ${['A','AM','D','DM','E'].map(g=>{const rt=calcGrpRate(g);const col=rt===null?'rgba(255,255,255,.3)':rt===100?'var(--C)':rt>=80?'var(--m)':rt>=60?'var(--M)':'var(--P)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${rt===null?'—':rt+'%'}</div></div>`;}).join('')}
       ${(()=>{const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);const tot=allDone.length;const ok=allDone.filter(k=>calcItem(k)==='conformance').length;const rt=tot?Math.round(ok/tot*100):null;const col=rt===null?'rgba(255,255,255,.3)':rt===100?'var(--C)':rt>=80?'var(--m)':rt>=60?'var(--M)':'var(--P)';return`<div class="hsc"><div class="hsc-lbl">${t('overall')}</div><div class="hsc-val" style="color:${col}">${rt===null?'—':rt+'%'}</div></div>`;})()}
-    </div>
+    </div>`}
   </div>
-  <div class="hometabs">
+  ${isNsup?'':`<div class="hometabs">
     <button class="hometab${S.homeTab==='audit'?' act':''}" onclick="S.homeTab='audit';render()">${S.lang==='ko'?'점검 항목':'Audit Items'}</button>
     <button class="hometab${S.homeTab==='docs'?' act':''}" onclick="S.homeTab='docs';render()">${S.lang==='ko'?'필요 서류':'Documents'}</button>
-    <button class="hometab${S.homeTab==='nsup'?' act':''}" onclick="S.homeTab='nsup';render()">${S.lang==='ko'?'신규협력사':'New Supplier'}</button>
-  </div>
+  </div>`}
   ${S.homeTab==='nsup'?renderNsup():`
   <div style="padding:10px 16px 0;display:flex;flex-direction:column;gap:8px">
     <button onclick="S.screen='supgen';render()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--M);border-radius:var(--r-lg);color:var(--M);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
@@ -3086,7 +3088,7 @@ function loadSession(code){
     const data=localStorage.getItem('vap_'+code);
     if(!data)return;
     const loaded=JSON.parse(data);
-    S={...initState(),...loaded,screen:'home'};
+    S={...initState(),...loaded,screen:loaded.auditType?'home':'pick'};
     render();window.scrollTo(0,0);
   }catch(e){alert('Load failed: '+e.message);}
 }
@@ -3107,8 +3109,36 @@ function startAudit(){
     vc='AUDIT-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());
   }
   S.vendorCode=vc;
+  S.screen='pick';
+  render();window.scrollTo(0,0);
+}
+// 점검 유형 선택 → 진입
+function openAuditType(type){
+  S.auditType=type;
+  S.homeTab=(type==='nsup')?'nsup':'audit';
   S.screen='home';
   render();window.scrollTo(0,0);
+}
+function screenPick(){
+  const ko=S.lang==='ko';
+  return`${nav(ko?'점검 유형 선택':'Choose Audit Type',"S.screen='setup';render()")}
+  <div class="content">
+    <span class="stag">${ko?'유형 선택':'Select Type'}</span>
+    <h2 class="stitle">${ko?'어떤 점검을 진행할까요?':'Which audit will you run?'}</h2>
+    <p class="ssub">${S.vendorCode?'Vendor · '+S.vendorCode:''}</p>
+    <button class="pick-card" onclick="openAuditType('focus')">
+      <div class="pick-ic">🏭</div>
+      <div class="pick-tx"><div class="pick-t">${ko?'중점관리 협력사 점검':'Key Supplier Audit'}</div>
+        <div class="pick-d">${ko?'노동·윤리·공급망 정식 점검 (A·AM·D·DM·E) · 필요 서류 · CAP':'Full Labor / Ethics / Supply-chain audit · documents · CAP'}</div></div>
+      <div class="pick-ar">›</div>
+    </button>
+    <button class="pick-card" onclick="openAuditType('nsup')">
+      <div class="pick-ic">🆕</div>
+      <div class="pick-tx"><div class="pick-t">${ko?'신규협력사 점검':'New Supplier Check'}</div>
+        <div class="pick-d">${ko?'신규 등록 평가 체크리스트 (19개 항목, 예/아니오)':'New-registration checklist (19 items, Yes/No)'}</div></div>
+      <div class="pick-ar">›</div>
+    </button>
+  </div>`;
 }
 
 // ─── CAP ──────────────────────────────────────
@@ -3293,6 +3323,7 @@ function render(){
   document.getElementById('app').innerHTML=
     S.screen==='landing'?screenLanding():
     S.screen==='setup'?screenSetup():
+    S.screen==='pick'?screenPick():
     S.screen==='home'?screenHome():
     S.screen==='item'?screenItem():
     S.screen==='nsupItem'?screenNsupItem():
@@ -3301,7 +3332,7 @@ function render(){
     S.screen==='supplier'?screenSupplier():
     S.screen==='supimport'?screenSupImport():
     S.screen==='manual'?screenManual():'';
-  if(S.vendorCode&&!['landing','setup','supplier','supimport'].includes(S.screen))saveToStorage();
+  if(S.vendorCode&&S.auditType&&!['landing','setup','pick','supplier','supimport'].includes(S.screen))saveToStorage();
 }
 
 // Detect URL params for supplier flow
