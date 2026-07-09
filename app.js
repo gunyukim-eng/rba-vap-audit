@@ -1920,12 +1920,12 @@ function screenSetup(){
     ${lp}
     <div class="sfield">
       <label class="slbl" style="display:flex;align-items:center;gap:4px">
-        Vendor Code <span style="color:var(--P);font-size:13px">*</span>
+        Vendor Code <span style="color:var(--muted);font-size:12px;font-weight:500">${S.lang==='ko'?'(선택)':'(optional)'}</span>
       </label>
       <input class="sinput" type="text" placeholder="e.g. BMSS, VND-001"
         value="${S.vendorCode}" oninput="S.vendorCode=this.value.trim().toUpperCase()"
         style="${!S.vendorCode?'border-color:var(--line)':'border-color:var(--blue)'}">
-      <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기':'Identifies this audit session — reconnecting with the same code resumes your progress'}</div>
+      <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기. 비워두면 자동으로 코드가 부여됩니다.':'Identifies this audit session — reconnecting with the same code resumes your progress. Leave blank to auto-generate one.'}</div>
     </div>
     <div class="sfield"><label class="slbl">${t('country')}</label>
       <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
@@ -3101,8 +3101,11 @@ function deleteSession(code,ev){
 }
 
 function startAudit(){
-  const vc=S.vendorCode.trim();
-  if(!vc){alert(S.lang==='ko'?'Vendor Code를 입력해주세요.':'Please enter a Vendor Code.');return;}
+  let vc=S.vendorCode.trim();
+  if(!vc){ // 선택 입력 — 비어 있으면 저장·복원용 코드를 자동 부여
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    vc='AUDIT-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());
+  }
   S.vendorCode=vc;
   S.screen='home';
   render();window.scrollTo(0,0);
@@ -3683,8 +3686,8 @@ const MANUAL_SECTIONS=[
    en:{title:'AI Setup (API Key)',desc:'To use AI features, enter your <b>API key</b> in Settings (⚙) and save.',steps:['The key is stored only on this device.','Default model is low-cost Haiku; changeable in settings.']}},
 ];
 const PROCESS_SECTIONS=[
-  {ko:{t:'① 점검 준비 (Setup)',b:'<b>Vendor Code</b>(필수)를 입력합니다 — 이 코드로 세션이 저장·복원됩니다.<br>국가와 현지 법정 기준을 입력하면 자동 등급 산정에 반영됩니다:<ul><li>퇴사 사전통지 기간(개월)</li><li>주당 최대 근로시간</li><li>초과근로 할증률(%)</li><li>월 최저임금</li><li>최저 고용연령</li><li>개인서류 원본 보관 허용 여부</li></ul>입력 후 <b>Start</b>를 누릅니다.'},
-   en:{t:'① Prepare the Audit (Setup)',b:'Enter a <b>Vendor Code</b> (required) — the session is saved/restored by this code.<br>Enter the country and local legal thresholds, which feed the auto-grading:<ul><li>Resignation notice period (months)</li><li>Max weekly working hours</li><li>Overtime premium (%)</li><li>Monthly minimum wage</li><li>Minimum employment age</li><li>Whether original ID retention is permitted</li></ul>Then tap <b>Start</b>.'}},
+  {ko:{t:'① 점검 준비 (Setup)',b:'<b>Vendor Code</b>(선택)를 입력합니다 — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동으로 부여됩니다.<br>국가와 현지 법정 기준을 입력하면 자동 등급 산정에 반영됩니다:<ul><li>퇴사 사전통지 기간(개월)</li><li>주당 최대 근로시간</li><li>초과근로 할증률(%)</li><li>월 최저임금</li><li>최저 고용연령</li><li>개인서류 원본 보관 허용 여부</li></ul>입력 후 <b>Start</b>를 누릅니다.'},
+   en:{t:'① Prepare the Audit (Setup)',b:'Enter a <b>Vendor Code</b> (optional) — the session is saved/restored by this code; leave blank to auto-generate one.<br>Enter the country and local legal thresholds, which feed the auto-grading:<ul><li>Resignation notice period (months)</li><li>Max weekly working hours</li><li>Overtime premium (%)</li><li>Monthly minimum wage</li><li>Minimum employment age</li><li>Whether original ID retention is permitted</li></ul>Then tap <b>Start</b>.'}},
   {ko:{t:'② 홈 화면 구성',b:'홈에는 3개 탭이 있습니다:<ul><li><b>점검 항목</b> — 노동/윤리/공급망 정식 점검(A·AM·D·DM·E)</li><li><b>필요 서류</b> — 그룹별 요구 서류 목록</li><li><b>신규협력사</b> — 신규 등록 평가 체크리스트(19항목)</li></ul>상단 요약바에 그룹별 적합률과 총점이 실시간 표시됩니다.'},
    en:{t:'② Home Layout',b:'Home has three tabs:<ul><li><b>Audit Items</b> — formal Labor/Ethics/Supply-chain checks (A·AM·D·DM·E)</li><li><b>Documents</b> — required documents per group</li><li><b>New Supplier</b> — new-registration checklist (19 items)</li></ul>The summary bar shows per-group conformance and total score in real time.'}},
   {ko:{t:'③ 항목 점검 — 3단계 진행',b:'각 점검 항목은 세 단계로 진행합니다:<ol><li><b>경영진 면담</b> (Management)</li><li><b>기록 검토</b> (Document Review)</li><li><b>근로자 면담</b> (Worker Interview)</li></ol>각 질문에 <b>예 / 아니오 / N/A</b>로 답합니다. 위반에 해당하면 심각도(Priority·Major·Minor)가 자동 반영됩니다. 하단 <b>다음</b>으로 단계를 이동합니다.'},
