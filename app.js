@@ -2264,7 +2264,10 @@ function screenNsupItem(){
 
     ${critOpen?`<div class="nsup-card"><div class="nsup-sc">배점 — 적합 ${it.c} · Minor ${it.mi} · Major ${it.mj} · Priority ${it.pr} · N/A ${it.na}</div><div class="nsup-crit">${esc(it.crit)}</div></div>`:''}
 
-    <button onclick="aiJudgeOpen('${id}')" style="width:100%;margin-bottom:12px;padding:10px;border-radius:var(--pill);border:1.5px dashed var(--blue);background:#f6faff;color:var(--blue);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">${S.lang==='en'?'🤖 AI Auto-Judge — grade from document photos':'🤖 AI 자동판정 — 문서 사진으로 등급 제안'}</button>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button onclick="aiJudgeOpen('${id}')" style="flex:1;padding:10px;border-radius:var(--pill);border:1.5px dashed var(--blue);background:#f6faff;color:var(--blue);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer">${S.lang==='en'?'🤖 AI Auto-Judge':'🤖 AI 자동판정'}</button>
+      <button onclick="aiAskItem('${id}','nsup')" style="flex:1;padding:10px;border-radius:var(--pill);border:1.5px solid var(--line);background:var(--canvas);color:var(--ink);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer">${S.lang==='en'?'🤖 AI Q&A':'🤖 AI 분석·질문'}</button>
+    </div>
 
     ${aiSuggCard(id,it)}
 
@@ -2373,6 +2376,7 @@ function screenItem(){
     <span class="stag">${m.code}</span>
     <h2 class="stitle">${stepName(step)}</h2>
     <p class="ssub">${typeCtx[step]||''} · ${done}/${qs.length} ${t('answered')}</p>
+    <button class="ai-item-btn" onclick="aiAskItem('${id}','major')">🤖 ${S.lang==='en'?'AI analysis & questions':'AI 분석·질문'}</button>
     ${isDoc?docRefBox(id):''}
     ${qs.map(q=>qcard(q,id,step,ans)).join('')}
   </div>
@@ -3370,7 +3374,7 @@ const AI_SYSTEM=`당신은 RBA VAP(Validated Audit Process) 신규협력사 심�
 - 한국어로 간결하고 실무적으로 답변합니다.`;
 
 // in-memory chat state (감사 세션 저장소와 분리)
-const aiS={busy:false,msgs:[],pending:[],judge:null}; // judge: 자동판정 대상 항목 id (null=일반 챗)
+const aiS={busy:false,msgs:[],pending:[],judge:null,ctx:null}; // judge: 자동판정 대상 항목 id · ctx: 현재 항목 맥락
 
 function aiEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function aiFmt(s){return aiEsc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
@@ -3381,15 +3385,36 @@ function aiShowPanel(){
   document.getElementById('aiCfg').classList.add('ai-hidden');
   document.getElementById('aiFoot').classList.remove('ai-hidden');
   const t=document.getElementById('aiTitle');
-  if(t)t.textContent=aiS.judge?`${S.lang==='en'?'AI Auto-Judge':'AI 자동판정'} · ${aiS.judge}`:(S.lang==='en'?'AI Assistant · Docs & Q&A':'AI 도우미 · 문서분석 & 질의');
+  const en=S.lang==='en';
+  t&&(t.textContent=aiS.judge?`${en?'AI Auto-Judge':'AI 자동판정'} · ${aiS.judge}`:aiS.ctxLabel?`${en?'AI · ':'AI · '}${aiS.ctxLabel}`:(en?'AI Assistant · Docs & Q&A':'AI 도우미 · 문서분석 & 질의'));
   const inp=document.getElementById('aiInput');
-  if(inp)inp.placeholder=aiS.judge?'참고사항 (선택)…':'질문을 입력하거나 문서 사진을 첨부하세요…';
+  if(inp)inp.placeholder=aiS.judge?(en?'Note (optional)…':'참고사항 (선택)…'):(en?'Ask a question or attach a photo…':'질문을 입력하거나 문서 사진을 첨부하세요…');
   aiRender();
 }
 function aiOpen(){ // FAB → 일반 챗 모드
-  if(aiS.judge){aiS.judge=null;aiS.msgs=[];aiS.pending=[];}
+  if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.msgs=[];aiS.pending=[];}
   aiShowPanel();
   if(!aiCfg().apiKey&&aiS.msgs.length===0)aiToggleSettings();
+}
+// 각 항목 안에서 AI 분석·질문 (항목 맥락 주입, Haiku로 답변)
+function aiAskItem(id,kind){
+  const en=S.lang==='en';
+  aiS.judge=null;
+  if(kind==='nsup'){
+    const it=nsupItemById(id); if(!it)return;
+    aiS.ctx=`[항목] ${it.id} ${it.title} (${NSUP_GRPT[it.grp]||it.grp}) · 배점 ${it.c}점\n[판정기준]\n${it.crit}`;
+    aiS.ctxLabel=`${it.id} · ${it.title}`;
+  }else{
+    const m=ITEMS[id]; if(!m)return;
+    aiS.ctx=`[항목] ${m.code} ${iTitle(id)} — ${m.desc||''} (${GRPS[m.grp]||m.grp})`;
+    aiS.ctxLabel=`${m.code} · ${iTitle(id)}`;
+  }
+  aiS.msgs=[{role:'assistant',text:en
+    ?`Ask anything about **${aiS.ctxLabel}** — grading criteria, required documents, sample interview questions, or how to judge a situation. You can also attach a document photo.`
+    :`**${aiS.ctxLabel}** 항목에 대해 무엇이든 물어보세요 — 판정기준 해석, 필요 서류, 인터뷰 질문 예시, 상황 판정 방법 등. 문서 사진을 첨부해도 됩니다.`}];
+  aiS.pending=[];
+  aiShowPanel();
+  if(!aiCfg().apiKey)aiToggleSettings();
 }
 function aiClose(){
   document.getElementById('aiScrim').classList.add('ai-hidden');
@@ -3476,7 +3501,7 @@ async function aiSend(){
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-direct-browser-access':'true'
       },
-      body:JSON.stringify({model:cfg.model,max_tokens:4096,system:AI_SYSTEM,messages:apiMsgs})
+      body:JSON.stringify({model:cfg.model,max_tokens:4096,system:AI_SYSTEM+(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:''),messages:apiMsgs})
     });
     const data=await res.json();
     if(!res.ok){
