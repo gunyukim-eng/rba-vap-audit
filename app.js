@@ -2318,7 +2318,10 @@ function screenHome(){
       <div class="hsub">${t('selectItem')}</div>
       ${S.country?`<div class="hcountry">📍 ${S.country}</div>`:''}
       ${langPills}</div>
-      <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+        <button class="home-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 ${S.lang==='ko'?'사용법':'Guide'}</button>
+        <button class="reset-btn" onclick="if(confirm(t('resetConfirm'))){S=initState();render()}">${t('reset')}</button>
+      </div>
     </div>
     <div class="hsum">
       ${['A','AM','D','DM','E'].map(g=>{const rt=calcGrpRate(g);const col=rt===null?'rgba(255,255,255,.3)':rt===100?'var(--C)':rt>=80?'var(--m)':rt>=60?'var(--M)':'var(--P)';return`<div class="hsc"><div class="hsc-lbl">${g}</div><div class="hsc-val" style="color:${col}">${rt===null?'—':rt+'%'}</div></div>`;}).join('')}
@@ -3641,46 +3644,91 @@ function aiJudgeClear(id){
   render();
 }
 
-// ─── 사용자 매뉴얼 (실제 화면 스크린샷 포함) ───
+// ─── 사용자 매뉴얼 (실제 화면 스크린샷 + 한/영, 탭·접기) ───
+const MAN_UI={
+  ko:{title:'📖 사용 설명서',close:'닫기',tabFeat:'기능 안내',tabProc:'점검 진행',
+      intro:'각 기능의 실제 화면과 눌러야 할 버튼(빨간 표시)을 순서대로 안내합니다.',
+      procIntro:'실제 현장 점검을 처음부터 끝까지 진행하는 순서입니다. 각 항목을 눌러 펼치세요.',
+      foot:'문의·개선 요청은 감사 담당자에게 전달해 주세요.'},
+  en:{title:'📖 User Guide',close:'Close',tabFeat:'Features',tabProc:'Audit Process',
+      intro:'Real screens for each feature, with the button to tap highlighted in red.',
+      procIntro:'The full flow of running an on-site audit, start to finish. Tap each item to expand.',
+      foot:'Please send questions or improvement requests to your audit lead.'}
+};
 const MANUAL_SECTIONS=[
-  {n:'01',title:'점검 시작 & 이어하기',img:'manual/save.png',
-   desc:'첫 화면(랜딩)입니다. 처음이면 <b>+ New Audit</b>으로 시작하고, 이전에 하던 점검이 있으면 목록의 카드나 <b>Resume</b>를 눌러 이어서 작업합니다.',
-   steps:['같은 Vendor Code로 다시 열면 진행 내용이 자동 저장·복원됩니다.','점검 내용은 이 기기 브라우저에 저장됩니다.']},
-  {n:'02',title:'협력사 사전점검 요청 (공유) ①',img:'manual/share1.png',
-   desc:'홈 화면에서 <b>📤 협력사 사전점검 요청</b> 버튼을 누릅니다.',
-   steps:['협력사가 방문 전에 필요 서류 준비 현황을 미리 체크할 수 있습니다.']},
-  {n:'03',title:'협력사에 링크 전달 ②',img:'manual/share2.png',
-   desc:'생성된 링크를 <b>📋 링크 복사</b> 버튼으로 복사해 카카오톡·이메일로 협력사에 보냅니다.',
-   steps:['협력사가 서류 현황을 체크하면 결과 링크를 생성합니다.','그 결과 링크를 감사원이 열어 “감사에 반영”을 누르면, 각 항목 Document Review에 ✓/✗ 배지로 표시됩니다.']},
-  {n:'04',title:'점검 결과 Excel(CSV) 내보내기',img:'manual/excel.png',
-   desc:'홈 <b>점검 항목</b> 탭 맨 아래의 <b>📊 점검 결과 Excel 내보내기</b> 버튼을 누르면 CSV 파일이 다운로드됩니다.',
-   steps:['등급·발견사항·메모·사진 수가 포함됩니다.','다운로드된 .csv 파일은 Excel에서 바로 열립니다.']},
-  {n:'05',title:'AI 자동판정 — 문서 사진으로 등급 제안',img:'manual/aibtn.png',
-   desc:'신규협력사 탭의 각 점검 항목에서 <b>🤖 AI 자동판정</b> 버튼을 누른 뒤, 관련 문서 사진(계약서·급여명세서 등)을 첨부합니다.',
-   steps:['AI가 문서를 읽어(OCR) 판정기준과 대조해 등급을 제안합니다.','※ API 키 설정이 필요합니다(08 참고).']},
-  {n:'06',title:'AI 제안 검토 & 적용',img:'manual/aicard.png',
-   desc:'AI 제안 카드에서 근거를 확인하고, <b>제안 적용</b>을 누르면 문항에 자동 반영됩니다.',
-   steps:['적용 후에도 문항을 직접 수정하면 등급이 다시 계산됩니다.','최종 판정은 항상 감사자가 확정합니다. AI는 초안·근거만 제공합니다.']},
-  {n:'07',title:'AI 도우미 열기 (문서분석·질의)',img:'manual/fab.png',
-   desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 열 수 있습니다.',
-   steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
-  {n:'08',title:'AI 연결 설정 (API 키)',img:'manual/aichat.png',
-   desc:'AI 기능을 쓰려면 설정(⚙)에서 <b>API 키</b>를 입력하고 저장해야 합니다.',
-   steps:['API 키는 이 기기에만 저장됩니다.','기본 모델은 저비용 Haiku로 설정되어 있습니다. 설정에서 변경 가능합니다.']},
+  {n:'01',img:'manual/save.png',
+   ko:{title:'점검 시작 & 이어하기',desc:'첫 화면(랜딩)입니다. 처음이면 <b>+ New Audit</b>으로 시작하고, 이전에 하던 점검이 있으면 카드나 <b>Resume</b>를 눌러 이어서 작업합니다.',steps:['같은 Vendor Code로 다시 열면 진행 내용이 자동 저장·복원됩니다.','점검 내용은 이 기기 브라우저에 저장됩니다.']},
+   en:{title:'Start & Resume an Audit',desc:'This is the landing screen. Tap <b>+ New Audit</b> to start, or tap a saved card / <b>Resume</b> to continue.',steps:['Reopening with the same Vendor Code auto-restores your progress.','Data is stored in this device’s browser.']}},
+  {n:'02',img:'manual/share1.png',
+   ko:{title:'협력사 사전점검 요청 (공유) ①',desc:'홈 화면에서 <b>📤 협력사 사전점검 요청</b> 버튼을 누릅니다.',steps:['협력사가 방문 전에 필요 서류 준비 현황을 미리 체크할 수 있습니다.']},
+   en:{title:'Request Supplier Pre-Check (Share) ①',desc:'On the home screen, tap <b>📤 Request Supplier Pre-Check</b>.',steps:['The supplier can check document readiness before your visit.']}},
+  {n:'03',img:'manual/share2.png',
+   ko:{title:'협력사에 링크 전달 ②',desc:'생성된 링크를 <b>📋 링크 복사</b> 버튼으로 복사해 카카오톡·이메일로 협력사에 보냅니다.',steps:['협력사가 서류 현황을 체크하면 결과 링크를 생성합니다.','결과 링크를 감사원이 열어 “감사에 반영”을 누르면 각 항목 Document Review에 ✓/✗ 배지로 표시됩니다.']},
+   en:{title:'Send Link to Supplier ②',desc:'Copy the generated link with <b>📋 Copy Link</b> and send it via messenger/email.',steps:['The supplier checks readiness and generates a result link.','Open that link and tap “Import to Audit” — ✓/✗ badges appear in each item’s Document Review.']}},
+  {n:'04',img:'manual/excel.png',
+   ko:{title:'점검 결과 Excel(CSV) 내보내기',desc:'홈 <b>점검 항목</b> 탭 맨 아래의 <b>📊 점검 결과 Excel 내보내기</b> 버튼을 누르면 CSV 파일이 다운로드됩니다.',steps:['등급·발견사항·메모·사진 수가 포함됩니다.','다운로드된 .csv 파일은 Excel에서 바로 열립니다.']},
+   en:{title:'Export Results to Excel (CSV)',desc:'At the bottom of the <b>Audit Items</b> tab, tap <b>📊 Export Results to Excel</b> to download a CSV.',steps:['Includes ratings, findings, notes and photo counts.','The .csv opens directly in Excel.']}},
+  {n:'05',img:'manual/aibtn.png',
+   ko:{title:'AI 자동판정 — 문서 사진으로 등급 제안',desc:'신규협력사 탭의 각 점검 항목에서 <b>🤖 AI 자동판정</b> 버튼을 누른 뒤 관련 문서 사진(계약서·급여명세서 등)을 첨부합니다.',steps:['AI가 문서를 읽어(OCR) 판정기준과 대조해 등급을 제안합니다.','※ API 키 설정이 필요합니다(08 참고).']},
+   en:{title:'AI Auto-Judge — Grade from Photos',desc:'In a New-Supplier item, tap <b>🤖 AI Auto-Judge</b> and attach relevant document photos (contracts, payslips, etc.).',steps:['AI reads the document (OCR) and suggests a grade against the criteria.','※ Requires an API key (see 08).']}},
+  {n:'06',img:'manual/aicard.png',
+   ko:{title:'AI 제안 검토 & 적용',desc:'AI 제안 카드에서 근거를 확인하고 <b>제안 적용</b>을 누르면 문항에 자동 반영됩니다.',steps:['적용 후에도 문항을 직접 수정하면 등급이 다시 계산됩니다.','최종 판정은 항상 감사자가 확정합니다. AI는 초안·근거만 제공합니다.']},
+   en:{title:'Review & Apply AI Suggestion',desc:'Review the evidence on the suggestion card and tap <b>Apply Suggestion</b> to prefill the questions.',steps:['Editing answers afterward recalculates the grade.','The auditor always makes the final decision; AI provides only a draft and rationale.']}},
+  {n:'07',img:'manual/fab.png',
+   ko:{title:'AI 도우미 열기 (문서분석·질의)',desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 엽니다.',steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
+   en:{title:'Open AI Assistant (Analysis & Q&A)',desc:'Tap the <b>✦</b> button (bottom-right) on any screen to open the AI assistant.',steps:['Attach a photo for OCR analysis, or type a question for RBA VAP guidance.']}},
+  {n:'08',img:'manual/aichat.png',
+   ko:{title:'AI 연결 설정 (API 키)',desc:'AI 기능을 쓰려면 설정(⚙)에서 <b>API 키</b>를 입력하고 저장해야 합니다.',steps:['API 키는 이 기기에만 저장됩니다.','기본 모델은 저비용 Haiku입니다. 설정에서 변경 가능합니다.']},
+   en:{title:'AI Setup (API Key)',desc:'To use AI features, enter your <b>API key</b> in Settings (⚙) and save.',steps:['The key is stored only on this device.','Default model is low-cost Haiku; changeable in settings.']}},
 ];
+const PROCESS_SECTIONS=[
+  {ko:{t:'① 점검 준비 (Setup)',b:'<b>Vendor Code</b>(필수)를 입력합니다 — 이 코드로 세션이 저장·복원됩니다.<br>국가와 현지 법정 기준을 입력하면 자동 등급 산정에 반영됩니다:<ul><li>퇴사 사전통지 기간(개월)</li><li>주당 최대 근로시간</li><li>초과근로 할증률(%)</li><li>월 최저임금</li><li>최저 고용연령</li><li>개인서류 원본 보관 허용 여부</li></ul>입력 후 <b>Start</b>를 누릅니다.'},
+   en:{t:'① Prepare the Audit (Setup)',b:'Enter a <b>Vendor Code</b> (required) — the session is saved/restored by this code.<br>Enter the country and local legal thresholds, which feed the auto-grading:<ul><li>Resignation notice period (months)</li><li>Max weekly working hours</li><li>Overtime premium (%)</li><li>Monthly minimum wage</li><li>Minimum employment age</li><li>Whether original ID retention is permitted</li></ul>Then tap <b>Start</b>.'}},
+  {ko:{t:'② 홈 화면 구성',b:'홈에는 3개 탭이 있습니다:<ul><li><b>점검 항목</b> — 노동/윤리/공급망 정식 점검(A·AM·D·DM·E)</li><li><b>필요 서류</b> — 그룹별 요구 서류 목록</li><li><b>신규협력사</b> — 신규 등록 평가 체크리스트(19항목)</li></ul>상단 요약바에 그룹별 적합률과 총점이 실시간 표시됩니다.'},
+   en:{t:'② Home Layout',b:'Home has three tabs:<ul><li><b>Audit Items</b> — formal Labor/Ethics/Supply-chain checks (A·AM·D·DM·E)</li><li><b>Documents</b> — required documents per group</li><li><b>New Supplier</b> — new-registration checklist (19 items)</li></ul>The summary bar shows per-group conformance and total score in real time.'}},
+  {ko:{t:'③ 항목 점검 — 3단계 진행',b:'각 점검 항목은 세 단계로 진행합니다:<ol><li><b>경영진 면담</b> (Management)</li><li><b>기록 검토</b> (Document Review)</li><li><b>근로자 면담</b> (Worker Interview)</li></ol>각 질문에 <b>예 / 아니오 / N/A</b>로 답합니다. 위반에 해당하면 심각도(Priority·Major·Minor)가 자동 반영됩니다. 하단 <b>다음</b>으로 단계를 이동합니다.'},
+   en:{t:'③ Assess an Item — 3 Steps',b:'Each item is assessed in three steps:<ol><li><b>Management interview</b></li><li><b>Document review</b></li><li><b>Worker interview</b></li></ol>Answer each question <b>Yes / No / N/A</b>. Any violation applies its severity (Priority·Major·Minor) automatically. Use <b>Next</b> at the bottom to move between steps.'}},
+  {ko:{t:'④ 특수 입력 — 수수료·근로시간·휴무',b:'일부 항목은 수치 매트릭스를 입력합니다:<ul><li><b>A1.1</b> 채용 수수료 — 부담 근로자 %, 월급 대비 수수료 %</li><li><b>A3.1</b> 근로시간 — 주당 최대 시간, 초과 주 비율 %</li><li><b>A3.2</b> 연속근로일 — 최대 연속일, 초과 근로자 %</li></ul>입력값에 따라 등급이 자동 계산됩니다.'},
+   en:{t:'④ Special Inputs — Fees, Hours, Rest Days',b:'Some items need a numeric matrix:<ul><li><b>A1.1</b> Recruitment fees — % of workers charged, fee as % of monthly wage</li><li><b>A3.1</b> Working hours — max hrs/week, % of weeks over</li><li><b>A3.2</b> Consecutive days — max consecutive days, % of workers</li></ul>The grade is computed automatically from these values.'}},
+  {ko:{t:'⑤ 자동 등급 산정 규칙',b:'각 항목은 세 단계 응답 중 <b>가장 심각한 위반</b>으로 등급이 정해집니다: Conformance → Minor → Major → Priority 순으로 심각.<br><br>신규협력사 탭 총점: <b>85점↑ PASS / 70~84 CONDITIONAL / 그 외 FAIL</b>. 필수항목 Priority 시 즉시 FAIL, 근로시간(A0301) Priority 시 CONDITIONAL.'},
+   en:{t:'⑤ Auto-Grading Rules',b:'Each item takes the <b>most severe violation</b> among its three steps: Conformance → Minor → Major → Priority.<br><br>New-Supplier total: <b>≥85 PASS / 70–84 CONDITIONAL / else FAIL</b>. A Priority on a mandatory item = immediate FAIL; a Priority on Working Hours (A0301) = CONDITIONAL.'}},
+  {ko:{t:'⑥ 사진·메모 첨부',b:'각 질문에 📷로 증거 사진을, 메모 아이콘으로 코멘트를 남길 수 있습니다. 사진·메모는 세션에 저장되고 Excel 내보내기에도 반영됩니다.'},
+   en:{t:'⑥ Attach Photos & Notes',b:'On each question you can attach evidence photos (📷) and leave notes. Both are saved to the session and included in the Excel export.'}},
+  {ko:{t:'⑦ 시정조치계획(CAP) 작성',b:'위반(Conformance 아님) 항목은 홈의 <b>📋 시정조치계획(CAP)</b>에 자동 수집됩니다. 각 건에 근본원인·시정조치·담당·목표일·상태를 기록하고 <b>내보내기</b>로 저장합니다.'},
+   en:{t:'⑦ Corrective Action Plan (CAP)',b:'Non-conformant items are collected automatically under <b>📋 Corrective Action Plan (CAP)</b> on home. Record root cause, action, owner, target date and status for each, then <b>Export</b>.'}},
+  {ko:{t:'⑧ 마무리 — 공유 & 내보내기',b:'점검이 끝나면 <b>Excel 내보내기</b>로 결과를, <b>CAP 내보내기</b>로 시정계획을 저장합니다. 협력사 사전점검 공유(기능 안내 02~03)는 방문 전에 활용하세요.'},
+   en:{t:'⑧ Wrap Up — Share & Export',b:'When done, save results via <b>Export to Excel</b> and the plan via <b>CAP Export</b>. Use supplier pre-check sharing (Features 02–03) before your visit.'}},
+];
+function manL(){return S.manLang||(S.lang==='ko'?'ko':'en');}
 function screenManual(){
+  const L=manL(),U=MAN_UI[L];
+  if(!S.manTab)S.manTab='feat';
   const back=S.vendorCode?"S.screen='home';render();window.scrollTo(0,0)":"S.screen='landing';render();window.scrollTo(0,0)";
-  return`${nav('📖 사용 설명서',back,'닫기',back)}
-  <div class="content man-wrap">
-    <p class="man-intro">각 기능의 실제 화면과 눌러야 할 버튼(빨간 표시)을 순서대로 안내합니다.</p>
-    ${MANUAL_SECTIONS.map(s=>`
+  const langTog=`<div class="man-lang">
+    <button class="${L==='ko'?'on':''}" onclick="S.manLang='ko';render()">한국어</button>
+    <button class="${L==='en'?'on':''}" onclick="S.manLang='en';render()">EN</button></div>`;
+  const tabs=`<div class="man-tabs">
+    <button class="${S.manTab==='feat'?'on':''}" onclick="S.manTab='feat';render();window.scrollTo(0,0)">${U.tabFeat}</button>
+    <button class="${S.manTab==='proc'?'on':''}" onclick="S.manTab='proc';render();window.scrollTo(0,0)">${U.tabProc}</button></div>`;
+  let bodyHtml;
+  if(S.manTab==='feat'){
+    bodyHtml=`<p class="man-intro">${U.intro}</p>`+MANUAL_SECTIONS.map(s=>{const c=s[L];return`
       <div class="man-sec">
-        <div class="man-h"><span class="man-num">${s.n}</span><span class="man-t">${s.title}</span></div>
-        <p class="man-desc">${s.desc}</p>
-        <img class="man-img" src="${s.img}" alt="${s.title}" loading="lazy" onclick="viewManualImg('${s.img}')">
-        ${s.steps&&s.steps.length?`<ul class="man-steps">${s.steps.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
-      </div>`).join('')}
-    <div class="man-foot">문의·개선 요청은 감사 담당자에게 전달해 주세요.</div>
+        <div class="man-h"><span class="man-num">${s.n}</span><span class="man-t">${c.title}</span></div>
+        <p class="man-desc">${c.desc}</p>
+        <img class="man-img" src="${s.img}" alt="${c.title}" loading="lazy" onclick="viewManualImg('${s.img}')">
+        ${c.steps&&c.steps.length?`<ul class="man-steps">${c.steps.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+      </div>`;}).join('');
+  }else{
+    bodyHtml=`<p class="man-intro">${U.procIntro}</p>`+PROCESS_SECTIONS.map(p=>{const c=p[L];return`
+      <details class="man-acc"><summary>${c.t}</summary><div class="man-acc-b">${c.b}</div></details>`;}).join('');
+  }
+  return`${nav(U.title,back,U.close,back)}
+  <div class="content man-wrap">
+    ${langTog}
+    ${tabs}
+    ${bodyHtml}
+    <div class="man-foot">${U.foot}</div>
   </div>`;
 }
 function viewManualImg(src){
