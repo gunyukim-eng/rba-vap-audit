@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>capture</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput(event)">
+<div id="photoViewer" onclick="closePhotoViewer()">
+  <button id="photoViewerClose" onclick="closePhotoViewer()">×</button>
+  <img id="photoViewerImg" src="" alt="">
+</div>
+<button id="aiFab" onclick="aiOpen()" title="AI 도우미">✦</button>
+<input type="file" id="aiFileInput" accept="image/*" multiple style="display:none" onchange="aiHandleFiles(event)">
+<div id="aiScrim" class="ai-hidden" onclick="aiClose()"></div>
+<div id="aiPanel" class="ai-hidden">
+  <div class="ai-head">
+    <span class="t" id="aiTitle">AI 도우미 · 문서분석 & 질의</span>
+    <button onclick="aiToggleSettings()" title="설정">⚙</button>
+    <button onclick="aiClose()" title="닫기">×</button>
+  </div>
+  <div id="aiBody" class="ai-body"></div>
+  <div id="aiFoot" class="ai-foot">
+    <div id="aiAttach" class="ai-attach"></div>
+    <div class="ai-inrow">
+      <button class="ai-icbtn" onclick="document.getElementById('aiFileInput').click()" title="문서 사진 첨부">📷</button>
+      <textarea id="aiInput" rows="1" placeholder="질문을 입력하거나 문서 사진을 첨부하세요…" oninput="aiAutoGrow(this)" onkeydown="aiKeydown(event)"></textarea>
+      <button id="aiSendBtn" class="ai-icbtn ai-send" onclick="aiSend()" title="보내기">➤</button>
+    </div>
+  </div>
+  <div id="aiCfg" class="ai-cfg ai-hidden"></div>
+</div>
+<script src="../app.js"></script>
+<script>
+// ── 매뉴얼용 스크린샷 캡처 하니스 ──
+(function(){
+  const shot=new URLSearchParams(location.search).get('shot');
+  if(!shot)return;
+  function seed(){
+    S=initState();S.vendorCode='DEMO-01';S.country='베트남';S.lang='ko';
+    ['a11','a12','a21','a22','a31'].forEach(id=>{S.done[id]=true;});
+  }
+  const SHOTS={
+    share1:{setup(){seed();S.screen='home';S.homeTab='audit';},sel:'button[onclick*="supgen"]',cap:'여기를 눌러 협력사 사전점검을 요청합니다'},
+    share2:{setup(){seed();S.screen='supgen';},sel:'#copyBtn',cap:'링크 복사 → 카카오톡/이메일로 협력사에 전달'},
+    excel:{setup(){seed();S.screen='home';S.homeTab='audit';},sel:'button[onclick*="exportCSV"]',cap:'점검 결과를 Excel(CSV) 파일로 내보내기'},
+    aibtn:{setup(){seed();S.homeTab='nsup';S.screen='nsupItem';S.nsupItem='A0103';},sel:'button[onclick*="aiJudgeOpen"]',cap:'문서 사진으로 AI 등급 자동판정'},
+    aicard:{setup(){seed();S.homeTab='nsup';S.screen='nsupItem';S.nsupItem='A0103';S.nsupOpen={ai_A0103:true};S.nsupAI={A0103:{suggested_grade:'minor',confidence:0.82,doc_summary:'베트남어·한국어 병기 근로계약서. 서명·직인 확인됨. 필수기재 중 근로시간 조항 일부 누락.',rationale:'판정기준 Minor ① 적용 — 계약서는 있으나 일부 조건 누락.',answers:[{q_id:'Q1',answer:'yes',evidence:'모국어(베트남어) 병기 확인'},{q_id:'Q2',answer:'no',evidence:'필수기재 중 근로시간 누락'}]}};},sel:'.ai-sugg .ap',cap:'[제안 적용]을 누르면 문항에 자동 반영됩니다'},
+    aichat:{setup(){seed();S.screen='home';},after(){document.getElementById('aiScrim').classList.remove('ai-hidden');document.getElementById('aiPanel').classList.remove('ai-hidden');aiToggleSettings();},sel:'#aiCfgKey',cap:'설정(⚙)에서 API 키를 입력 후 저장'},
+    save:{setup(){localStorage.setItem('vap_sessions',JSON.stringify([{code:'DEMO-01',country:'베트남',lang:'ko',lastUpdated:new Date().toISOString(),rate:75,done:8,total:19}]));S=initState();S.screen='landing';},sel:'.sess-card',cap:'저장된 점검 — 눌러서 이어서 작업'},
+    fab:{setup(){seed();S.screen='home';},sel:'#aiFab',cap:'✦ AI 도우미 — 문서분석·질의응답'},
+  };
+  const cfg=SHOTS[shot];
+  if(!cfg){document.title='NOSHOT';return;}
+  // 캡처용 스타일: 배경 여백 제거, FAB 숨김(‘fab’ 샷 제외)
+  const st=document.createElement('style');
+  st.textContent='html,body,#app{min-height:0!important}'+(shot==='fab'?'':'#aiFab{display:none!important}');
+  document.head.appendChild(st);
+  cfg.setup();render();
+  if(cfg.after)cfg.after();
+  setTimeout(()=>{
+    const el=document.querySelector(cfg.sel);
+    if(el){
+      const r=el.getBoundingClientRect();
+      const ax=r.left+window.scrollX, ay=r.top+window.scrollY;
+      const ring=document.createElement('div');
+      ring.style.cssText='position:absolute;left:'+(ax-6)+'px;top:'+(ay-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px;border:3px solid #ff3b30;border-radius:12px;box-shadow:0 0 0 4px rgba(255,59,48,.22);z-index:99998;pointer-events:none';
+      document.body.appendChild(ring);
+      if(cfg.cap){
+        const lab=document.createElement('div');
+        lab.textContent='👉 '+cfg.cap;
+        const ly=ay>70?(ay-46):(ay+r.height+10);
+        lab.style.cssText='position:absolute;left:8px;right:8px;top:'+ly+'px;background:#ff3b30;color:#fff;font:600 13px/1.45 -apple-system,BlinkMacSystemFont,sans-serif;padding:7px 11px;border-radius:10px;z-index:99999;box-shadow:0 3px 10px rgba(0,0,0,.25)';
+        document.body.appendChild(lab);
+      }
+      // 문서 높이를 캡처 창에 맞춰 노출 (제목에 실어 PS에서 활용)
+      document.title='H'+Math.min(3600,Math.ceil(ay+r.height+60));
+    } else { document.title='NOEL'; }
+  },200);
+})();
+</script>
+</body>
+</html>

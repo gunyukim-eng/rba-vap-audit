@@ -1724,6 +1724,7 @@ const initState=()=>({
   nsupAns:{},
   nsupNA:{},
   nsupOpen:{},
+  nsupAI:{},
   nsupItem:null,
 });
 let S=initState();
@@ -2262,6 +2263,10 @@ function screenNsupItem(){
 
     ${critOpen?`<div class="nsup-card"><div class="nsup-sc">배점 — 적합 ${it.c} · Minor ${it.mi} · Major ${it.mj} · Priority ${it.pr} · N/A ${it.na}</div><div class="nsup-crit">${esc(it.crit)}</div></div>`:''}
 
+    <button onclick="aiJudgeOpen('${id}')" style="width:100%;margin-bottom:12px;padding:10px;border-radius:var(--pill);border:1.5px dashed var(--blue);background:#f6faff;color:var(--blue);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">🤖 AI 자동판정 — 문서 사진으로 등급 제안</button>
+
+    ${aiSuggCard(id,it)}
+
     ${qs.map(q=>nsupQcard(id,q,isNA)).join('')}
 
     <div class="nsup-card" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
@@ -2748,6 +2753,9 @@ function screenLanding(){
         </button>
       </div>
       ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
+      <div style="width:100%;padding:0 24px;margin-top:14px">
+        <button class="land-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 사용 설명서 (매뉴얼)</button>
+      </div>
     </div>
     <div class="land-footer">On-Site Audit Standard · January 2024</div>
   </div>`;
@@ -3285,7 +3293,8 @@ function render(){
     S.screen==='cap'?screenCAP():
     S.screen==='supgen'?screenSupGen():
     S.screen==='supplier'?screenSupplier():
-    S.screen==='supimport'?screenSupImport():'';
+    S.screen==='supimport'?screenSupImport():
+    S.screen==='manual'?screenManual():'';
   if(S.vendorCode&&!['landing','setup','supplier','supimport'].includes(S.screen))saveToStorage();
 }
 
@@ -3313,7 +3322,7 @@ render();
 //  교체하면 브라우저에 키를 두지 않고도 그대로 동작한다.
 // ═══════════════════════════════════════════════════════════
 const AI_CFG_KEY='vap_ai_cfg';
-const AI_DEFAULTS={endpoint:'https://api.anthropic.com/v1/messages',model:'claude-opus-4-8',apiKey:''};
+const AI_DEFAULTS={endpoint:'https://api.anthropic.com/v1/messages',model:'claude-haiku-4-5',apiKey:''};
 function aiCfg(){try{return{...AI_DEFAULTS,...(JSON.parse(localStorage.getItem(AI_CFG_KEY))||{})};}catch{return{...AI_DEFAULTS};}}
 function aiSaveCfgObj(c){localStorage.setItem(AI_CFG_KEY,JSON.stringify(c));}
 
@@ -3325,17 +3334,25 @@ const AI_SYSTEM=`당신은 RBA VAP(Validated Audit Process) 신규협력사 심�
 - 한국어로 간결하고 실무적으로 답변합니다.`;
 
 // in-memory chat state (감사 세션 저장소와 분리)
-const aiS={busy:false,msgs:[],pending:[]}; // msgs:[{role,text,images:[dataURL]}]  pending:[{dataURL,media_type,data}]
+const aiS={busy:false,msgs:[],pending:[],judge:null}; // judge: 자동판정 대상 항목 id (null=일반 챗)
 
 function aiEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function aiFmt(s){return aiEsc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
 
-function aiOpen(){
+function aiShowPanel(){
   document.getElementById('aiScrim').classList.remove('ai-hidden');
   document.getElementById('aiPanel').classList.remove('ai-hidden');
   document.getElementById('aiCfg').classList.add('ai-hidden');
   document.getElementById('aiFoot').classList.remove('ai-hidden');
+  const t=document.getElementById('aiTitle');
+  if(t)t.textContent=aiS.judge?`AI 자동판정 · ${aiS.judge}`:'AI 도우미 · 문서분석 & 질의';
+  const inp=document.getElementById('aiInput');
+  if(inp)inp.placeholder=aiS.judge?'참고사항 (선택)…':'질문을 입력하거나 문서 사진을 첨부하세요…';
   aiRender();
+}
+function aiOpen(){ // FAB → 일반 챗 모드
+  if(aiS.judge){aiS.judge=null;aiS.msgs=[];aiS.pending=[];}
+  aiShowPanel();
   if(!aiCfg().apiKey&&aiS.msgs.length===0)aiToggleSettings();
 }
 function aiClose(){
@@ -3392,6 +3409,7 @@ function aiHandleFiles(e){
 
 async function aiSend(){
   if(aiS.busy)return;
+  if(aiS.judge)return aiJudgeRun();
   const inp=document.getElementById('aiInput');
   const text=inp.value.trim();
   if(!text&&aiS.pending.length===0)return;
@@ -3463,4 +3481,209 @@ function aiSaveSettings(){
     endpoint:document.getElementById('aiCfgEndpoint').value.trim()||AI_DEFAULTS.endpoint
   });
   aiToggleSettings();
+}
+
+// ─── AI 자동판정 (신규협력사 항목별 등급 제안) ───
+// 문서 사진 → 판정기준 대조 → {등급, 문항응답, 근거} 구조화 출력 → 감사자 검토·적용
+const AI_JUDGE_SCHEMA={
+  type:'object',
+  properties:{
+    doc_summary:{type:'string',description:'첨부 문서에서 읽어낸 핵심 사실 요약 (OCR 결과 정리)'},
+    suggested_grade:{type:'string',enum:['conformance','minor','major','priority','na','insufficient_evidence']},
+    confidence:{type:'number',description:'0~1 사이 확신도'},
+    answers:{type:'array',items:{
+      type:'object',
+      properties:{
+        q_id:{type:'string'},
+        answer:{type:'string',enum:['yes','no','na','unknown']},
+        evidence:{type:'string',description:'해당 답의 근거 (문서 내 확인 위치·내용)'}
+      },
+      required:['q_id','answer','evidence'],additionalProperties:false
+    }},
+    rationale:{type:'string',description:'판정기준의 어느 조항을 적용했는지 설명'}
+  },
+  required:['doc_summary','suggested_grade','confidence','answers','rationale'],
+  additionalProperties:false
+};
+const AI_GLABEL={conformance:'적합',minor:'Minor',major:'Major',priority:'Priority',na:'N/A',insufficient_evidence:'근거 부족'};
+
+function aiJudgeOpen(id){
+  const it=nsupItemById(id);if(!it)return;
+  aiS.judge=id;aiS.msgs=[];aiS.pending=[];
+  aiS.msgs.push({role:'assistant',text:`[${it.id} · ${it.title}] 자동판정 모드입니다.\n\n관련 문서 사진(계약서·급여명세서·정책문서 등)을 📷로 첨부한 뒤 ➤를 누르세요. 판정기준과 대조해 등급을 제안합니다.\n\n※ 제안은 초안이며, 적용 여부는 감사자가 결정합니다.`});
+  aiShowPanel();
+  if(!aiCfg().apiKey)aiToggleSettings();
+}
+
+async function aiJudgeRun(){
+  if(aiS.busy)return;
+  const id=aiS.judge,it=nsupItemById(id);
+  if(!it)return;
+  const cfg=aiCfg();
+  if(!cfg.apiKey){aiToggleSettings();return;}
+  if(aiS.pending.length===0){
+    aiS.msgs.push({role:'error',text:'⚠ 문서 사진을 1장 이상 첨부해 주세요.'});
+    aiRender();return;
+  }
+  const inp=document.getElementById('aiInput');
+  const note=inp.value.trim();
+  const images=aiS.pending.map(p=>p.dataURL);
+  const blocks=aiS.pending.map(p=>({type:'image',source:{type:'base64',media_type:p.media_type,data:p.data}}));
+  const qs=NSUP_Q[id]||[];
+  const qtxt=qs.map(q=>`${q.id} [${q.sev}] ${q.q}`).join('\n');
+  blocks.push({type:'text',text:
+`[점검 항목]
+${it.id} · ${it.title} (구분: ${it.gubun}, 분류: ${NSUP_GRPT[it.grp]||it.grp})
+배점 — 적합 ${it.c} / Minor ${it.mi} / Major ${it.mj} / Priority ${it.pr} / N-A ${it.na}
+
+[판정기준 전문]
+${it.crit}
+
+[점검 문항] (yes=준수, no=해당 심각도 위반, na=해당없음, unknown=문서로 확인 불가)
+${qtxt}
+${note?`
+[감사자 참고사항]
+${note}
+`:''}
+[지시]
+1. 첨부된 문서 사진의 내용을 읽고 핵심 사실을 doc_summary에 정리하라.
+2. 각 문항(q_id)에 대해 문서에서 확인 가능한 근거로만 yes/no/na/unknown을 답하고 evidence에 근거를 적어라. 추측 금지.
+3. 위 판정기준에 따라 suggested_grade를 제안하라. 문서만으로 판단이 어려우면 insufficient_evidence.
+4. rationale에는 판정기준의 어느 조항(Priority/Major/Minor 몇 번)을 적용했는지 명시하라.`});
+
+  aiS.msgs.push({role:'user',text:note||'(자동판정 요청)',images});
+  aiS.pending=[];inp.value='';aiAutoGrow(inp);
+  aiS.busy=true;aiRender();
+
+  try{
+    const res=await fetch(cfg.endpoint,{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':cfg.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:cfg.model,max_tokens:3000,system:AI_SYSTEM,
+        messages:[{role:'user',content:blocks}],
+        output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}
+      })
+    });
+    const data=await res.json();
+    if(!res.ok){
+      const msg=(data&&data.error&&data.error.message)||('요청 실패 ('+res.status+')');
+      aiS.msgs.push({role:'error',text:'⚠ '+msg});
+    }else{
+      const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+      const sug=JSON.parse(txt);
+      if(!S.nsupAI)S.nsupAI={};
+      S.nsupAI[id]={...sug,ts:Date.now()};
+      const conf=Math.round((sug.confidence||0)*100);
+      aiS.msgs.push({role:'assistant',text:
+`**제안 등급: ${AI_GLABEL[sug.suggested_grade]||sug.suggested_grade}** (확신도 ${conf}%)
+
+**📄 문서 요약**
+${sug.doc_summary}
+
+**판정 근거**
+${sug.rationale}
+
+${(sug.answers||[]).map(a=>`${a.q_id} · ${a.answer==='unknown'?'확인불가':a.answer.toUpperCase()} — ${a.evidence}`).join('\n')}
+
+항목 화면에 제안 카드가 표시되었습니다. [제안 적용]을 누르면 문항에 반영됩니다.`});
+      render(); // 항목 화면 갱신 + localStorage 저장
+    }
+  }catch(err){
+    aiS.msgs.push({role:'error',text:'⚠ '+(err instanceof SyntaxError?'응답 해석 실패 (구조화 출력 미지원 모델일 수 있음)':'통신 오류: '+err.message+'\n(CORS 차단 시 백엔드 프록시가 필요합니다)')});
+  }
+  aiS.busy=false;aiRender();
+}
+
+// 항목 화면의 AI 제안 카드
+function aiSuggCard(id,it){
+  const sug=(S.nsupAI||{})[id];
+  if(!sug)return'';
+  const gmeta={conformance:'C',minor:'m',major:'M',priority:'P',na:'na'};
+  const k=gmeta[sug.suggested_grade];
+  const open=(S.nsupOpen||{})['ai_'+id];
+  const conf=Math.round((sug.confidence||0)*100);
+  return`<div class="nsup-card ai-sugg">
+    <div class="ai-sugg-h">
+      <span>🤖 AI 제안</span>
+      <span class="icbadge ${k||'ns'}">${AI_GLABEL[sug.suggested_grade]||sug.suggested_grade}</span>
+      <span class="ai-conf">확신도 ${conf}%</span>
+    </div>
+    ${open?`<div class="ai-sugg-body">
+      <div class="ai-sugg-sec"><b>문서 요약</b><br>${aiEsc(sug.doc_summary||'')}</div>
+      <div class="ai-sugg-sec"><b>근거</b><br>${aiEsc(sug.rationale||'')}</div>
+      ${(sug.answers||[]).map(a=>`<div class="ai-sugg-q"><b>${aiEsc(a.q_id)}</b> · ${a.answer==='unknown'?'확인불가':aiEsc(a.answer).toUpperCase()} — ${aiEsc(a.evidence||'')}</div>`).join('')}
+    </div>`:''}
+    <div class="ai-sugg-btns">
+      <button onclick="S.nsupOpen['ai_${id}']=!S.nsupOpen['ai_${id}'];render()">${open?'접기':'근거 보기'}</button>
+      <button class="ap" onclick="aiJudgeApply('${id}')">제안 적용</button>
+      <button class="rm" onclick="aiJudgeClear('${id}')">삭제</button>
+    </div>
+    <div class="ai-sugg-note">※ AI 제안은 초안입니다. 감사자가 문항을 검토·수정해 확정하세요.</div>
+  </div>`;
+}
+function aiJudgeApply(id){
+  const sug=(S.nsupAI||{})[id];if(!sug)return;
+  if(!S.nsupAns)S.nsupAns={};
+  if(!S.nsupAns[id])S.nsupAns[id]={};
+  (sug.answers||[]).forEach(a=>{
+    if(['yes','no','na'].includes(a.answer))S.nsupAns[id][a.q_id]=a.answer;
+  });
+  render(); // 기존 로직(nsupGrade)이 등급 재계산
+}
+function aiJudgeClear(id){
+  if(S.nsupAI)delete S.nsupAI[id];
+  render();
+}
+
+// ─── 사용자 매뉴얼 (실제 화면 스크린샷 포함) ───
+const MANUAL_SECTIONS=[
+  {n:'01',title:'점검 시작 & 이어하기',img:'manual/save.png',
+   desc:'첫 화면(랜딩)입니다. 처음이면 <b>+ New Audit</b>으로 시작하고, 이전에 하던 점검이 있으면 목록의 카드나 <b>Resume</b>를 눌러 이어서 작업합니다.',
+   steps:['같은 Vendor Code로 다시 열면 진행 내용이 자동 저장·복원됩니다.','점검 내용은 이 기기 브라우저에 저장됩니다.']},
+  {n:'02',title:'협력사 사전점검 요청 (공유) ①',img:'manual/share1.png',
+   desc:'홈 화면에서 <b>📤 협력사 사전점검 요청</b> 버튼을 누릅니다.',
+   steps:['협력사가 방문 전에 필요 서류 준비 현황을 미리 체크할 수 있습니다.']},
+  {n:'03',title:'협력사에 링크 전달 ②',img:'manual/share2.png',
+   desc:'생성된 링크를 <b>📋 링크 복사</b> 버튼으로 복사해 카카오톡·이메일로 협력사에 보냅니다.',
+   steps:['협력사가 서류 현황을 체크하면 결과 링크를 생성합니다.','그 결과 링크를 감사원이 열어 “감사에 반영”을 누르면, 각 항목 Document Review에 ✓/✗ 배지로 표시됩니다.']},
+  {n:'04',title:'점검 결과 Excel(CSV) 내보내기',img:'manual/excel.png',
+   desc:'홈 <b>점검 항목</b> 탭 맨 아래의 <b>📊 점검 결과 Excel 내보내기</b> 버튼을 누르면 CSV 파일이 다운로드됩니다.',
+   steps:['등급·발견사항·메모·사진 수가 포함됩니다.','다운로드된 .csv 파일은 Excel에서 바로 열립니다.']},
+  {n:'05',title:'AI 자동판정 — 문서 사진으로 등급 제안',img:'manual/aibtn.png',
+   desc:'신규협력사 탭의 각 점검 항목에서 <b>🤖 AI 자동판정</b> 버튼을 누른 뒤, 관련 문서 사진(계약서·급여명세서 등)을 첨부합니다.',
+   steps:['AI가 문서를 읽어(OCR) 판정기준과 대조해 등급을 제안합니다.','※ API 키 설정이 필요합니다(08 참고).']},
+  {n:'06',title:'AI 제안 검토 & 적용',img:'manual/aicard.png',
+   desc:'AI 제안 카드에서 근거를 확인하고, <b>제안 적용</b>을 누르면 문항에 자동 반영됩니다.',
+   steps:['적용 후에도 문항을 직접 수정하면 등급이 다시 계산됩니다.','최종 판정은 항상 감사자가 확정합니다. AI는 초안·근거만 제공합니다.']},
+  {n:'07',title:'AI 도우미 열기 (문서분석·질의)',img:'manual/fab.png',
+   desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 열 수 있습니다.',
+   steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
+  {n:'08',title:'AI 연결 설정 (API 키)',img:'manual/aichat.png',
+   desc:'AI 기능을 쓰려면 설정(⚙)에서 <b>API 키</b>를 입력하고 저장해야 합니다.',
+   steps:['API 키는 이 기기에만 저장됩니다.','기본 모델은 저비용 Haiku로 설정되어 있습니다. 설정에서 변경 가능합니다.']},
+];
+function screenManual(){
+  const back=S.vendorCode?"S.screen='home';render();window.scrollTo(0,0)":"S.screen='landing';render();window.scrollTo(0,0)";
+  return`${nav('📖 사용 설명서',back,'닫기',back)}
+  <div class="content man-wrap">
+    <p class="man-intro">각 기능의 실제 화면과 눌러야 할 버튼(빨간 표시)을 순서대로 안내합니다.</p>
+    ${MANUAL_SECTIONS.map(s=>`
+      <div class="man-sec">
+        <div class="man-h"><span class="man-num">${s.n}</span><span class="man-t">${s.title}</span></div>
+        <p class="man-desc">${s.desc}</p>
+        <img class="man-img" src="${s.img}" alt="${s.title}" loading="lazy" onclick="viewManualImg('${s.img}')">
+        ${s.steps&&s.steps.length?`<ul class="man-steps">${s.steps.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+      </div>`).join('')}
+    <div class="man-foot">문의·개선 요청은 감사 담당자에게 전달해 주세요.</div>
+  </div>`;
+}
+function viewManualImg(src){
+  document.getElementById('photoViewerImg').src=src;
+  document.getElementById('photoViewer').style.display='flex';
 }
