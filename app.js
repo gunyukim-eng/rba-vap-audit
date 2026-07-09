@@ -2263,7 +2263,7 @@ function screenNsupItem(){
 
     ${critOpen?`<div class="nsup-card"><div class="nsup-sc">배점 — 적합 ${it.c} · Minor ${it.mi} · Major ${it.mj} · Priority ${it.pr} · N/A ${it.na}</div><div class="nsup-crit">${esc(it.crit)}</div></div>`:''}
 
-    <button onclick="aiJudgeOpen('${id}')" style="width:100%;margin-bottom:12px;padding:10px;border-radius:var(--pill);border:1.5px dashed var(--blue);background:#f6faff;color:var(--blue);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">🤖 AI 자동판정 — 문서 사진으로 등급 제안</button>
+    <button onclick="aiJudgeOpen('${id}')" style="width:100%;margin-bottom:12px;padding:10px;border-radius:var(--pill);border:1.5px dashed var(--blue);background:#f6faff;color:var(--blue);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">${S.lang==='en'?'🤖 AI Auto-Judge — grade from document photos':'🤖 AI 자동판정 — 문서 사진으로 등급 제안'}</button>
 
     ${aiSuggCard(id,it)}
 
@@ -3348,7 +3348,7 @@ function aiShowPanel(){
   document.getElementById('aiCfg').classList.add('ai-hidden');
   document.getElementById('aiFoot').classList.remove('ai-hidden');
   const t=document.getElementById('aiTitle');
-  if(t)t.textContent=aiS.judge?`AI 자동판정 · ${aiS.judge}`:'AI 도우미 · 문서분석 & 질의';
+  if(t)t.textContent=aiS.judge?`${S.lang==='en'?'AI Auto-Judge':'AI 자동판정'} · ${aiS.judge}`:(S.lang==='en'?'AI Assistant · Docs & Q&A':'AI 도우미 · 문서분석 & 질의');
   const inp=document.getElementById('aiInput');
   if(inp)inp.placeholder=aiS.judge?'참고사항 (선택)…':'질문을 입력하거나 문서 사진을 첨부하세요…';
   aiRender();
@@ -3463,18 +3463,18 @@ function aiToggleSettings(){
   const cfgEl=document.getElementById('aiCfg'),foot=document.getElementById('aiFoot'),body=document.getElementById('aiBody');
   const showing=!cfgEl.classList.contains('ai-hidden');
   if(showing){cfgEl.classList.add('ai-hidden');foot.classList.remove('ai-hidden');body.classList.remove('ai-hidden');return;}
-  const c=aiCfg();
+  const c=aiCfg();const en=S.lang==='en';
   cfgEl.innerHTML=`
-    <h3>AI 연결 설정</h3>
-    <p>Claude API 연결 정보입니다. API 키는 이 기기(localStorage)에만 저장됩니다.</p>
+    <h3>${en?'AI Connection Settings':'AI 연결 설정'}</h3>
+    <p>${en?'Claude API connection. The API key is stored only on this device (localStorage).':'Claude API 연결 정보입니다. API 키는 이 기기(localStorage)에만 저장됩니다.'}</p>
     <label>API Key</label>
-    <input id="aiCfgKey" type="password" placeholder="sk-ant-... (나중에 입력)" value="${aiEsc(c.apiKey)}">
-    <label>모델</label>
+    <input id="aiCfgKey" type="password" placeholder="sk-ant-..." value="${aiEsc(c.apiKey)}">
+    <label>${en?'Model':'모델'}</label>
     <input id="aiCfgModel" value="${aiEsc(c.model)}">
-    <label>엔드포인트 (백엔드 프록시 사용 시 변경)</label>
+    <label>${en?'Endpoint (change when using a backend proxy)':'엔드포인트 (백엔드 프록시 사용 시 변경)'}</label>
     <input id="aiCfgEndpoint" value="${aiEsc(c.endpoint)}">
-    <button class="save" onclick="aiSaveSettings()">저장</button>
-    <p class="note">⚠ 정적 페이지에서 API 키를 직접 넣으면 노출 위험이 있습니다. 운영 시에는 엔드포인트를 서버리스 백엔드 프록시로 바꾸고 키는 서버에만 두세요.</p>`;
+    <button class="save" onclick="aiSaveSettings()">${en?'Save':'저장'}</button>
+    <p class="note">${en?'⚠ Putting an API key in a static page risks exposure. In production, point the endpoint at a serverless backend proxy and keep the key server-side.':'⚠ 정적 페이지에서 API 키를 직접 넣으면 노출 위험이 있습니다. 운영 시에는 엔드포인트를 서버리스 백엔드 프록시로 바꾸고 키는 서버에만 두세요.'}</p>`;
   cfgEl.classList.remove('ai-hidden');foot.classList.add('ai-hidden');body.classList.add('ai-hidden');
 }
 function aiSaveSettings(){
@@ -3611,23 +3611,24 @@ function aiSuggCard(id,it){
   const k=gmeta[sug.suggested_grade];
   const open=(S.nsupOpen||{})['ai_'+id];
   const conf=Math.round((sug.confidence||0)*100);
+  const en=S.lang==='en';
   return`<div class="nsup-card ai-sugg">
     <div class="ai-sugg-h">
-      <span>🤖 AI 제안</span>
+      <span>🤖 ${en?'AI Suggestion':'AI 제안'}</span>
       <span class="icbadge ${k||'ns'}">${AI_GLABEL[sug.suggested_grade]||sug.suggested_grade}</span>
-      <span class="ai-conf">확신도 ${conf}%</span>
+      <span class="ai-conf">${en?'confidence':'확신도'} ${conf}%</span>
     </div>
     ${open?`<div class="ai-sugg-body">
-      <div class="ai-sugg-sec"><b>문서 요약</b><br>${aiEsc(sug.doc_summary||'')}</div>
-      <div class="ai-sugg-sec"><b>근거</b><br>${aiEsc(sug.rationale||'')}</div>
-      ${(sug.answers||[]).map(a=>`<div class="ai-sugg-q"><b>${aiEsc(a.q_id)}</b> · ${a.answer==='unknown'?'확인불가':aiEsc(a.answer).toUpperCase()} — ${aiEsc(a.evidence||'')}</div>`).join('')}
+      <div class="ai-sugg-sec"><b>${en?'Document summary':'문서 요약'}</b><br>${aiEsc(sug.doc_summary||'')}</div>
+      <div class="ai-sugg-sec"><b>${en?'Rationale':'근거'}</b><br>${aiEsc(sug.rationale||'')}</div>
+      ${(sug.answers||[]).map(a=>`<div class="ai-sugg-q"><b>${aiEsc(a.q_id)}</b> · ${a.answer==='unknown'?(en?'unknown':'확인불가'):aiEsc(a.answer).toUpperCase()} — ${aiEsc(a.evidence||'')}</div>`).join('')}
     </div>`:''}
     <div class="ai-sugg-btns">
-      <button onclick="S.nsupOpen['ai_${id}']=!S.nsupOpen['ai_${id}'];render()">${open?'접기':'근거 보기'}</button>
-      <button class="ap" onclick="aiJudgeApply('${id}')">제안 적용</button>
-      <button class="rm" onclick="aiJudgeClear('${id}')">삭제</button>
+      <button onclick="S.nsupOpen['ai_${id}']=!S.nsupOpen['ai_${id}'];render()">${open?(en?'Collapse':'접기'):(en?'View evidence':'근거 보기')}</button>
+      <button class="ap" onclick="aiJudgeApply('${id}')">${en?'Apply':'제안 적용'}</button>
+      <button class="rm" onclick="aiJudgeClear('${id}')">${en?'Delete':'삭제'}</button>
     </div>
-    <div class="ai-sugg-note">※ AI 제안은 초안입니다. 감사자가 문항을 검토·수정해 확정하세요.</div>
+    <div class="ai-sugg-note">${en?'※ AI suggestion is a draft. The auditor reviews and confirms.':'※ AI 제안은 초안입니다. 감사자가 문항을 검토·수정해 확정하세요.'}</div>
   </div>`;
 }
 function aiJudgeApply(id){
@@ -3712,11 +3713,11 @@ function screenManual(){
     <button class="${S.manTab==='proc'?'on':''}" onclick="S.manTab='proc';render();window.scrollTo(0,0)">${U.tabProc}</button></div>`;
   let bodyHtml;
   if(S.manTab==='feat'){
-    bodyHtml=`<p class="man-intro">${U.intro}</p>`+MANUAL_SECTIONS.map(s=>{const c=s[L];return`
+    bodyHtml=`<p class="man-intro">${U.intro}</p>`+MANUAL_SECTIONS.map(s=>{const c=s[L];const src='manual/'+(L==='en'?'en/':'')+s.img.split('/').pop();return`
       <div class="man-sec">
         <div class="man-h"><span class="man-num">${s.n}</span><span class="man-t">${c.title}</span></div>
         <p class="man-desc">${c.desc}</p>
-        <img class="man-img" src="${s.img}" alt="${c.title}" loading="lazy" onclick="viewManualImg('${s.img}')">
+        <img class="man-img" src="${src}" alt="${c.title}" loading="lazy" onclick="viewManualImg('${src}')">
         ${c.steps&&c.steps.length?`<ul class="man-steps">${c.steps.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
       </div>`;}).join('');
   }else{
