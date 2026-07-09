@@ -2749,7 +2749,6 @@ function screenLanding(){
     <div class="land-inner">
       <div class="land-badge"><div class="land-dot-pulse"></div>On-Site Audit</div>
       <div class="land-title">Supplier<br><em>Audit</em></div>
-      <div class="land-version">Validated Assessment Program · Rev 8.0.1</div>
       <div class="land-sub" style="margin-bottom:${sessions.length?28:40}px">Labor · Ethics · Supply Chain</div>
       ${sessionCards}
       <div style="width:100%;padding:0 24px">
