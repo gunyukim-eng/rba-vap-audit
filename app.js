@@ -1913,7 +1913,7 @@ function screenSetup(){
   const lp=`<div style="display:flex;gap:5px;margin-bottom:16px">
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:5px 12px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'var(--blue)':'var(--line)'};background:${S.lang===l?'var(--blue)':'transparent'};color:${S.lang===l?'#fff':'var(--muted)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
-  return`${nav('On-Site Audit','S.screen=\'landing\';render()')}
+  return`${nav('On-Site Audit','S.screen=\'pick\';render()')}
   <div class="content">
     <span class="stag">${t('setup')}</span>
     <h2 class="stitle">${t('facilitySetup')}</h2>
@@ -2753,7 +2753,7 @@ function screenLanding(){
       <div class="land-sub" style="margin-bottom:${sessions.length?28:40}px">Labor · Ethics · Supply Chain</div>
       ${sessionCards}
       <div style="width:100%;padding:0 24px">
-        <button class="land-start" style="width:100%;box-sizing:border-box" onclick="S=initState();S.screen='setup';render()">
+        <button class="land-start" style="width:100%;box-sizing:border-box" onclick="S=initState();S.screen='pick';render()">
           ${sessions.length?'+ New Audit':'START  →'}
         </button>
       </div>
@@ -3109,26 +3109,26 @@ function startAudit(){
     vc='AUDIT-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());
   }
   S.vendorCode=vc;
-  S.screen='pick';
+  S.screen='home';
   render();window.scrollTo(0,0);
 }
-// 점검 유형 선택 → 진입
+// 점검 유형 선택 → 설정(Setup)으로
 function openAuditType(type){
   S.auditType=type;
   S.homeTab=(type==='nsup')?'nsup':'audit';
-  S.screen='home';
+  S.screen='setup';
   render();window.scrollTo(0,0);
 }
 function screenPick(){
   const ko=S.lang==='ko';
-  return`${nav(ko?'점검 유형 선택':'Choose Audit Type',"S.screen='setup';render()")}
+  return`${nav(ko?'점검 유형 선택':'Choose Audit Type',"S.screen='landing';render()")}
   <div class="content">
     <span class="stag">${ko?'유형 선택':'Select Type'}</span>
     <h2 class="stitle">${ko?'어떤 점검을 진행할까요?':'Which audit will you run?'}</h2>
     <p class="ssub">${S.vendorCode?'Vendor · '+S.vendorCode:''}</p>
     <button class="pick-card" onclick="openAuditType('focus')">
       <div class="pick-ic">🏭</div>
-      <div class="pick-tx"><div class="pick-t">${ko?'중점관리 협력사 점검':'Key Supplier Audit'}</div>
+      <div class="pick-tx"><div class="pick-t">${ko?'중점관리 협력사 점검':'Major Supplier Audit'}</div>
         <div class="pick-d">${ko?'노동·윤리·공급망 정식 점검 (A·AM·D·DM·E) · 필요 서류 · CAP':'Full Labor / Ethics / Supply-chain audit · documents · CAP'}</div></div>
       <div class="pick-ar">›</div>
     </button>
