@@ -3362,9 +3362,22 @@ render();
 //  교체하면 브라우저에 키를 두지 않고도 그대로 동작한다.
 // ═══════════════════════════════════════════════════════════
 const AI_CFG_KEY='vap_ai_cfg';
-const AI_DEFAULTS={endpoint:'https://api.anthropic.com/v1/messages',model:'claude-haiku-4-5',apiKey:''};
+const AI_DEFAULTS={endpoint:'/api/chat',model:'claude-haiku-4-5',apiKey:''};
 function aiCfg(){try{return{...AI_DEFAULTS,...(JSON.parse(localStorage.getItem(AI_CFG_KEY))||{})};}catch{return{...AI_DEFAULTS};}}
 function aiSaveCfgObj(c){localStorage.setItem(AI_CFG_KEY,JSON.stringify(c));}
+// 프록시 모드: 엔드포인트가 Anthropic 직접 호출이 아니면(=백엔드 프록시) 브라우저에 키 불필요
+function aiProxyMode(cfg){return !/api\.anthropic\.com/i.test((cfg||aiCfg()).endpoint||'');}
+function aiNeedsKey(cfg){cfg=cfg||aiCfg();return !aiProxyMode(cfg)&&!cfg.apiKey;}
+async function aiPost(payload){
+  const cfg=aiCfg();
+  const headers={'content-type':'application/json'};
+  if(!aiProxyMode(cfg)){
+    headers['x-api-key']=cfg.apiKey;
+    headers['anthropic-version']='2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access']='true';
+  }
+  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(payload)});
+}
 
 const AI_SYSTEM=`당신은 RBA VAP(Validated Audit Process) 신규협력사 심사를 돕는 AI 보조자입니다.
 - 삼성 협력사 대상 노동·인권·안전보건(EHS) 심사 기준(RBA VAP Standard 및 Operations Manual)에 근거해 답변합니다.
@@ -3394,7 +3407,7 @@ function aiShowPanel(){
 function aiOpen(){ // FAB → 일반 챗 모드
   if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.msgs=[];aiS.pending=[];}
   aiShowPanel();
-  if(!aiCfg().apiKey&&aiS.msgs.length===0)aiToggleSettings();
+  if(aiNeedsKey()&&aiS.msgs.length===0)aiToggleSettings();
 }
 // 각 항목 안에서 AI 분석·질문 (항목 맥락 주입, Haiku로 답변)
 function aiAskItem(id,kind){
@@ -3414,7 +3427,7 @@ function aiAskItem(id,kind){
     :`**${aiS.ctxLabel}** 항목에 대해 무엇이든 물어보세요 — 판정기준 해석, 필요 서류, 인터뷰 질문 예시, 상황 판정 방법 등. 문서 사진을 첨부해도 됩니다.`}];
   aiS.pending=[];
   aiShowPanel();
-  if(!aiCfg().apiKey)aiToggleSettings();
+  if(aiNeedsKey())aiToggleSettings();
 }
 function aiClose(){
   document.getElementById('aiScrim').classList.add('ai-hidden');
@@ -3475,7 +3488,7 @@ async function aiSend(){
   const text=inp.value.trim();
   if(!text&&aiS.pending.length===0)return;
   const cfg=aiCfg();
-  if(!cfg.apiKey){aiToggleSettings();return;}
+  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
 
   const images=aiS.pending.map(p=>p.dataURL);
   const apiImgs=aiS.pending.map(p=>({type:'image',source:{type:'base64',media_type:p.media_type,data:p.data}}));
@@ -3493,16 +3506,7 @@ async function aiSend(){
   });
 
   try{
-    const res=await fetch(cfg.endpoint,{
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        'x-api-key':cfg.apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:cfg.model,max_tokens:4096,system:AI_SYSTEM+(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:''),messages:apiMsgs})
-    });
+    const res=await aiPost({model:cfg.model,max_tokens:4096,system:AI_SYSTEM+(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:''),messages:apiMsgs});
     const data=await res.json();
     if(!res.ok){
       const msg=(data&&data.error&&data.error.message)||('요청 실패 ('+res.status+')');
@@ -3521,18 +3525,20 @@ function aiToggleSettings(){
   const cfgEl=document.getElementById('aiCfg'),foot=document.getElementById('aiFoot'),body=document.getElementById('aiBody');
   const showing=!cfgEl.classList.contains('ai-hidden');
   if(showing){cfgEl.classList.add('ai-hidden');foot.classList.remove('ai-hidden');body.classList.remove('ai-hidden');return;}
-  const c=aiCfg();const en=S.lang==='en';
+  const c=aiCfg();const en=S.lang==='en';const proxy=aiProxyMode(c);
   cfgEl.innerHTML=`
     <h3>${en?'AI Connection Settings':'AI 연결 설정'}</h3>
-    <p>${en?'Claude API connection. The API key is stored only on this device (localStorage).':'Claude API 연결 정보입니다. API 키는 이 기기(localStorage)에만 저장됩니다.'}</p>
-    <label>API Key</label>
-    <input id="aiCfgKey" type="password" placeholder="sk-ant-..." value="${aiEsc(c.apiKey)}">
+    <p>${proxy
+      ?(en?'✅ Using a backend proxy — the API key lives on the server (Netlify env var). You do NOT need to enter a key here.':'✅ 백엔드 프록시 사용 중 — API 키는 서버(Netlify 환경변수)에만 있습니다. 여기에 키를 넣을 필요가 없습니다.')
+      :(en?'⚠ Direct mode — the API key is stored only on this device and is visible in the browser. Prefer a backend proxy.':'⚠ 직접 호출 모드 — API 키가 이 기기에만 저장되며 브라우저에서 노출됩니다. 가급적 백엔드 프록시를 쓰세요.')}</p>
+    <label>API Key ${proxy?(en?'(not needed with proxy)':'(프록시 사용 시 불필요)'):''}</label>
+    <input id="aiCfgKey" type="password" placeholder="${proxy?(en?'— handled by server —':'— 서버에서 처리됨 —'):'sk-ant-...'}" value="${aiEsc(c.apiKey)}">
     <label>${en?'Model':'모델'}</label>
     <input id="aiCfgModel" value="${aiEsc(c.model)}">
-    <label>${en?'Endpoint (change when using a backend proxy)':'엔드포인트 (백엔드 프록시 사용 시 변경)'}</label>
+    <label>${en?'Endpoint':'엔드포인트'}</label>
     <input id="aiCfgEndpoint" value="${aiEsc(c.endpoint)}">
     <button class="save" onclick="aiSaveSettings()">${en?'Save':'저장'}</button>
-    <p class="note">${en?'⚠ Putting an API key in a static page risks exposure. In production, point the endpoint at a serverless backend proxy and keep the key server-side.':'⚠ 정적 페이지에서 API 키를 직접 넣으면 노출 위험이 있습니다. 운영 시에는 엔드포인트를 서버리스 백엔드 프록시로 바꾸고 키는 서버에만 두세요.'}</p>`;
+    <p class="note">${en?'Proxy endpoint /api/chat keeps the key server-side (recommended). To call Claude directly for local testing, set the endpoint to https://api.anthropic.com/v1/messages and enter a key.':'프록시 엔드포인트 /api/chat 는 키를 서버에만 둡니다(권장). 로컬 테스트로 Claude를 직접 호출하려면 엔드포인트를 https://api.anthropic.com/v1/messages 로 바꾸고 키를 입력하세요.'}</p>`;
   cfgEl.classList.remove('ai-hidden');foot.classList.add('ai-hidden');body.classList.add('ai-hidden');
 }
 function aiSaveSettings(){
@@ -3573,7 +3579,7 @@ function aiJudgeOpen(id){
   aiS.judge=id;aiS.msgs=[];aiS.pending=[];
   aiS.msgs.push({role:'assistant',text:`[${it.id} · ${it.title}] 자동판정 모드입니다.\n\n관련 문서 사진(계약서·급여명세서·정책문서 등)을 📷로 첨부한 뒤 ➤를 누르세요. 판정기준과 대조해 등급을 제안합니다.\n\n※ 제안은 초안이며, 적용 여부는 감사자가 결정합니다.`});
   aiShowPanel();
-  if(!aiCfg().apiKey)aiToggleSettings();
+  if(aiNeedsKey())aiToggleSettings();
 }
 
 async function aiJudgeRun(){
@@ -3581,7 +3587,7 @@ async function aiJudgeRun(){
   const id=aiS.judge,it=nsupItemById(id);
   if(!it)return;
   const cfg=aiCfg();
-  if(!cfg.apiKey){aiToggleSettings();return;}
+  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
   if(aiS.pending.length===0){
     aiS.msgs.push({role:'error',text:'⚠ 문서 사진을 1장 이상 첨부해 주세요.'});
     aiRender();return;
@@ -3617,19 +3623,10 @@ ${note}
   aiS.busy=true;aiRender();
 
   try{
-    const res=await fetch(cfg.endpoint,{
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        'x-api-key':cfg.apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:cfg.model,max_tokens:3000,system:AI_SYSTEM,
-        messages:[{role:'user',content:blocks}],
-        output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}
-      })
+    const res=await aiPost({
+      model:cfg.model,max_tokens:3000,system:AI_SYSTEM,
+      messages:[{role:'user',content:blocks}],
+      output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}
     });
     const data=await res.json();
     if(!res.ok){
@@ -3737,8 +3734,8 @@ const MANUAL_SECTIONS=[
    ko:{title:'AI 도우미 열기 (문서분석·질의)',desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 엽니다.',steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
    en:{title:'Open AI Assistant (Analysis & Q&A)',desc:'Tap the <b>✦</b> button (bottom-right) on any screen to open the AI assistant.',steps:['Attach a photo for OCR analysis, or type a question for RBA VAP guidance.']}},
   {n:'08',img:'manual/aichat.png',
-   ko:{title:'AI 연결 설정 (API 키)',desc:'AI 기능을 쓰려면 설정(⚙)에서 <b>API 키</b>를 입력하고 저장해야 합니다.',steps:['API 키는 이 기기에만 저장됩니다.','기본 모델은 저비용 Haiku입니다. 설정에서 변경 가능합니다.']},
-   en:{title:'AI Setup (API Key)',desc:'To use AI features, enter your <b>API key</b> in Settings (⚙) and save.',steps:['The key is stored only on this device.','Default model is low-cost Haiku; changeable in settings.']}},
+   ko:{title:'AI 연결 설정',desc:'기본은 <b>백엔드 프록시</b>(/api/chat)라서 앱에는 키를 넣지 않습니다 — API 키는 <b>Netlify 환경변수</b>(ANTHROPIC_API_KEY)에만 둡니다.',steps:['키가 코드·깃·브라우저에 노출되지 않습니다.','로컬 테스트로 직접 호출하려면 설정(⚙)에서 엔드포인트를 api.anthropic.com 으로 바꾸고 키를 입력합니다.','기본 모델은 저비용 Haiku이며 설정에서 변경 가능합니다.']},
+   en:{title:'AI Setup',desc:'By default the app uses a <b>backend proxy</b> (/api/chat), so you don’t enter a key in the app — the API key lives only in a <b>Netlify environment variable</b> (ANTHROPIC_API_KEY).',steps:['The key is never exposed in code, git, or the browser.','For local direct testing, change the endpoint to api.anthropic.com in Settings (⚙) and enter a key.','Default model is low-cost Haiku; changeable in settings.']}},
 ];
 const PROCESS_SECTIONS=[
   {ko:{t:'① 점검 준비 (Setup)',b:'<b>Vendor Code</b>(선택)를 입력합니다 — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동으로 부여됩니다.<br>국가와 현지 법정 기준을 입력하면 자동 등급 산정에 반영됩니다:<ul><li>퇴사 사전통지 기간(개월)</li><li>주당 최대 근로시간</li><li>초과근로 할증률(%)</li><li>월 최저임금</li><li>최저 고용연령</li><li>개인서류 원본 보관 허용 여부</li></ul>입력 후 <b>Start</b>를 누릅니다.'},

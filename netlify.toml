@@ -1,0 +1,12 @@
+# Netlify 설정 — 정적 사이트 + Claude 프록시 함수
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+# 프론트가 호출하는 /api/chat 를 프록시 함수로 연결 (rewrite)
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
