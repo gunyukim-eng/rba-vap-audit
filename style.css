@@ -558,3 +558,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .lv-b.on{background:var(--muted);border-color:var(--muted)}
 .lv-note{width:100%;margin-top:8px;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--r-md);
   font-family:inherit;font-size:13px}
+
+/* ─── 상·하단 여백 (safe-area / 잘림 방지) ─── */
+.nav{padding-top:env(safe-area-inset-top,0px);height:auto;min-height:44px}
+.bot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.content{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.ai-foot{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.ai-head{padding-top:env(safe-area-inset-top,0px);height:auto;min-height:48px}
+.landing{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}

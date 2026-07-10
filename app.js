@@ -3351,6 +3351,7 @@ function render(){
     S.screen==='supimport'?screenSupImport():
     S.screen==='manual'?screenManual():'';
   if(S.vendorCode&&S.auditType&&!['landing','setup','pick','supplier','supimport'].includes(S.screen))saveToStorage();
+  navSync();
 }
 
 // Detect URL params for supplier flow
@@ -3368,6 +3369,27 @@ function render(){
     }catch(e){console.error('Import parse error',e);}
   }
 })();
+
+// ─── 안드로이드 back(하드웨어/제스처) → 앱 이전 화면 ───
+let _navPopping=false,_lastNavKey=null;
+function navSnap(){return{screen:S.screen,item:S.item,step:S.step,homeTab:S.homeTab,nsupItem:S.nsupItem,auditType:S.auditType};}
+function navKey(){return[S.screen,S.item,S.step,S.homeTab,S.nsupItem,S.auditType].join('|');}
+function navSync(){
+  if(_navPopping)return;
+  const k=navKey();
+  try{
+    if(_lastNavKey===null){history.replaceState({snap:navSnap()},'');_lastNavKey=k;return;}
+    if(k!==_lastNavKey){history.pushState({snap:navSnap()},'');_lastNavKey=k;}
+  }catch(e){/* file:// 등에서 pushState 불가 시 무시 */}
+}
+window.addEventListener('popstate',function(e){
+  // 오버레이(사진뷰어·AI패널)가 열려 있으면 먼저 닫는다
+  const pv=document.getElementById('photoViewer'),ap=document.getElementById('aiPanel');
+  if(pv&&pv.style.display==='flex'){closePhotoViewer();try{history.pushState({snap:navSnap()},'');}catch(e2){}return;}
+  if(ap&&!ap.classList.contains('ai-hidden')){aiClose();try{history.pushState({snap:navSnap()},'');}catch(e2){}return;}
+  const snap=e.state&&e.state.snap;
+  if(snap){_navPopping=true;Object.assign(S,snap);render();_lastNavKey=navKey();_navPopping=false;}
+});
 
 render();
 
