@@ -1728,6 +1728,7 @@ const initState=()=>({
   nsupItem:null,
   auditType:null,
   aiFindings:{},
+  lawViol:{},
 });
 let S=initState();
 
@@ -1782,6 +1783,9 @@ function calcItem(id){
   if(id==='a32'&&a.doc['d1']==='no')parts.push(calcDaysR());
   // A1.3 Priority → A1.1 also Priority
   if(id==='a11'&&S.done['a13']&&calcItem('a13')==='priority')parts.push('priority');
+  // AI 판정(제안 적용) · 국가 법령 위반 → 최종 판정에 반영
+  const _af=(S.aiFindings||{})[id]; if(_af&&_af.grade&&_af.grade!=='conformance'&&LVL.includes(_af.grade))parts.push(_af.grade);
+  const _lv=(S.lawViol||{})[id]; if(_lv&&_lv.sev&&LVL.includes(_lv.sev))parts.push(_lv.sev);
   return parts.reduce(maxR,'conformance');
 }
 
@@ -2380,6 +2384,7 @@ function screenItem(){
     <button class="ai-item-btn" onclick="aiAskItem('${id}','major')">🤖 ${S.lang==='en'?'AI analysis & questions':'AI 분석·질문'}</button>
     ${aiFindingCard(id)}
     ${isDoc?docRefBox(id):''}
+    ${isDoc?lawViolCard(id):''}
     ${qs.map(q=>qcard(q,id,step,ans)).join('')}
   </div>
   <div class="bot"><button class="bs" onclick="itemBack()">${t('back')}</button><button class="bp" onclick="itemNext()">${t('next')}</button></div>`;
@@ -2609,6 +2614,8 @@ function screenResult(id,steps,idx,tot){
   if(id==='a32'&&a.doc['d1']==='no'){const dr=calcDaysR();if(dr!=='conformance')all.push({text:`Consecutive days exceed 6 — max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr});}
   const _af=(S.aiFindings||{})[id];
   if(_af)all.push({text:'🤖 [AI] '+_af.finding,sev:_af.grade});
+  const _lv=(S.lawViol||{})[id];
+  if(_lv&&_lv.sev)all.push({text:(S.lang==='en'?'🏛 [Local law] ':'🏛 [국가 법령] ')+(_lv.note||(S.lang==='en'?'Local law violation':'국가 법령 위반')),sev:_lv.sev});
 
   const l=S.law,lawNotes=[];
   if((id==='a11'||id==='a12')&&l.resignNotice&&parseFloat(l.resignNotice)>1) lawNotes.push(`Local notice period (${l.resignNotice} months) exceeds RBA max of 1 month — RBA standard applies`);
@@ -2670,6 +2677,8 @@ function exportCSV(){
     if(id==='a32'&&a.doc['d1']==='no'){const dr2=calcDaysR();if(dr2!=='conformance')finds.push({text:`Consecutive days: max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr2});}
     const af=(S.aiFindings||{})[id];
     if(af)finds.push({text:'[AI] '+af.finding,sev:af.grade});
+    const lv=(S.lawViol||{})[id];
+    if(lv&&lv.sev)finds.push({text:'[Local law] '+(lv.note||'Local law violation'),sev:lv.sev});
 
     const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
 
@@ -3582,6 +3591,25 @@ function aiDismissJudgment(idx){
   const inp=document.getElementById('aiInput'); if(inp)inp.focus();
 }
 function aiFindingClear(id){ if(S.aiFindings)delete S.aiFindings[id]; render(); }
+// 국가 법령 위반 (문서 점검 단계에서 수동 기록) → 최종 판정·결과·엑셀에 반영
+function lawViolCard(id){
+  const en=S.lang==='en';
+  const lv=(S.lawViol||{})[id]||{};
+  const sev=lv.sev||'none';
+  const opts=[['none',en?'None':'없음'],['minor','Minor'],['major','Major'],['priority','Priority']];
+  return`<div class="lawviol">
+    <div class="lv-h">🏛 ${en?'Local law violation':'국가 법령 위반'}</div>
+    <div class="lv-btns">${opts.map(o=>`<button class="lv-b${sev===o[0]?' on'+(o[0]==='none'?'':' '+(AI_GKEY[o[0]]||'M')):''}" onclick="setLawViol('${id}','${o[0]}')">${o[1]}</button>`).join('')}</div>
+    ${sev!=='none'?`<input class="lv-note" placeholder="${en?'Describe the violation (optional)':'위반 내용 (선택)'}" value="${aiEsc(lv.note||'').split('"').join('&quot;')}" oninput="setLawViolNote('${id}',this.value)">`:''}
+  </div>`;
+}
+function setLawViol(id,sev){
+  if(!S.lawViol)S.lawViol={};
+  if(sev==='none')delete S.lawViol[id];
+  else S.lawViol[id]={sev,note:(S.lawViol[id]||{}).note||''};
+  render();
+}
+function setLawViolNote(id,v){ if(!S.lawViol)S.lawViol={}; if(!S.lawViol[id])S.lawViol[id]={sev:'major'}; S.lawViol[id].note=v; }
 // 항목 화면에 표시되는 AI 분석 결과(반영됨) 카드
 function aiFindingCard(id){
   const f=(S.aiFindings||{})[id]; if(!f)return'';

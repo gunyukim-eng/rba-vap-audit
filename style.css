@@ -544,3 +544,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .ai-ff{font-size:12.5px;line-height:1.5;color:var(--ink);padding-right:44px}
 .ai-fx{position:absolute;top:9px;right:10px;background:none;border:none;color:var(--muted);font-size:11px;
   font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* 국가 법령 위반 (문서 점검) */
+.lawviol{background:var(--canvas);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:12px;margin-bottom:12px}
+.lv-h{font-size:13px;font-weight:800;margin-bottom:8px}
+.lv-btns{display:flex;gap:6px}
+.lv-b{flex:1;padding:8px 4px;border-radius:var(--pill);border:1.5px solid var(--line);background:var(--canvas);
+  font-size:12px;font-weight:700;color:var(--muted);font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lv-b.on{color:#fff}
+.lv-b.on.m{background:var(--m);border-color:var(--m)}
+.lv-b.on.M{background:var(--M);border-color:var(--M)}
+.lv-b.on.P{background:var(--P);border-color:var(--P)}
+.lv-b.on{background:var(--muted);border-color:var(--muted)}
+.lv-note{width:100%;margin-top:8px;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-family:inherit;font-size:13px}
