@@ -540,7 +540,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 /* AI 분석 결과 카드 (항목 화면) */
 .ai-fcard{position:relative;background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-md);
   padding:11px 12px;margin-bottom:14px}
-.ai-fh{font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.ai-fh{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:5px;padding-right:52px}
 .ai-ff{font-size:12.5px;line-height:1.5;color:var(--ink);padding-right:44px}
 .ai-fx{position:absolute;top:9px;right:10px;background:none;border:none;color:var(--muted);font-size:11px;
   font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
