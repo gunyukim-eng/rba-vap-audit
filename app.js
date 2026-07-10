@@ -1727,6 +1727,7 @@ const initState=()=>({
   nsupAI:{},
   nsupItem:null,
   auditType:null,
+  aiFindings:{},
 });
 let S=initState();
 
@@ -2377,6 +2378,7 @@ function screenItem(){
     <h2 class="stitle">${stepName(step)}</h2>
     <p class="ssub">${typeCtx[step]||''} · ${done}/${qs.length} ${t('answered')}</p>
     <button class="ai-item-btn" onclick="aiAskItem('${id}','major')">🤖 ${S.lang==='en'?'AI analysis & questions':'AI 분석·질문'}</button>
+    ${aiFindingCard(id)}
     ${isDoc?docRefBox(id):''}
     ${qs.map(q=>qcard(q,id,step,ans)).join('')}
   </div>
@@ -2605,6 +2607,8 @@ function screenResult(id,steps,idx,tot){
   if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')all.push({text:`Prohibited fees found — ${S.fees.workerPct||'?'}% of workers, ${S.fees.feeAmtPct||'?'}% of monthly salary`,sev:fr});}
   if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')all.push({text:`Hours exceed 60/week — max ${S.hours31.maxHours||'?'} hrs, ${S.hours31.pctOver||'?'}% of sampled weeks`,sev:hr});}
   if(id==='a32'&&a.doc['d1']==='no'){const dr=calcDaysR();if(dr!=='conformance')all.push({text:`Consecutive days exceed 6 — max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr});}
+  const _af=(S.aiFindings||{})[id];
+  if(_af)all.push({text:'🤖 [AI] '+_af.finding,sev:_af.grade});
 
   const l=S.law,lawNotes=[];
   if((id==='a11'||id==='a12')&&l.resignNotice&&parseFloat(l.resignNotice)>1) lawNotes.push(`Local notice period (${l.resignNotice} months) exceeds RBA max of 1 month — RBA standard applies`);
@@ -2664,6 +2668,8 @@ function exportCSV(){
     if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')finds.push({text:`Prohibited fees: ${S.fees.workerPct||'?'}% workers, ${S.fees.feeAmtPct||'?'}% of monthly salary`,sev:fr});}
     if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')finds.push({text:`Working hours: max ${S.hours31.maxHours||'?'} hrs/week, ${S.hours31.pctOver||'?'}% of sampled weeks`,sev:hr});}
     if(id==='a32'&&a.doc['d1']==='no'){const dr2=calcDaysR();if(dr2!=='conformance')finds.push({text:`Consecutive days: max ${S.days32.maxDays||'?'} days, ${S.days32.pctOver||'?'}% of workers`,sev:dr2});}
+    const af=(S.aiFindings||{})[id];
+    if(af)finds.push({text:'[AI] '+af.finding,sev:af.grade});
 
     const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
 
@@ -3387,7 +3393,9 @@ const AI_SYSTEM=`당신은 RBA VAP(Validated Audit Process) 신규협력사 심�
 - 한국어로 간결하고 실무적으로 답변합니다.`;
 
 // in-memory chat state (감사 세션 저장소와 분리)
-const aiS={busy:false,msgs:[],pending:[],judge:null,ctx:null}; // judge: 자동판정 대상 항목 id · ctx: 현재 항목 맥락
+const aiS={busy:false,msgs:[],pending:[],judge:null,ctx:null,ctxId:null,ctxKind:null}; // judge: 자동판정 대상 · ctx/ctxId/ctxKind: 현재 항목 맥락
+const AI_GLBL={conformance:'Conformance',minor:'Minor',major:'Major',priority:'Priority',na:'N/A'};
+const AI_GKEY={conformance:'C',minor:'m',major:'M',priority:'P',na:'na'};
 
 function aiEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function aiFmt(s){return aiEsc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
@@ -3405,14 +3413,14 @@ function aiShowPanel(){
   aiRender();
 }
 function aiOpen(){ // FAB → 일반 챗 모드
-  if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.msgs=[];aiS.pending=[];}
+  if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.ctxId=null;aiS.ctxKind=null;aiS.msgs=[];aiS.pending=[];}
   aiShowPanel();
   if(aiNeedsKey()&&aiS.msgs.length===0)aiToggleSettings();
 }
 // 각 항목 안에서 AI 분석·질문 (항목 맥락 주입, Haiku로 답변)
 function aiAskItem(id,kind){
   const en=S.lang==='en';
-  aiS.judge=null;
+  aiS.judge=null;aiS.ctxId=id;aiS.ctxKind=kind;
   if(kind==='nsup'){
     const it=nsupItemById(id); if(!it)return;
     aiS.ctx=`[항목] ${it.id} ${it.title} (${NSUP_GRPT[it.grp]||it.grp}) · 배점 ${it.c}점\n[판정기준]\n${it.crit}`;
@@ -3442,10 +3450,20 @@ function aiRender(){
   if(aiS.msgs.length===0){
     h=`<div class="ai-empty">문서 사진을 첨부하면 <b>OCR로 내용을 읽어</b> 점검 기준과 대조해 분석하고,<br>질문을 입력하면 <b>RBA VAP 기준</b>에 근거해 답변합니다.<br><br>※ 최종 판정은 감사자가 확정합니다.</div>`;
   }else{
-    aiS.msgs.forEach(m=>{
+    const en=S.lang==='en';
+    aiS.msgs.forEach((m,idx)=>{
       const imgs=(m.images||[]).map(d=>`<img src="${d}">`).join('');
       const cls=m.role==='user'?'u':(m.role==='error'?'a err':'a');
       h+=`<div class="aim ${cls}"><div class="aibub">${imgs}${m.role==='assistant'||m.role==='error'?aiFmt(m.text):aiEsc(m.text).replace(/\n/g,'<br>')}</div></div>`;
+      const j=m.judgment;
+      if(j){
+        h+=`<div class="ai-jcard">
+          <div class="ai-jh">🤖 ${en?'AI analysis result':'AI 분석 결과'} — <span class="icbadge ${AI_GKEY[j.grade]||'M'}">${AI_GLBL[j.grade]||j.grade}</span></div>
+          <div class="ai-jf">${aiEsc(j.finding||'')}</div>
+          ${j.applied?`<div class="ai-japplied">✅ ${en?'Recorded to item findings':'항목 위반 결과에 반영됨'}</div>`
+          :`<div class="ai-jbtns"><button class="ap" onclick="aiApplyFinding(${idx})">${en?'Apply to findings':'제안 적용'}</button><button onclick="aiDismissJudgment(${idx})">${en?'Ask again':'재질문'}</button></div>`}
+        </div>`;
+      }
     });
   }
   if(aiS.busy)h+=`<div class="ai-typing">분석 중…</div>`;
@@ -3492,7 +3510,8 @@ async function aiSend(){
 
   const images=aiS.pending.map(p=>p.dataURL);
   const apiImgs=aiS.pending.map(p=>({type:'image',source:{type:'base64',media_type:p.media_type,data:p.data}}));
-  aiS.msgs.push({role:'user',text:text||'(문서 분석 요청)',images});
+  const userQ=text||'(문서 분석 요청)';
+  aiS.msgs.push({role:'user',text:userQ,images});
   aiS.pending=[];inp.value='';aiAutoGrow(inp);
   aiS.busy=true;aiRender();
 
@@ -3505,20 +3524,73 @@ async function aiSend(){
     return{role:m.role,content:blocks};
   });
 
+  // Major 협력사 항목 질문이면 판정요소를 구조화로 함께 받는다
+  const structured=aiS.ctxKind==='major';
+  const payload={model:cfg.model,max_tokens:4096,
+    system:AI_SYSTEM
+      +(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:'')
+      +(structured?`\n\n[판정요소 추출] 답변이 특정 위반/판정을 시사하면 has_judgment=true 로 하고, grade(conformance|minor|major|priority|na)와 finding(위반 내용 한 줄 요약)을 채워라. 단순 정보성 답변이면 has_judgment=false, grade='na', finding=''.`:''),
+    messages:apiMsgs};
+  if(structured)payload.output_config={format:{type:'json_schema',schema:AI_QA_SCHEMA}};
+
   try{
-    const res=await aiPost({model:cfg.model,max_tokens:4096,system:AI_SYSTEM+(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:''),messages:apiMsgs});
+    const res=await aiPost(payload);
     const data=await res.json();
     if(!res.ok){
       const msg=(data&&data.error&&data.error.message)||('요청 실패 ('+res.status+')');
       aiS.msgs.push({role:'error',text:'⚠ '+msg});
     }else{
       const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
-      aiS.msgs.push({role:'assistant',text:txt||'(응답이 비어 있습니다)'});
+      if(structured){
+        let j=null,answer=txt;
+        try{const o=JSON.parse(txt);answer=o.answer||txt;if(o.has_judgment&&o.grade&&o.grade!=='na'&&AI_GLBL[o.grade])j={grade:o.grade,finding:o.finding||answer,q:userQ};}catch(e){}
+        aiS.msgs.push({role:'assistant',text:answer||'(응답이 비어 있습니다)',judgment:j});
+      }else{
+        aiS.msgs.push({role:'assistant',text:txt||'(응답이 비어 있습니다)'});
+      }
     }
   }catch(err){
     aiS.msgs.push({role:'error',text:'⚠ 통신 오류: '+err.message+'\n(CORS 차단 시 백엔드 프록시가 필요합니다)'});
   }
   aiS.busy=false;aiRender();
+}
+const AI_QA_SCHEMA={
+  type:'object',
+  properties:{
+    answer:{type:'string',description:'사용자 질문에 대한 대화형 답변'},
+    has_judgment:{type:'boolean'},
+    grade:{type:'string',enum:['conformance','minor','major','priority','na']},
+    finding:{type:'string',description:'위반/판정 내용 한 줄 요약'}
+  },
+  required:['answer','has_judgment','grade','finding'],
+  additionalProperties:false
+};
+// 판정 카드: [제안 적용] → 항목 위반 결과에 기록
+function aiApplyFinding(idx){
+  const m=aiS.msgs[idx]; if(!m||!m.judgment||!aiS.ctxId)return;
+  if(!S.aiFindings)S.aiFindings={};
+  S.aiFindings[aiS.ctxId]={grade:m.judgment.grade,finding:m.judgment.finding,q:m.judgment.q||'',ts:Date.now()};
+  m.judgment.applied=true;
+  const en=S.lang==='en';
+  aiS.msgs.push({role:'assistant',text:en?`✅ Recorded to this item's findings (${AI_GLBL[m.judgment.grade]}). It now appears on the result screen and the Excel export.`:`✅ 이 항목 위반 결과에 반영했습니다 (${AI_GLBL[m.judgment.grade]}). 결과 화면과 Excel 내보내기에 표시됩니다.`});
+  render(); // 뒤 화면(항목/결과) 갱신
+  aiRender();
+}
+function aiDismissJudgment(idx){
+  const m=aiS.msgs[idx]; if(m)m.judgment=null;
+  aiRender();
+  const inp=document.getElementById('aiInput'); if(inp)inp.focus();
+}
+function aiFindingClear(id){ if(S.aiFindings)delete S.aiFindings[id]; render(); }
+// 항목 화면에 표시되는 AI 분석 결과(반영됨) 카드
+function aiFindingCard(id){
+  const f=(S.aiFindings||{})[id]; if(!f)return'';
+  const en=S.lang==='en';
+  return`<div class="ai-fcard">
+    <div class="ai-fh"><span>🤖 ${en?'AI analysis result':'AI 분석 결과'}</span><span class="icbadge ${AI_GKEY[f.grade]||'M'}">${AI_GLBL[f.grade]||f.grade}</span></div>
+    <div class="ai-ff">${aiEsc(f.finding||'')}</div>
+    <button class="ai-fx" onclick="aiFindingClear('${id}')">${en?'✕ Remove':'✕ 삭제'}</button>
+  </div>`;
 }
 
 function aiToggleSettings(){

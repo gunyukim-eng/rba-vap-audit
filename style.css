@@ -525,3 +525,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
   background:#f6faff;color:var(--blue);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
   -webkit-tap-highlight-color:transparent}
 .ai-item-btn:active{transform:scale(.99)}
+
+/* AI 판정 카드 (채팅 내) */
+.ai-jcard{align-self:flex-start;max-width:88%;background:#fff8ee;border:1.5px solid var(--M);border-radius:12px;
+  border-bottom-left-radius:4px;padding:10px 12px;font-size:13px}
+.ai-jh{font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ai-jf{line-height:1.5;color:var(--ink);margin-bottom:8px}
+.ai-jbtns{display:flex;gap:6px}
+.ai-jbtns button{flex:1;padding:7px;border-radius:var(--pill);border:1.5px solid var(--line);background:var(--canvas);
+  font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ai-jbtns .ap{background:var(--blue);border-color:var(--blue);color:#fff}
+.ai-japplied{font-size:12px;font-weight:700;color:var(--C)}
+
+/* AI 분석 결과 카드 (항목 화면) */
+.ai-fcard{position:relative;background:#fff8ee;border:1.5px solid var(--M);border-radius:var(--r-md);
+  padding:11px 12px;margin-bottom:14px}
+.ai-fh{font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.ai-ff{font-size:12.5px;line-height:1.5;color:var(--ink);padding-right:44px}
+.ai-fx{position:absolute;top:9px;right:10px;background:none;border:none;color:var(--muted);font-size:11px;
+  font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
