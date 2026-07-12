@@ -1,0 +1,9 @@
+{
+  "name": "rba-vap-audit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RBA VAP on-site audit app (static) with Netlify Functions Claude proxy + logging",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

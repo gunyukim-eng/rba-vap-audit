@@ -10,3 +10,9 @@
   from = "/api/chat"
   to = "/.netlify/functions/chat"
   status = 200
+
+# 로그 내보내기 (few-shot용 JSONL) — LOG_EXPORT_KEY 필요
+[[redirects]]
+  from = "/api/logs-export"
+  to = "/.netlify/functions/logs-export"
+  status = 200
