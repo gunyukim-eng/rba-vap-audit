@@ -566,3 +566,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .ai-foot{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
 .ai-head{padding-top:env(safe-area-inset-top,0px);height:auto;min-height:48px}
 .landing{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* ─── AI 답변 마크다운 렌더 ─── */
+.aim.a .aibub, .aim.err .aibub{white-space:normal}
+.aibub .aimd-p{margin:0 0 6px}
+.aibub .aimd-p:last-child{margin-bottom:0}
+.aibub .aimd-h1{font-size:15px;font-weight:800;margin:9px 0 5px;line-height:1.3}
+.aibub .aimd-h2{font-size:14px;font-weight:800;margin:8px 0 4px;line-height:1.3}
+.aibub .aimd-h3{font-size:13.5px;font-weight:700;margin:7px 0 4px;line-height:1.3}
+.aibub .aimd-h1:first-child,.aibub .aimd-h2:first-child,.aibub .aimd-h3:first-child{margin-top:0}
+.aibub .aimd-ul,.aibub .aimd-ol{margin:4px 0 8px;padding-left:20px}
+.aibub .aimd-ul{list-style:disc}.aibub .aimd-ol{list-style:decimal}
+.aibub .aimd-ul li,.aibub .aimd-ol li{margin-bottom:3px;line-height:1.5}
+.aibub .aimd-q{border-left:3px solid var(--line);padding-left:9px;color:var(--muted);margin:6px 0}
+.aibub .aimd-hr{border:none;border-top:1px solid var(--line);margin:9px 0}
+.aibub code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:5px;font-size:12.5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.aibub .aimd-pre{background:#1c1c1e;color:#f5f5f7;padding:10px 12px;border-radius:8px;overflow-x:auto;
+  font-size:12px;line-height:1.5;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:6px 0;white-space:pre}
+.aibub .aimd-pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.aibub a{color:var(--blue);text-decoration:underline;word-break:break-all}

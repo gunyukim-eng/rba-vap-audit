@@ -3429,7 +3429,38 @@ const AI_GLBL={conformance:'Conformance',minor:'Minor',major:'Major',priority:'P
 const AI_GKEY={conformance:'C',minor:'m',major:'M',priority:'P',na:'na'};
 
 function aiEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function aiFmt(s){return aiEsc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
+// 마크다운 → HTML (채팅 답변을 예쁘게 렌더). 먼저 escape 후 서식 적용(XSS 안전)
+function aiFmt(s){
+  s=String(s==null?'':s);
+  const inl=t=>t
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/\*([^*\n]+)\*/g,'<i>$1</i>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const lines=s.split('\n');
+  let h='',list=null,inCode=false,code=[];
+  const close=()=>{if(list){h+='</'+list+'>';list=null;}};
+  for(const raw of lines){
+    if(/^\s*```/.test(raw)){
+      if(inCode){h+='<pre class="aimd-pre">'+aiEsc(code.join('\n'))+'</pre>';code=[];inCode=false;}
+      else{close();inCode=true;}
+      continue;
+    }
+    if(inCode){code.push(raw);continue;}
+    const line=raw.replace(/\s+$/,'');
+    if(!line.trim()){close();continue;}
+    let m;
+    if(m=line.match(/^(#{1,3})\s+(.*)$/)){close();h+='<div class="aimd-h'+m[1].length+'">'+inl(aiEsc(m[2]))+'</div>';continue;}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(line)){close();h+='<hr class="aimd-hr">';continue;}
+    if(m=line.match(/^\s*[-*+]\s+(.*)$/)){if(list!=='ul'){close();h+='<ul class="aimd-ul">';list='ul';}h+='<li>'+inl(aiEsc(m[1]))+'</li>';continue;}
+    if(m=line.match(/^\s*\d+[.)]\s+(.*)$/)){if(list!=='ol'){close();h+='<ol class="aimd-ol">';list='ol';}h+='<li>'+inl(aiEsc(m[1]))+'</li>';continue;}
+    if(m=line.match(/^>\s?(.*)$/)){close();h+='<blockquote class="aimd-q">'+inl(aiEsc(m[1]))+'</blockquote>';continue;}
+    close();h+='<div class="aimd-p">'+inl(aiEsc(line))+'</div>';
+  }
+  if(inCode)h+='<pre class="aimd-pre">'+aiEsc(code.join('\n'))+'</pre>';
+  close();
+  return h;
+}
 
 function aiShowPanel(){
   document.getElementById('aiScrim').classList.remove('ai-hidden');
