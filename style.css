@@ -608,3 +608,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .team-rate{font-size:13px;font-weight:800;color:var(--M);flex-shrink:0}
 .team-open{flex-shrink:0;font-size:12px;font-weight:700;color:#fff;background:var(--blue);
   padding:6px 12px;border-radius:var(--pill)}
+
+/* ─── 접근 잠금 (내부 전용 비밀번호) ─── */
+#lockScreen{position:fixed;inset:0;z-index:9999;background:var(--dark);display:flex;align-items:center;
+  justify-content:center;padding:24px}
+.lock-card{width:100%;max-width:340px;background:var(--canvas);border-radius:20px;padding:28px 22px;
+  text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.lock-ic{font-size:38px;margin-bottom:10px}
+.lock-t{font-size:19px;font-weight:800;margin-bottom:6px}
+.lock-d{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+.lock-card input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-family:inherit;font-size:15px;margin-bottom:9px;text-align:center}
+.lock-card input:focus{outline:none;border-color:var(--blue)}
+.lock-btn{width:100%;padding:12px;border:none;border-radius:var(--pill);background:var(--blue);color:#fff;
+  font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lock-btn:active{transform:scale(.98)}
+.lock-btn.sub{background:var(--ink);font-size:13px;padding:10px}
+.lock-msg{font-size:12.5px;color:var(--P);min-height:18px;margin:10px 0 4px;line-height:1.5}
+.lock-admin-toggle{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;
+  font-family:inherit;cursor:pointer;text-decoration:underline;margin-top:6px;-webkit-tap-highlight-color:transparent}
+.lock-admin{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}

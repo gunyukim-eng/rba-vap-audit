@@ -22,3 +22,9 @@
   from = "/api/team"
   to = "/.netlify/functions/team"
   status = 200
+
+# 앱 접근 비밀번호 (내부 전용 잠금) — APP_PASSWORD / ADMIN_KEY
+[[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200

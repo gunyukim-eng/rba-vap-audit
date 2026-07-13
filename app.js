@@ -1729,6 +1729,9 @@ const initState=()=>({
   auditType:null,
   aiFindings:{},
   lawViol:{},
+  supplierName:'',
+  subsidiary:'',
+  gbm:'',
 });
 let S=initState();
 
@@ -1914,15 +1917,14 @@ function spResult(r){
 
 // ─── SCREENS ──────────────────────────────────
 function screenSetup(){
-  const l=S.law;
   const lp=`<div style="display:flex;gap:5px;margin-bottom:16px">
     ${['en','ko','zh'].map(l=>`<button onclick="S.lang='${l}';render()" style="padding:5px 12px;border-radius:var(--pill);border:1.5px solid ${S.lang===l?'var(--blue)':'var(--line)'};background:${S.lang===l?'var(--blue)':'transparent'};color:${S.lang===l?'#fff':'var(--muted)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${{en:'EN',ko:'한국어',zh:'中文'}[l]}</button>`).join('')}
   </div>`;
   return`${nav('On-Site Audit','S.screen=\'pick\';render()')}
   <div class="content">
     <span class="stag">${t('setup')}</span>
-    <h2 class="stitle">${t('facilitySetup')}</h2>
-    <p class="ssub">${t('setupDesc')}</p>
+    <h2 class="stitle">${S.lang==='ko'?'협력사 정보':S.lang==='zh'?'供应商信息':'Supplier Information'}</h2>
+    <p class="ssub">${S.lang==='ko'?'점검할 협력사 정보를 입력하세요. 홈 화면과 Excel 보고서에 표시됩니다.':S.lang==='zh'?'输入本次检查的供应商信息。将显示在主页和 Excel 报告中。':'Enter the supplier details for this audit. Shown on home and in the Excel report.'}</p>
     ${lp}
     <div class="sfield">
       <label class="slbl" style="display:flex;align-items:center;gap:4px">
@@ -1933,36 +1935,18 @@ function screenSetup(){
         style="${!S.vendorCode?'border-color:var(--line)':'border-color:var(--blue)'}">
       <div class="shint">${S.lang==='ko'?'공급업체 식별 코드 — 같은 코드로 재접속 시 자동 불러오기. 비워두면 자동으로 코드가 부여됩니다.':'Identifies this audit session — reconnecting with the same code resumes your progress. Leave blank to auto-generate one.'}</div>
     </div>
+    <div class="sfield"><label class="slbl">${S.lang==='ko'?'협력사명 (Supplier Name)':'Supplier Name'}</label>
+      <input class="sinput" type="text" placeholder="e.g. ABC Electronics Co., Ltd." value="${S.supplierName||''}" oninput="S.supplierName=this.value">
+    </div>
+    <div class="sfield"><label class="slbl">${S.lang==='ko'?'법인 (Subsidiary)':'Subsidiary'}</label>
+      <input class="sinput" type="text" placeholder="e.g. SEV, SEHC, SDV" value="${S.subsidiary||''}" oninput="S.subsidiary=this.value">
+    </div>
+    <div class="sfield"><label class="slbl">${S.lang==='ko'?'사업부 (GBM)':'GBM'}</label>
+      <input class="sinput" type="text" placeholder="e.g. MX, VD, DA" value="${S.gbm||''}" oninput="S.gbm=this.value">
+    </div>
     <div class="sfield"><label class="slbl">${t('country')}</label>
       <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
-      <div class="shint">${t('countryHint')}</div>
     </div>
-    <div class="sfield"><label class="slbl">${t('resignLbl')}</label>
-      <input class="sinput" type="number" placeholder="e.g. 1" value="${l.resignNotice}" oninput="S.law.resignNotice=this.value">
-      <div class="shint">${t('resignHint')}</div>
-    </div>
-    <div class="sfield"><label class="slbl">${t('maxHrsLbl')}</label>
-      <input class="sinput" type="number" placeholder="e.g. 48" value="${l.maxWeekHrs}" oninput="S.law.maxWeekHrs=this.value">
-      <div class="shint">${t('maxHrsHint')}</div>
-    </div>
-    <div class="sfield"><label class="slbl">${t('otLbl')}</label>
-      <input class="sinput" type="number" placeholder="e.g. 25" value="${l.otPremium}" oninput="S.law.otPremium=this.value">
-      <div class="shint">${t('otHint')}</div>
-    </div>
-    <div class="sfield"><label class="slbl">${t('minWageLbl')}</label>
-      <input class="sinput" type="text" placeholder="e.g. 4,680,000" value="${l.minWage}" oninput="S.law.minWage=this.value">
-    </div>
-    <div class="sfield"><label class="slbl">${t('minAgeLbl')}</label>
-      <input class="sinput" type="number" placeholder="e.g. 15" value="${l.minAge}" oninput="S.law.minAge=this.value">
-      <div class="shint">${t('minAgeHint')}</div>
-    </div>
-    <div class="sfield"><label class="slbl">${t('docRetLbl')}</label>
-      <div class="stoggle">
-        <button class="stbtn ${l.docRetention===true?'sel':''}" onclick="S.law.docRetention=true;render()">${t('permitted')}</button>
-        <button class="stbtn ${l.docRetention===false?'sel':''}" onclick="S.law.docRetention=false;render()">${t('notPermitted')}</button>
-      </div>
-    </div>
-    <div class="snote"><strong>${t('roadmap')}</strong></div>
   </div>
   <div class="bot"><button class="bp" onclick="startAudit()">${t('start')}</button></div>`;
 }
@@ -2327,6 +2311,7 @@ function screenHome(){
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="htitle">${heroTitle}</div>
       <div class="hsub">${isNsup?(S.lang==='ko'?'항목을 눌러 예/아니오로 답하세요':'Tap an item and answer Yes/No'):t('selectItem')}</div>
+      ${S.supplierName?`<div class="hcountry">🏢 ${S.supplierName}${S.subsidiary||S.gbm?` · ${[S.subsidiary,S.gbm].filter(Boolean).join(' / ')}`:''}</div>`:''}
       ${S.country?`<div class="hcountry">📍 ${S.country}</div>`:''}
       ${langPills}</div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
@@ -2721,6 +2706,10 @@ function exportCSV(){
   // Facility info rows at top
   const meta=[
     ['On-Site Labor Audit — Inspection Report'],
+    [`Vendor Code: ${S.vendorCode||'(not set)'}`],
+    [`Supplier Name: ${S.supplierName||'(not set)'}`],
+    [`Subsidiary: ${S.subsidiary||'(not set)'}`],
+    [`GBM: ${S.gbm||'(not set)'}`],
     [`Facility Country: ${S.country||'(not set)'}`],
     [`Audit Date: ${new Date().toISOString().slice(0,10)}`],
     [`Items Completed: ${allDone.length} / ${Object.keys(ITEMS).length}`],
@@ -3894,8 +3883,8 @@ const MANUAL_SECTIONS=[
    en:{title:'AI Setup',desc:'By default the app uses a <b>backend proxy</b> (/api/chat), so you don’t enter a key in the app — the API key lives only in a <b>Netlify environment variable</b> (ANTHROPIC_API_KEY).',steps:['The key is never exposed in code, git, or the browser.','For local direct testing, change the endpoint to api.anthropic.com in Settings (⚙) and enter a key.','Default model is low-cost Haiku; changeable in settings.']}},
 ];
 const PROCESS_SECTIONS=[
-  {ko:{t:'① 점검 준비 (Setup)',b:'<b>Vendor Code</b>(선택)를 입력합니다 — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동으로 부여됩니다.<br>국가와 현지 법정 기준을 입력하면 자동 등급 산정에 반영됩니다:<ul><li>퇴사 사전통지 기간(개월)</li><li>주당 최대 근로시간</li><li>초과근로 할증률(%)</li><li>월 최저임금</li><li>최저 고용연령</li><li>개인서류 원본 보관 허용 여부</li></ul>입력 후 <b>Start</b>를 누릅니다.'},
-   en:{t:'① Prepare the Audit (Setup)',b:'Enter a <b>Vendor Code</b> (optional) — the session is saved/restored by this code; leave blank to auto-generate one.<br>Enter the country and local legal thresholds, which feed the auto-grading:<ul><li>Resignation notice period (months)</li><li>Max weekly working hours</li><li>Overtime premium (%)</li><li>Monthly minimum wage</li><li>Minimum employment age</li><li>Whether original ID retention is permitted</li></ul>Then tap <b>Start</b>.'}},
+  {ko:{t:'① 점검 준비 (Setup)',b:'협력사 식별 정보를 입력합니다:<ul><li><b>Vendor Code</b> (선택) — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동 부여.</li><li><b>협력사명</b> (Supplier Name)</li><li><b>법인</b> (Subsidiary — 예: SEV, SEHC)</li><li><b>사업부</b> (GBM — 예: MX, VD)</li><li><b>국가</b></li></ul>입력한 정보는 홈 화면과 Excel 보고서 상단에 표시됩니다. 입력 후 <b>Start</b>를 누릅니다.'},
+   en:{t:'① Prepare the Audit (Setup)',b:'Enter the supplier identification:<ul><li><b>Vendor Code</b> (optional) — the session is saved/restored by this code; blank = auto-generated.</li><li><b>Supplier Name</b></li><li><b>Subsidiary</b> (e.g. SEV, SEHC)</li><li><b>GBM</b> (business unit, e.g. MX, VD)</li><li><b>Country</b></li></ul>This info appears on the home screen and at the top of the Excel report. Then tap <b>Start</b>.'}},
   {ko:{t:'② 홈 화면 구성',b:'홈에는 3개 탭이 있습니다:<ul><li><b>점검 항목</b> — 노동/윤리/공급망 정식 점검(A·AM·D·DM·E)</li><li><b>필요 서류</b> — 그룹별 요구 서류 목록</li><li><b>신규협력사</b> — 신규 등록 평가 체크리스트(19항목)</li></ul>상단 요약바에 그룹별 적합률과 총점이 실시간 표시됩니다.'},
    en:{t:'② Home Layout',b:'Home has three tabs:<ul><li><b>Audit Items</b> — formal Labor/Ethics/Supply-chain checks (A·AM·D·DM·E)</li><li><b>Documents</b> — required documents per group</li><li><b>New Supplier</b> — new-registration checklist (19 items)</li></ul>The summary bar shows per-group conformance and total score in real time.'}},
   {ko:{t:'③ 항목 점검 — 3단계 진행',b:'각 점검 항목은 세 단계로 진행합니다:<ol><li><b>경영진 면담</b> (Management)</li><li><b>기록 검토</b> (Document Review)</li><li><b>근로자 면담</b> (Worker Interview)</li></ol>각 질문에 <b>예 / 아니오 / N/A</b>로 답합니다. 위반에 해당하면 심각도(Priority·Major·Minor)가 자동 반영됩니다. 하단 <b>다음</b>으로 단계를 이동합니다.'},
@@ -3974,7 +3963,8 @@ async function teamPush(k,meta){
     const res=await fetch('/api/team?action=save',{
       method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({key:k,session:sess,meta:{
-        code:S.vendorCode,country:S.country,lang:S.lang,auditType:S.auditType,
+        code:S.vendorCode,supplierName:S.supplierName||'',subsidiary:S.subsidiary||'',gbm:S.gbm||'',
+        country:S.country,lang:S.lang,auditType:S.auditType,
         rate:(meta&&meta.rate!==undefined)?meta.rate:null,
         done:meta?meta.done:null,total:meta?meta.total:null,
         updated:new Date().toISOString()}})
@@ -4021,6 +4011,86 @@ function teamSaveKey(){
   if(v)teamRefresh();
 }
 
+// ═══════════════════════════════════════════════════════════
+//  접근 잠금 — 내부 사용자 전용 비밀번호 (서버 검증 /api/auth)
+//  · 초기 비밀번호: Netlify 환경변수 APP_PASSWORD
+//  · 관리자(ADMIN_KEY 보유)는 잠금 화면에서 비밀번호 변경 가능
+//  · file:// 로컬 개발과 협력사 링크(?sup=)는 잠금 제외
+// ═══════════════════════════════════════════════════════════
+const AUTH_KEY='vap_auth';
+async function authCheck(pw){
+  const res=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({action:'check',password:pw})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
+  return !!data.ok;
+}
+function lockShow(msg){
+  let el=document.getElementById('lockScreen');
+  if(!el){
+    el=document.createElement('div');
+    el.id='lockScreen';
+    document.body.appendChild(el);
+  }
+  el.innerHTML=`
+    <div class="lock-card">
+      <div class="lock-ic">🔒</div>
+      <div class="lock-t">On-Site Audit</div>
+      <div class="lock-d">내부 사용자 전용입니다.<br>비밀번호를 입력하세요.</div>
+      <input id="lockPw" type="password" placeholder="비밀번호" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')lockTry()">
+      <button class="lock-btn" onclick="lockTry()">들어가기</button>
+      <div id="lockMsg" class="lock-msg">${msg||''}</div>
+      <button class="lock-admin-toggle" onclick="document.getElementById('lockAdmin').classList.toggle('ai-hidden')">관리자: 비밀번호 변경</button>
+      <div id="lockAdmin" class="lock-admin ai-hidden">
+        <input id="lockAdminKey" type="password" placeholder="관리자 키 (ADMIN_KEY)">
+        <input id="lockNewPw" type="text" placeholder="새 비밀번호">
+        <button class="lock-btn sub" onclick="lockSetPw()">변경</button>
+      </div>
+    </div>`;
+  el.style.display='flex';
+  setTimeout(()=>{const i=document.getElementById('lockPw');if(i)i.focus();},50);
+}
+function lockHide(){const el=document.getElementById('lockScreen');if(el)el.style.display='none';}
+async function lockTry(){
+  const pw=(document.getElementById('lockPw').value||'').trim();
+  const m=document.getElementById('lockMsg');
+  if(!pw)return;
+  m.textContent='확인 중…';
+  try{
+    const ok=await authCheck(pw);
+    if(ok){localStorage.setItem(AUTH_KEY,JSON.stringify({pw,ts:Date.now()}));lockHide();}
+    else m.textContent='❌ 비밀번호가 올바르지 않습니다.';
+  }catch(e){m.textContent='⚠ 서버 확인 실패: '+e.message;}
+}
+async function lockSetPw(){
+  const key=(document.getElementById('lockAdminKey').value||'').trim();
+  const np=(document.getElementById('lockNewPw').value||'').trim();
+  const m=document.getElementById('lockMsg');
+  if(!key||!np){m.textContent='관리자 키와 새 비밀번호를 입력하세요.';return;}
+  m.textContent='변경 중…';
+  try{
+    const res=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({action:'set',adminKey:key,newPassword:np})});
+    const data=await res.json().catch(()=>({}));
+    if(res.ok&&data.ok){m.textContent='✅ 변경되었습니다. 새 비밀번호로 입장하세요.';document.getElementById('lockAdmin').classList.add('ai-hidden');}
+    else m.textContent='❌ '+(data.error||'변경 실패 (관리자 키 확인)');
+  }catch(e){m.textContent='⚠ 서버 오류: '+e.message;}
+}
+(function authBoot(){
+  if(location.protocol==='file:')return;                       // 로컬 개발 통과
+  if(new URLSearchParams(location.search).get('sup'))return;   // 협력사 링크 통과
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(AUTH_KEY))||null;}catch(e){}
+  if(saved&&saved.pw){
+    // 백그라운드 재검증 — 비밀번호가 바뀌었으면 다시 잠금
+    authCheck(saved.pw).then(ok=>{
+      if(!ok){localStorage.removeItem(AUTH_KEY);lockShow('비밀번호가 변경되었습니다. 다시 입력하세요.');}
+    }).catch(()=>{/* 오프라인 등 — 기존 인증 유지 */});
+  }else{
+    lockShow();
+  }
+})();
+
 function screenTeam(){
   const ko=S.lang!=='en';
   const k=(teamCfg().syncKey||'').trim();
@@ -4043,8 +4113,8 @@ function screenTeam(){
     body=_teamList.map(m=>`
       <div class="team-card" onclick="teamLoad('${aiEsc(m.code)}')">
         <div class="team-info">
-          <div class="team-code">${aiEsc(m.code)}</div>
-          <div class="team-meta">${aiEsc(m.country||'—')} · ${typeLbl(m.auditType)} · ${m.done!=null?`${m.done}/${m.total}`:'—'} · ${fmt(m.updated)}</div>
+          <div class="team-code">${aiEsc(m.code)}${m.supplierName?` <span style="font-weight:600;color:var(--muted);font-size:12px">· ${aiEsc(m.supplierName)}</span>`:''}</div>
+          <div class="team-meta">${[m.subsidiary,m.gbm].filter(Boolean).map(aiEsc).join(' / ')||aiEsc(m.country||'—')} · ${typeLbl(m.auditType)} · ${m.done!=null?`${m.done}/${m.total}`:'—'} · ${fmt(m.updated)}</div>
         </div>
         ${m.rate!=null?`<span class="team-rate">${m.rate}%</span>`:''}
         <span class="team-open">${ko?'열기':'Open'}</span>
