@@ -16,3 +16,9 @@
   from = "/api/logs-export"
   to = "/.netlify/functions/logs-export"
   status = 200
+
+# 팀 공유 점검 기록 (저장/목록/불러오기) — SYNC_KEY 필요
+[[redirects]]
+  from = "/api/team"
+  to = "/.netlify/functions/team"
+  status = 200

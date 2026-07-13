@@ -2776,8 +2776,9 @@ function screenLanding(){
         </button>
       </div>
       ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
-      <div style="width:100%;padding:0 24px;margin-top:14px">
+      <div style="width:100%;padding:0 24px;margin-top:14px;display:flex;flex-direction:column;gap:9px">
         <button class="land-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 사용 설명서 (매뉴얼)</button>
+        <button class="land-team" onclick="S.screen='team';render();window.scrollTo(0,0)">👥 팀 공유 기록</button>
       </div>
     </div>
     <div class="land-footer">On-Site Audit Standard · January 2024</div>
@@ -3099,6 +3100,7 @@ function saveToStorage(){
   const idx=sessions.findIndex(s=>s.code===S.vendorCode);
   if(idx>=0)sessions[idx]=entry;else sessions.push(entry);
   localStorage.setItem('vap_sessions',JSON.stringify(sessions));
+  teamAutoSync(entry); // 팀 공유 키가 설정돼 있으면 서버에도 백업(디바운스)
 }
 
 function loadSession(code){
@@ -3349,6 +3351,7 @@ function render(){
     S.screen==='supgen'?screenSupGen():
     S.screen==='supplier'?screenSupplier():
     S.screen==='supimport'?screenSupImport():
+    S.screen==='team'?screenTeam():
     S.screen==='manual'?screenManual():'';
   if(S.vendorCode&&S.auditType&&!['landing','setup','pick','supplier','supimport'].includes(S.screen))saveToStorage();
   navSync();
@@ -3943,4 +3946,121 @@ function screenManual(){
 function viewManualImg(src){
   document.getElementById('photoViewerImg').src=src;
   document.getElementById('photoViewer').style.display='flex';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  팀 공유 — 점검 기록 서버 백업/불러오기 (Netlify Blobs)
+//  공유 비밀키(SYNC_KEY)를 팀원이 같은 값으로 설정하면
+//  저장 시 자동 백업되고, 팀 공유 화면에서 서로의 기록을 불러올 수 있다.
+//  ※ 사진은 용량 문제로 서버 백업에서 제외(기기에는 유지).
+// ═══════════════════════════════════════════════════════════
+const TEAM_CFG_KEY='vap_team_cfg';
+function teamCfg(){try{return JSON.parse(localStorage.getItem(TEAM_CFG_KEY))||{};}catch{return{};}}
+function teamSaveCfgObj(c){localStorage.setItem(TEAM_CFG_KEY,JSON.stringify(c));}
+
+let _teamTimer=null,_teamStatus='';   // ''|'saving'|'ok'|'err'
+let _teamList=null,_teamBusy=false,_teamErr='';
+
+function teamAutoSync(meta){
+  const k=(teamCfg().syncKey||'').trim();
+  if(!k||!S.vendorCode||!S.auditType)return;
+  clearTimeout(_teamTimer);
+  _teamTimer=setTimeout(()=>{teamPush(k,meta).catch(()=>{});},2000); // 2초 디바운스
+}
+async function teamPush(k,meta){
+  _teamStatus='saving';
+  try{
+    const sess={...S,photos:{}}; // 사진 제외
+    const res=await fetch('/api/team?action=save',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({key:k,session:sess,meta:{
+        code:S.vendorCode,country:S.country,lang:S.lang,auditType:S.auditType,
+        rate:(meta&&meta.rate!==undefined)?meta.rate:null,
+        done:meta?meta.done:null,total:meta?meta.total:null,
+        updated:new Date().toISOString()}})
+    });
+    _teamStatus=res.ok?'ok':'err';
+  }catch(e){_teamStatus='err';}
+}
+
+async function teamRefresh(){
+  const k=(teamCfg().syncKey||'').trim();
+  if(!k){_teamErr='nokey';_teamList=null;render();return;}
+  _teamBusy=true;_teamErr='';render();
+  try{
+    const res=await fetch('/api/team?action=list&key='+encodeURIComponent(k));
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||res.status);
+    _teamList=data.sessions||[];
+  }catch(e){_teamErr=String(e.message||e);_teamList=null;}
+  _teamBusy=false;render();
+}
+async function teamLoad(code){
+  const k=(teamCfg().syncKey||'').trim();
+  if(!k)return;
+  _teamBusy=true;render();
+  try{
+    const res=await fetch('/api/team?action=get&key='+encodeURIComponent(k)+'&code='+encodeURIComponent(code));
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||res.status);
+    const loaded=data.session;
+    // 이 기기에 같은 코드 세션이 있으면 사진은 로컬 것을 유지
+    try{const local=JSON.parse(localStorage.getItem('vap_'+code)||'null');if(local&&local.photos)loaded.photos=local.photos;}catch(e2){}
+    S={...initState(),...loaded,screen:loaded.auditType?'home':'pick'};
+    _teamBusy=false;
+    render();window.scrollTo(0,0);
+    return;
+  }catch(e){_teamErr=String(e.message||e);}
+  _teamBusy=false;render();
+}
+function teamSaveKey(){
+  const v=document.getElementById('teamKeyInput').value.trim();
+  teamSaveCfgObj({...teamCfg(),syncKey:v});
+  _teamList=null;_teamErr='';
+  render();
+  if(v)teamRefresh();
+}
+
+function screenTeam(){
+  const ko=S.lang!=='en';
+  const k=(teamCfg().syncKey||'').trim();
+  const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  const typeLbl=t=>t==='nsup'?(ko?'신규협력사':'New Supplier'):(ko?'중점관리':'Major');
+  let body='';
+  if(!k){
+    body=`<div class="team-note">${ko
+      ?'팀 공유를 사용하려면 <b>팀 공유 키</b>를 입력하세요.<br>팀원 모두 같은 키를 입력하면 점검 기록이 자동으로 서버에 백업되고 서로 불러올 수 있습니다.<br><span style="color:var(--muted);font-size:12px">키는 관리자(Netlify 환경변수 SYNC_KEY)와 동일해야 합니다.</span>'
+      :'Enter the <b>team sync key</b> to use team sharing.<br>Everyone using the same key can back up and load each other\'s audits.<br><span style="color:var(--muted);font-size:12px">Must match the server\'s SYNC_KEY env var.</span>'}</div>`;
+  }else if(_teamBusy){
+    body=`<div class="team-note">${ko?'불러오는 중…':'Loading…'}</div>`;
+  }else if(_teamErr){
+    body=`<div class="team-note" style="border-color:var(--P);color:var(--P)">⚠ ${_teamErr==='nokey'?(ko?'키를 입력하세요':'Enter the key'):aiEsc(_teamErr)}<br><span style="font-size:12px;color:var(--muted)">${ko?'(로컬 file:// 로 열었거나 키가 틀리면 실패합니다. 배포된 사이트에서 사용하세요.)':'(Fails on local file:// or with a wrong key — use the deployed site.)'}</span></div>`;
+  }else if(_teamList===null){
+    body=`<div class="team-note">${ko?'아래 새로고침을 눌러 팀 기록을 불러오세요.':'Tap refresh to load team audits.'}</div>`;
+  }else if(_teamList.length===0){
+    body=`<div class="team-note">${ko?'아직 공유된 점검 기록이 없습니다.<br>점검을 진행하면 자동으로 백업됩니다.':'No shared audits yet.<br>Audits back up automatically as you work.'}</div>`;
+  }else{
+    body=_teamList.map(m=>`
+      <div class="team-card" onclick="teamLoad('${aiEsc(m.code)}')">
+        <div class="team-info">
+          <div class="team-code">${aiEsc(m.code)}</div>
+          <div class="team-meta">${aiEsc(m.country||'—')} · ${typeLbl(m.auditType)} · ${m.done!=null?`${m.done}/${m.total}`:'—'} · ${fmt(m.updated)}</div>
+        </div>
+        ${m.rate!=null?`<span class="team-rate">${m.rate}%</span>`:''}
+        <span class="team-open">${ko?'열기':'Open'}</span>
+      </div>`).join('');
+  }
+  const st=_teamStatus==='saving'?(ko?'⟳ 백업 중…':'⟳ backing up…'):_teamStatus==='ok'?(ko?'✅ 마지막 백업 성공':'✅ last backup ok'):_teamStatus==='err'?(ko?'⚠ 마지막 백업 실패':'⚠ last backup failed'):'';
+  return`${nav(ko?'👥 팀 공유 기록':'👥 Team Audits',"S.screen='landing';render()")}
+  <div class="content">
+    <span class="stag" style="background:var(--C)">${ko?'팀 공유':'Team'}</span>
+    <h2 class="stitle">${ko?'팀 점검 기록':'Shared Audits'}</h2>
+    <p class="ssub">${ko?'팀원들이 백업한 점검 기록을 불러와 이어서 작업할 수 있습니다. 사진은 서버 백업에서 제외됩니다.':'Load audits backed up by your team. Photos are excluded from server backups.'} ${st?`<br><b>${st}</b>`:''}</p>
+    <div class="team-keyrow">
+      <input id="teamKeyInput" type="password" placeholder="${ko?'팀 공유 키':'Team sync key'}" value="${aiEsc(k)}">
+      <button onclick="teamSaveKey()">${ko?'저장':'Save'}</button>
+      <button onclick="teamRefresh()" ${k?'':'disabled'}>↻</button>
+    </div>
+    ${body}
+  </div>`;
 }
