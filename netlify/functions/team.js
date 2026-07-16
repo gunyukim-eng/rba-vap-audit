@@ -4,6 +4,8 @@
 //   GET  /api/team?action=list&key=...
 //   GET  /api/team?action=get&key=...&code=...
 //   POST /api/team?action=delete body:{key,code}
+const { getBlobStore } = require('../lib/blobs');
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors(), body: '' };
   const q = event.queryStringParameters || {};
@@ -17,8 +19,7 @@ exports.handler = async (event) => {
 
   const action = q.action || body.action;
   try {
-    const { getStore } = await import('@netlify/blobs');
-    const store = getStore('team-sessions');
+    const store = getBlobStore('team-sessions');
 
     if (event.httpMethod === 'POST' && action === 'save') {
       const s = body.session;

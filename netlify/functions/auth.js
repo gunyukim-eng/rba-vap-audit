@@ -3,6 +3,8 @@
 //   POST /api/auth  {action:'set', adminKey, newPassword}     → {ok:true}  (관리자만)
 // 현재 비밀번호: Blobs('config')의 app-password → 없으면 환경변수 APP_PASSWORD.
 // 관리자 키: 환경변수 ADMIN_KEY.
+const { getBlobStore } = require('../lib/blobs');
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors(), body: '' };
   if (event.httpMethod !== 'POST') return json(405, { error: 'method not allowed' });
@@ -10,8 +12,7 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); } catch { body = {}; }
 
   try {
-    const { getStore } = await import('@netlify/blobs');
-    const store = getStore('config');
+    const store = getBlobStore('config');
 
     if (body.action === 'check') {
       const cur = await currentPassword(store);

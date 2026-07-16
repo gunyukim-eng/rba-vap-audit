@@ -1,6 +1,8 @@
 // Netlify Function — 로그 내보내기 (few-shot용 JSONL)
 // 사용: /api/logs-export?key=<LOG_EXPORT_KEY>
 // LOG_EXPORT_KEY 환경변수를 설정해야 접근 가능(미설정 시 차단).
+const { getBlobStore } = require('../lib/blobs');
+
 exports.handler = async (event) => {
   const secret = process.env.LOG_EXPORT_KEY;
   const given = (event.queryStringParameters || {}).key;
@@ -8,8 +10,7 @@ exports.handler = async (event) => {
     return { statusCode: 401, headers: { 'content-type': 'text/plain' }, body: 'unauthorized (set LOG_EXPORT_KEY and pass ?key=)' };
   }
   try {
-    const { getStore } = await import('@netlify/blobs');
-    const store = getStore('ai-logs');
+    const store = getBlobStore('ai-logs');
     const { blobs } = await store.list();
     const lines = [];
     for (const b of blobs) {

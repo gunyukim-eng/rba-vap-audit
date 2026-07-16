@@ -2,6 +2,8 @@
 // 브라우저 → 이 함수 → Anthropic Messages API.
 // API 키는 서버 환경변수(ANTHROPIC_API_KEY)에만 존재.
 // 모든 질문/답변은 Netlify Blobs('ai-logs')에 텍스트로 기록(이미지 base64 제외).
+const { getBlobStore } = require('../lib/blobs');
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors(), body: '' };
   if (event.httpMethod !== 'POST') return json(405, { error: { message: 'Method not allowed' } });
@@ -30,7 +32,6 @@ exports.handler = async (event) => {
 
 async function logInteraction(reqBody, resText, status) {
   try {
-    const { getStore } = await import('@netlify/blobs');
     const req = safeParse(reqBody) || {};
     const res = safeParse(resText) || {};
 
@@ -64,7 +65,7 @@ async function logInteraction(reqBody, resText, status) {
       stop_reason: res.stop_reason || null,
     };
 
-    const store = getStore('ai-logs');
+    const store = getBlobStore('ai-logs');
     const dkey = record.ts.slice(0, 10);
     const rand = Math.random().toString(36).slice(2, 8);
     await store.setJSON(`${dkey}/${Date.now()}-${rand}`, record);
