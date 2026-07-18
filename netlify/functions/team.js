@@ -19,7 +19,7 @@ exports.handler = async (event) => {
 
   const action = q.action || body.action;
   try {
-    const store = getBlobStore('team-sessions');
+    const store = getBlobStore('team-sessions', event);
 
     if (event.httpMethod === 'POST' && action === 'save') {
       const s = body.session;

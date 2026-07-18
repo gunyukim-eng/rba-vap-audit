@@ -12,7 +12,7 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); } catch { body = {}; }
 
   try {
-    const store = getBlobStore('config');
+    const store = getBlobStore('config', event);
 
     if (body.action === 'check') {
       const cur = await currentPassword(store);

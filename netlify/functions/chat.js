@@ -65,7 +65,7 @@ async function logInteraction(reqBody, resText, status) {
       stop_reason: res.stop_reason || null,
     };
 
-    const store = getBlobStore('ai-logs');
+    const store = getBlobStore('ai-logs', event);
     const dkey = record.ts.slice(0, 10);
     const rand = Math.random().toString(36).slice(2, 8);
     await store.setJSON(`${dkey}/${Date.now()}-${rand}`, record);

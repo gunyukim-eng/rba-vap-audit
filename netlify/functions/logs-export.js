@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     return { statusCode: 401, headers: { 'content-type': 'text/plain' }, body: 'unauthorized (set LOG_EXPORT_KEY and pass ?key=)' };
   }
   try {
-    const store = getBlobStore('ai-logs');
+    const store = getBlobStore('ai-logs', event);
     const { blobs } = await store.list();
     const lines = [];
     for (const b of blobs) {
