@@ -1728,10 +1728,13 @@ const initState=()=>({
   nsupItem:null,
   auditType:null,
   aiFindings:{},
+  itemAI:{},
+  itemSummary:{},
   lawViol:{},
   supplierName:'',
   subsidiary:'',
   gbm:'',
+  shareCode:'',
 });
 let S=initState();
 
@@ -1947,12 +1950,16 @@ function screenSetup(){
     <div class="sfield"><label class="slbl">${t('country')}</label>
       <input class="sinput" type="text" placeholder="e.g. Vietnam, China, Malaysia…" value="${S.country}" oninput="S.country=this.value">
     </div>
+    <div class="sfield"><label class="slbl" style="display:flex;align-items:center;gap:4px">${S.lang==='ko'?'팀 공유 코드':S.lang==='zh'?'团队共享代码':'Team Share Code'} <span style="color:var(--muted);font-size:12px;font-weight:500">${S.lang==='ko'?'(선택)':S.lang==='zh'?'(可选)':'(optional)'}</span></label>
+      <input class="sinput" type="text" placeholder="${S.lang==='ko'?'예: TEAM-A, 2026Q3':'e.g. TEAM-A, 2026Q3'}" value="${S.shareCode||''}" oninput="S.shareCode=this.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'')" style="${S.shareCode?'border-color:var(--C)':''}">
+      <div class="shint">${S.lang==='ko'?'이 코드를 넣으면 점검 기록이 서버에 백업되고, 랜딩 화면에서 같은 코드로 불러올 수 있습니다. 비워두면 이 기기에만 저장됩니다. (영문·숫자·- _)':S.lang==='zh'?'输入代码后，本次检查会备份到服务器，可在首页用同一代码调出。留空则仅保存在本机。':'Set a code to back this audit up to the server and reload it from the landing screen with the same code. Leave blank to keep it on this device only.'}</div>
+    </div>
   </div>
   <div class="bot"><button class="bp" onclick="startAudit()">${t('start')}</button></div>`;
 }
 
 // ─── NEW-SUPPLIER (신규협력사) CHECKLIST ───
-// Source: 신규 등록 평가 체크리스트 (RBA VAP based) — 19 items, total 100 pts
+// Source: 신규 등록 평가 체크리스트 — 19 items, total 100 pts
 const NSUP_GRPT={"A1": "자발적 취업", "A2": "미성년 근로", "A3": "근로시간", "A4": "임금 및 복리후생", "A5": "인도적 대우", "A6": "차별금지", "E8": "근로자 피드백/참여", "E12": "협력사 책임"};
 const NSUP_ITEMS=[
   {id:"A0101",grp:"A1",gubun:"필수",title:"강제근로 금지",sec:"Labor",site:0,rec:1,mg:1,wk:1,c:7,mi:5,mj:3,pr:0,na:7,crit:"■ 금지된 채용관련 수수료를 근로자가 부담한 경우, 고용회사가 근로자에게 90일 이내 비용 보상을 하지 않았을 시 위반 판정 기준\n    ☞ \"Reference Table\" sheet 참고하여 판정\n■ 기타 판정 기준\n  ㆍPriority : ① 고용계약에 따른 사전 통지 미제공 퇴사자에 대해 3개월치 기본급을 초과하는 위약금이 부과되는 경우\n               ② 고용계약에 따른 사전 통지 제공에도 불구하고 자발적인 고용 종료를 제한 받거나 처벌받는 경우.\n               ③ A01.03, A01.04 또는 A01.05가 Priority 위반일 경우 \n               ④ 수감자 강제근로, 강제 채무근로 또는 인신매매 근로가 발견되는 경우\n  ㆍMajor :  ① 퇴사 사전 통지 기간이 1개월 또는 법에서 요구하는 기간 중 짧은 기준보다 긴 경우\n               ② 합리적인 사전 통지가 없는 퇴사에 대해 위약금이 1개월 기본급의 60%를 초과하는 경우\n               ③ 지난 1년간 근로자의 의사에 반하는 강제적인 초과근로 발견한 경우 (기록이 삭제 되어 있거나 Update하지 않은 경우)\n\n※ 요구 서류 및 기록\n   - labor agencies, labor brokers, labor service providers 등 과의 계약서   \n- 근로자 노동계약서 사례 : 영구직, 봉급직, 시급직, 임시직, 계절근로자 (있다면), 미성년근로자, 견습생, 직업훈련생(있다면)\n   - 나이, 신분 및 정부 취업허가 증빙을 포함하는 고용 기록\n- 채용/고용 프로세스 및 절차                                        \n   - 직원 대출 및 신용 제도의 문서화"},
@@ -2270,6 +2277,9 @@ function screenNsupItem(){
   <div class="bot"><button class="bs" onclick="nsupHome()">← 목록</button><button class="bp" onclick="nsupHome()">완료 →</button></div>`;
 }
 
+// CAP(시정조치계획) 버튼 표시 여부. 화면·로직은 유지하고 홈 버튼만 숨김.
+// 나중에 다시 쓰려면 true 로 변경. (screenCAP 등 기능은 그대로 남아 있음)
+const SHOW_CAP_BTN=false;
 function screenHome(){
   const grpList=['A','AM','D','DM','E'];
 
@@ -2313,6 +2323,7 @@ function screenHome(){
       <div class="hsub">${isNsup?(S.lang==='ko'?'항목을 눌러 예/아니오로 답하세요':'Tap an item and answer Yes/No'):t('selectItem')}</div>
       ${S.supplierName?`<div class="hcountry">🏢 ${S.supplierName}${S.subsidiary||S.gbm?` · ${[S.subsidiary,S.gbm].filter(Boolean).join(' / ')}`:''}</div>`:''}
       ${S.country?`<div class="hcountry">📍 ${S.country}</div>`:''}
+      ${S.shareCode?`<div class="hcountry">☁ ${S.lang==='ko'?'공유코드':'Share'}: ${aiEsc(S.shareCode)}${_teamStatus==='saving'?' ⟳':_teamStatus==='ok'?' ✅':_teamStatus==='err'?' ⚠':''}</div>`:''}
       ${langPills}</div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
         <button class="home-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 ${S.lang==='ko'?'사용법':'Guide'}</button>
@@ -2333,9 +2344,12 @@ function screenHome(){
     <button onclick="S.screen='supgen';render()" style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--M);border-radius:var(--r-lg);color:var(--M);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📤 ${(()=>{const ko=S.lang==='ko';const hasSup=Object.keys(S.supplierChecks||{}).length>0;return hasSup?(ko?'사전점검 결과 반영됨':'Pre-Check Imported ✓'):(ko?'협력사 사전점검 요청':'Request Supplier Pre-Check');})()}
     </button>
-    ${(()=>{const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';return`<button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:13px;background:var(--blue);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+    ${(()=>{if(!SHOW_CAP_BTN)return'';const viol=Object.keys(ITEMS).filter(id=>S.done[id]&&calcItem(id)!=='conformance');const ko=S.lang==='ko';return`<button onclick="S.screen='cap';render();window.scrollTo(0,0)" style="width:100%;padding:13px;background:var(--blue);border:none;border-radius:var(--r-lg);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
       📋 ${viol.length?(ko?`시정조치계획 (CAP) — ${viol.length}건 위반`:`CAP — ${viol.length} Finding${viol.length>1?'s':''}`):(ko?'시정조치계획 (CAP)':'Corrective Action Plan (CAP)')}
     </button>`;})()}
+    <button onclick="aiSummarizeAll()" ${_sumAllBusy?'disabled':''} style="width:100%;padding:13px;background:var(--canvas);border:1.5px solid var(--C);border-radius:var(--r-lg);color:var(--C);font-size:15px;font-weight:700;font-family:inherit;cursor:${_sumAllBusy?'default':'pointer'};opacity:${_sumAllBusy?'.7':'1'};display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent">
+      ${_sumAllBusy?(S.lang==='en'?`⟳ Summarizing… ${_sumAllProg}`:`⟳ 요약 중… ${_sumAllProg}`):(S.lang==='en'?'📝 AI Summary — All Items':'📝 AI 발견사항 전체 요약')}
+    </button>
   </div>
   ${S.homeTab==='docs'?renderHomeDocs():`
   ${grpList.map(grpSec).join('')}
@@ -2366,7 +2380,13 @@ function screenItem(){
     <span class="stag">${m.code}</span>
     <h2 class="stitle">${stepName(step)}</h2>
     <p class="ssub">${typeCtx[step]||''} · ${done}/${qs.length} ${t('answered')}</p>
-    <button class="ai-item-btn" onclick="aiAskItem('${id}','major')">🤖 ${S.lang==='en'?'AI analysis & questions':'AI 분석·질문'}</button>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="ai-item-btn" style="flex:1;margin:0" onclick="aiItemJudgeOpen('${id}')">🤖 ${S.lang==='en'?'AI Auto-Judge':'AI 자동판정'}</button>
+      <button class="ai-item-btn" style="flex:1;margin:0;background:var(--canvas);color:var(--ink);border:1.5px solid var(--line)" onclick="aiAskItem('${id}','major')">🤖 ${S.lang==='en'?'AI analysis & Q&A':'AI 분석·질문'}</button>
+    </div>
+    ${aiItemSuggCard(id)}
+    <button class="ai-item-btn" style="width:100%;margin:2px 0 4px;background:var(--C);border-color:var(--C);color:#fff" onclick="aiSummarizeItem('${id}')">📝 ${S.lang==='en'?'AI Findings Summary':'AI 발견사항 정리'}</button>
+    ${aiSummaryCard(id)}
     ${aiFindingCard(id)}
     ${isDoc?docRefBox(id):''}
     ${isDoc?lawViolCard(id):''}
@@ -2639,17 +2659,12 @@ function screenResult(id,steps,idx,tot){
 // ─── EXCEL / CSV EXPORT ───────────────────────
 function exportCSV(){
   const BOM='﻿';
-  const hdr=['Section','Code','Item Title','Overall Rating','Management','Document Review','Worker Interview','Finding Count','Finding Details','Notes','Photos'];
+  const hdr=['Audit ID','Sub Category','Final Significance','Findings'];
 
   const rows=Object.entries(ITEMS).map(([id,meta])=>{
-    const grpName=GRPS[meta.grp]||meta.grp;
-    const section=`${meta.grp} — ${grpName}`;
     const done=S.done[id];
     const a=S.ans[id];
     const r=done?calcItem(id):null;
-    const mr=secRating(id+'_mgmt',a.mgmt);
-    const dr=secRating(id+'_doc',a.doc);
-    const wr=secRating(id+'_worker',a.worker);
 
     // Collect findings
     const finds=[
@@ -2667,33 +2682,11 @@ function exportCSV(){
 
     const findTxt=finds.map(f=>`[${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join(' | ');
 
-    // Collect notes
-    const noteEntries=[];
-    ['mgmt','doc','worker'].forEach(step=>{
-      const stepNotes=S.notes[id]&&S.notes[id][step]||{};
-      Object.entries(stepNotes).forEach(([qid,txt])=>{if(txt&&txt.trim())noteEntries.push(`[${qid.toUpperCase()}] ${txt.trim()}`);});
-    });
-    const noteTxt=noteEntries.join(' | ');
-
-    // Collect photo counts
-    let photoCount=0;
-    ['mgmt','doc','worker'].forEach(step=>{
-      const stepPhotos=S.photos[id]&&S.photos[id][step]||{};
-      Object.values(stepPhotos).forEach(arr=>{photoCount+=arr.length;});
-    });
-
     return[
-      section,
       meta.code,
       iTitle(id),
       done?RL[r]:'Not Started',
-      Object.keys(a.mgmt).length?RL[mr]:'—',
-      Object.keys(a.doc).length?RL[dr]:'—',
-      Object.keys(a.worker).length?RL[wr]:'—',
-      finds.length.toString(),
       findTxt,
-      noteTxt,
-      photoCount?photoCount.toString():'',
     ];
   });
 
@@ -2701,7 +2694,7 @@ function exportCSV(){
   const allDone=Object.keys(ITEMS).filter(k=>S.done[k]);
   const overall=allDone.length?allDone.map(calcItem).reduce(maxR,'conformance'):'Not Started';
   rows.push([]);
-  rows.push(['OVERALL RATING','','',allDone.length?RL[overall]:'Not Started','','','',allDone.length+' / '+Object.keys(ITEMS).length+' items completed','']);
+  rows.push(['OVERALL RATING',`${allDone.length} / ${Object.keys(ITEMS).length} completed`,allDone.length?RL[overall]:'Not Started','']);
 
   // Facility info rows at top
   const meta=[
@@ -2726,7 +2719,7 @@ function exportCSV(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=`RBA_VAP_Audit_${(S.country||'Report').replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download=`Samsung_Supplier_Audit_${(S.vendorCode||S.country||'Report').replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2767,7 +2760,10 @@ function screenLanding(){
       ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
       <div style="width:100%;padding:0 24px;margin-top:14px;display:flex;flex-direction:column;gap:9px">
         <button class="land-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 Manual</button>
-        <button class="land-team" onclick="S.screen='team';render();window.scrollTo(0,0)">👥 Team Records</button>
+        <div class="land-teamrow">
+          <input id="landCodeInput" type="text" placeholder="Team share code" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')teamOpenCode(this.value)">
+          <button class="land-team" onclick="teamOpenCode(document.getElementById('landCodeInput').value)">👥 Load</button>
+        </div>
       </div>
     </div>
     <div class="land-footer">On-Site Audit Standard · January 2024</div>
@@ -3408,15 +3404,17 @@ async function aiPost(payload){
   return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(payload)});
 }
 
-const AI_SYSTEM=`당신은 RBA VAP(Validated Audit Process) 신규협력사 심사를 돕는 AI 보조자입니다.
-- 삼성 협력사 대상 노동·인권·안전보건(EHS) 심사 기준(RBA VAP Standard 및 Operations Manual)에 근거해 답변합니다.
+const AI_SYSTEM=`당신은 삼성전자 협력사 심사를 돕는 AI 보조자입니다.
+- 삼성전자 협력사 대상 노동·인권·안전보건(EHS) 심사 기준에 근거해 답변합니다.
 - 문서 사진이 첨부되면, 먼저 문서에서 읽어낸 핵심 사실을 항목별로 정리(OCR)한 뒤 관련 점검 기준과 대조해 분석합니다.
 - 근거가 부족하면 추측하지 말고 "제공된 정보로는 확인 불가"라고 명시합니다.
+- 답변·근거에 'RBA VAP', 'RBA' 같은 명칭은 사용하지 말고 '심사기준'으로 표현합니다.
 - 최종 판정은 감사자가 확정합니다. 당신은 초안·근거·참고의견만 제시하며, 확정 판정을 단정하지 않습니다.
-- 한국어로 간결하고 실무적으로 답변합니다.`;
+- 사용자가 질문한 언어와 동일한 언어로 답변합니다 (영어로 물으면 영어, 중국어로 물으면 중국어, 한국어로 물으면 한국어). 문서 내용이 다른 언어여도 답변 언어는 질문 언어를 따릅니다.
+- 간결하고 실무적으로 답변합니다.`;
 
 // in-memory chat state (감사 세션 저장소와 분리)
-const aiS={busy:false,msgs:[],pending:[],judge:null,ctx:null,ctxId:null,ctxKind:null}; // judge: 자동판정 대상 · ctx/ctxId/ctxKind: 현재 항목 맥락
+const aiS={busy:false,msgs:[],pending:[],judge:null,judgeKind:null,ctx:null,ctxId:null,ctxKind:null}; // judge: 자동판정 대상 · judgeKind: 'nsup'|'item' · ctx/ctxId/ctxKind: 현재 항목 맥락
 const AI_GLBL={conformance:'Conformance',minor:'Minor',major:'Major',priority:'Priority',na:'N/A'};
 const AI_GKEY={conformance:'C',minor:'m',major:'M',priority:'P',na:'na'};
 
@@ -3432,7 +3430,12 @@ function aiFmt(s){
   const lines=s.split('\n');
   let h='',list=null,inCode=false,code=[];
   const close=()=>{if(list){h+='</'+list+'>';list=null;}};
-  for(const raw of lines){
+  // 마크다운 표 헬퍼
+  const isDelim=l=>/^\s*\|?(\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?\s*$/.test(l)&&l.includes('-');
+  const cells=l=>{let t=l.trim();if(t.startsWith('|'))t=t.slice(1);if(t.endsWith('|'))t=t.slice(0,-1);return t.split('|').map(c=>c.trim());};
+  const alignOf=c=>{const L=/^:/.test(c),R=/:$/.test(c);return L&&R?'center':R?'right':L?'left':'';};
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];
     if(/^\s*```/.test(raw)){
       if(inCode){h+='<pre class="aimd-pre">'+aiEsc(code.join('\n'))+'</pre>';code=[];inCode=false;}
       else{close();inCode=true;}
@@ -3442,6 +3445,19 @@ function aiFmt(s){
     const line=raw.replace(/\s+$/,'');
     if(!line.trim()){close();continue;}
     let m;
+    // 마크다운 표: 헤더행 + 구분행(---) 감지
+    if(line.includes('|')&&i+1<lines.length&&isDelim(lines[i+1])){
+      close();
+      const head=cells(line),al=cells(lines[i+1]).map(alignOf);
+      const td=(c,ci,tag)=>'<'+tag+(al[ci]?' style="text-align:'+al[ci]+'"':'')+'>'+inl(aiEsc(c||''))+'</'+tag+'>';
+      let tb='<div class="aimd-tw"><table class="aimd-table"><thead><tr>'+head.map((c,ci)=>td(c,ci,'th')).join('')+'</tr></thead><tbody>';
+      let j=i+2;
+      for(;j<lines.length&&lines[j].includes('|')&&lines[j].trim()&&!isDelim(lines[j]);j++){
+        const r=cells(lines[j]);
+        tb+='<tr>'+head.map((_,ci)=>td(r[ci],ci,'td')).join('')+'</tr>';
+      }
+      tb+='</tbody></table></div>';h+=tb;i=j-1;continue;
+    }
     if(m=line.match(/^(#{1,3})\s+(.*)$/)){close();h+='<div class="aimd-h'+m[1].length+'">'+inl(aiEsc(m[2]))+'</div>';continue;}
     if(/^\s*(-{3,}|\*{3,})\s*$/.test(line)){close();h+='<hr class="aimd-hr">';continue;}
     if(m=line.match(/^\s*[-*+]\s+(.*)$/)){if(list!=='ul'){close();h+='<ul class="aimd-ul">';list='ul';}h+='<li>'+inl(aiEsc(m[1]))+'</li>';continue;}
@@ -3467,14 +3483,14 @@ function aiShowPanel(){
   aiRender();
 }
 function aiOpen(){ // FAB → 일반 챗 모드
-  if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.ctxId=null;aiS.ctxKind=null;aiS.msgs=[];aiS.pending=[];}
+  if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.judgeKind=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.ctxId=null;aiS.ctxKind=null;aiS.msgs=[];aiS.pending=[];}
   aiShowPanel();
   if(aiNeedsKey()&&aiS.msgs.length===0)aiToggleSettings();
 }
 // 각 항목 안에서 AI 분석·질문 (항목 맥락 주입, Haiku로 답변)
 function aiAskItem(id,kind){
   const en=S.lang==='en';
-  aiS.judge=null;aiS.ctxId=id;aiS.ctxKind=kind;
+  aiS.judge=null;aiS.judgeKind=null;aiS.ctxId=id;aiS.ctxKind=kind;
   if(kind==='nsup'){
     const it=nsupItemById(id); if(!it)return;
     aiS.ctx=`[항목] ${it.id} ${it.title} (${NSUP_GRPT[it.grp]||it.grp}) · 배점 ${it.c}점\n[판정기준]\n${it.crit}`;
@@ -3502,7 +3518,7 @@ function aiRender(){
   const body=document.getElementById('aiBody');
   let h='';
   if(aiS.msgs.length===0){
-    h=`<div class="ai-empty">문서 사진을 첨부하면 <b>OCR로 내용을 읽어</b> 점검 기준과 대조해 분석하고,<br>질문을 입력하면 <b>RBA VAP 기준</b>에 근거해 답변합니다.<br><br>※ 최종 판정은 감사자가 확정합니다.</div>`;
+    h=`<div class="ai-empty">문서 사진을 첨부하면 <b>OCR로 내용을 읽어</b> 점검 기준과 대조해 분석하고,<br>질문을 입력하면 <b>심사 기준</b>에 근거해 답변합니다.<br><br>※ 최종 판정은 감사자가 확정합니다.</div>`;
   }else{
     const en=S.lang==='en';
     aiS.msgs.forEach((m,idx)=>{
@@ -3555,7 +3571,7 @@ function aiHandleFiles(e){
 
 async function aiSend(){
   if(aiS.busy)return;
-  if(aiS.judge)return aiJudgeRun();
+  if(aiS.judge)return aiS.judgeKind==='item'?aiItemJudgeRun():aiJudgeRun();
   const inp=document.getElementById('aiInput');
   const text=inp.value.trim();
   if(!text&&aiS.pending.length===0)return;
@@ -3721,7 +3737,7 @@ const AI_GLABEL={conformance:'적합',minor:'Minor',major:'Major',priority:'Prio
 
 function aiJudgeOpen(id){
   const it=nsupItemById(id);if(!it)return;
-  aiS.judge=id;aiS.msgs=[];aiS.pending=[];
+  aiS.judge=id;aiS.judgeKind='nsup';aiS.msgs=[];aiS.pending=[];
   aiS.msgs.push({role:'assistant',text:`[${it.id} · ${it.title}] 자동판정 모드입니다.\n\n관련 문서 사진(계약서·급여명세서·정책문서 등)을 📷로 첨부한 뒤 ➤를 누르세요. 판정기준과 대조해 등급을 제안합니다.\n\n※ 제안은 초안이며, 적용 여부는 감사자가 결정합니다.`});
   aiShowPanel();
   if(aiNeedsKey())aiToggleSettings();
@@ -3845,6 +3861,219 @@ function aiJudgeClear(id){
   render();
 }
 
+// ─── AI 자동판정 (메인 점검항목 A/AM/D/DM/E — 문서로 3단계 yes/no 초안 작성) ───
+const AI_STEP_OF=p=>({M:'mgmt',D:'doc',W:'worker'}[String(p||'').toUpperCase()[0]]||null);
+function aiItemJudgeOpen(id){
+  const m=ITEMS[id];if(!m)return;const en=S.lang==='en';
+  aiS.judge=id;aiS.judgeKind='item';aiS.msgs=[];aiS.pending=[];
+  aiS.msgs.push({role:'assistant',text:en
+    ?`[${m.code} · ${iTitle(id)}] Auto-Judge mode.\n\nAttach related document photos (contracts, payslips, policies, records) and tap ➤. AI reads them and drafts Yes/No answers for the questions it can verify from the documents.\n\n※ Questions needing interviews/observation are left as “unknown” for the auditor.`
+    :`[${m.code} · ${iTitle(id)}] 자동판정 모드입니다.\n\n관련 문서 사진(계약서·급여명세서·정책·기록 등)을 📷로 첨부한 뒤 ➤를 누르세요. 문서로 확인 가능한 문항의 예/아니오를 초안으로 채웁니다.\n\n※ 면담·현장확인이 필요한 문항은 ‘확인불가’로 남겨 감사자가 답합니다.`});
+  aiShowPanel();
+  if(aiNeedsKey())aiToggleSettings();
+}
+async function aiItemJudgeRun(){
+  if(aiS.busy)return;
+  const id=aiS.judge,m=ITEMS[id];if(!m)return;
+  const cfg=aiCfg();
+  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
+  if(aiS.pending.length===0){aiS.msgs.push({role:'error',text:'⚠ 문서 사진을 1장 이상 첨부해 주세요.'});aiRender();return;}
+  const inp=document.getElementById('aiInput');
+  const note=inp.value.trim();
+  const images=aiS.pending.map(p=>p.dataURL);
+  const blocks=aiS.pending.map(p=>({type:'image',source:{type:'base64',media_type:p.media_type,data:p.data}}));
+  const stepLbl={mgmt:'경영진 면담(Management)',doc:'기록 검토(Document)',worker:'근로자 면담(Worker)'};
+  let qtxt='';
+  ['mgmt','doc','worker'].forEach(st=>{
+    const qs=Q[`${id}_${st}`]||[];
+    if(qs.length)qtxt+=`\n[${stepLbl[st]}]\n`+qs.map(q=>`${q.id} [${q.sev}${q.inv?' · 역질문(yes=위반)':''}] ${q.text}`).join('\n')+'\n';
+  });
+  blocks.push({type:'text',text:
+`[점검 항목]
+${m.code} · ${iTitle(id)} — ${m.desc||''} (${GRPS[m.grp]||m.grp})
+
+[점검 문항] (yes=문항 내용이 사실, no=사실 아님, na=해당없음, unknown=문서로 확인 불가)
+※ 문항은 있는 그대로의 의미로 답하라. 심각도·역질문 해석은 앱이 처리한다.
+${qtxt}${note?`\n[감사자 참고사항]\n${note}\n`:''}
+[지시]
+1. 첨부 문서의 핵심 사실을 doc_summary에 정리하라(OCR).
+2. 각 문항(q_id)에 대해 문서로 확인 가능한 것만 yes/no/na로 답하고 evidence에 근거를 적어라. 면담·현장확인이 필요해 문서로 알 수 없으면 unknown. 추측 금지.
+3. suggested_grade는 참고용으로 제안하라(문서만으로 불명확하면 insufficient_evidence).
+4. rationale에 어떤 근거로 판단했는지 요약하라.`});
+  aiS.msgs.push({role:'user',text:note||'(자동판정 요청)',images});
+  aiS.pending=[];inp.value='';aiAutoGrow(inp);
+  aiS.busy=true;aiRender();
+  try{
+    const res=await aiPost({model:cfg.model,max_tokens:3000,system:AI_SYSTEM,
+      messages:[{role:'user',content:blocks}],
+      output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}});
+    const data=await res.json();
+    if(!res.ok){
+      const msg=(data&&data.error&&data.error.message)||('요청 실패 ('+res.status+')');
+      aiS.msgs.push({role:'error',text:'⚠ '+msg});
+    }else{
+      const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+      const sug=JSON.parse(txt);
+      if(!S.itemAI)S.itemAI={};
+      S.itemAI[id]={...sug,ts:Date.now()};
+      const conf=Math.round((sug.confidence||0)*100);
+      const fillable=(sug.answers||[]).filter(a=>['yes','no','na'].includes(a.answer)&&AI_STEP_OF(a.q_id)).length;
+      aiS.msgs.push({role:'assistant',text:
+`**제안 등급: ${AI_GLABEL[sug.suggested_grade]||sug.suggested_grade}** (확신도 ${conf}%)
+
+**📄 문서 요약**
+${sug.doc_summary}
+
+**판정 근거**
+${sug.rationale}
+
+${(sug.answers||[]).map(a=>`${a.q_id} · ${a.answer==='unknown'?'확인불가':a.answer.toUpperCase()} — ${a.evidence}`).join('\n')}
+
+항목 화면의 제안 카드에서 [제안 적용]을 누르면 문서로 확인된 ${fillable}개 문항이 자동으로 채워집니다.`});
+      render();
+    }
+  }catch(err){
+    aiS.msgs.push({role:'error',text:'⚠ '+(err instanceof SyntaxError?'응답 해석 실패 (구조화 출력 미지원 모델일 수 있음)':'통신 오류: '+err.message)});
+  }
+  aiS.busy=false;aiRender();
+}
+function aiItemSuggCard(id){
+  const sug=(S.itemAI||{})[id];if(!sug)return'';
+  const en=S.lang==='en';
+  const gmeta={conformance:'C',minor:'m',major:'M',priority:'P',na:'na'};
+  const k=gmeta[sug.suggested_grade];
+  const open=(S.noteOpen||{})['aiItem_'+id];
+  const conf=Math.round((sug.confidence||0)*100);
+  return`<div class="nsup-card ai-sugg">
+    <div class="ai-sugg-h">
+      <span>🤖 ${en?'AI Suggestion':'AI 제안'}</span>
+      <span class="icbadge ${k||'ns'}">${AI_GLABEL[sug.suggested_grade]||sug.suggested_grade}</span>
+      <span class="ai-conf">${en?'confidence':'확신도'} ${conf}%</span>
+    </div>
+    ${open?`<div class="ai-sugg-body">
+      <div class="ai-sugg-sec"><b>${en?'Document summary':'문서 요약'}</b><br>${aiEsc(sug.doc_summary||'')}</div>
+      <div class="ai-sugg-sec"><b>${en?'Rationale':'근거'}</b><br>${aiEsc(sug.rationale||'')}</div>
+      ${(sug.answers||[]).map(a=>`<div class="ai-sugg-q"><b>${aiEsc(a.q_id)}</b> · ${a.answer==='unknown'?(en?'unknown':'확인불가'):aiEsc(a.answer).toUpperCase()} — ${aiEsc(a.evidence||'')}</div>`).join('')}
+    </div>`:''}
+    <div class="ai-sugg-btns">
+      <button onclick="S.noteOpen['aiItem_${id}']=!S.noteOpen['aiItem_${id}'];render()">${open?(en?'Collapse':'접기'):(en?'View evidence':'근거 보기')}</button>
+      <button class="ap" onclick="aiItemJudgeApply('${id}')">${en?'Apply':'제안 적용'}</button>
+      <button class="rm" onclick="aiItemJudgeClear('${id}')">${en?'Delete':'삭제'}</button>
+    </div>
+    <div class="ai-sugg-note">${en?'※ Draft from documents. Interview questions stay blank; the auditor reviews and confirms.':'※ 문서 기반 초안입니다. 면담 문항은 비워 두며, 감사자가 검토·확정하세요.'}</div>
+  </div>`;
+}
+function aiItemJudgeApply(id){
+  const sug=(S.itemAI||{})[id];if(!sug)return;
+  let n=0;
+  (sug.answers||[]).forEach(a=>{
+    if(!['yes','no','na'].includes(a.answer))return;
+    const step=AI_STEP_OF(a.q_id);if(!step)return;
+    const qs=Q[`${id}_${step}`]||[];
+    const q=qs.find(x=>x.id.toUpperCase()===String(a.q_id).toUpperCase());
+    if(!q)return;                              // 존재하지 않는 문항 무시
+    if(a.answer==='na'&&!q.na)return;          // N/A 불가 문항은 건너뜀
+    S.ans[id][step][q.id.toLowerCase()]=a.answer;n++;
+  });
+  aiS.msgs.push({role:'assistant',text:S.lang==='en'?`✅ Filled ${n} question(s) from the documents. Review the answers and complete the remaining steps.`:`✅ 문서로 확인된 ${n}개 문항을 채웠습니다. 답변을 검토하고 나머지 단계를 완료하세요.`});
+  render();aiRender();
+}
+function aiItemJudgeClear(id){
+  if(S.itemAI)delete S.itemAI[id];
+  render();
+}
+
+// ─── AI 발견사항 정리 (문항답변·판정·메모 → Findings/Reference 하나로) ───
+const AI_SUMMARY_SCHEMA={
+  type:'object',
+  properties:{
+    findings:{type:'string',description:'발견된 위반·문제점을 감사 보고서용 간결한 실무 문장으로 정리. 여러 건이면 문장/쉼표로 나열하고 수치가 있으면 포함. 위반이 없으면 "특이사항 없음".'},
+    reference:{type:'string',description:'적용 근거 — 관련 법령 및 심사기준(항목코드·심각도). 예: "근로기준법 제20조(위약예정 금지); 심사기준 AL101 Major". 특정 근거가 없으면 일반 기준을 간단히.'}
+  },
+  required:['findings','reference'],
+  additionalProperties:false
+};
+function collectItemFindings(id){
+  const a=S.ans[id];
+  const finds=[...getFindings(id+'_mgmt',a.mgmt),...getFindings(id+'_doc',a.doc),...getFindings(id+'_worker',a.worker)];
+  if(id==='a11'&&a.doc['d6']==='no'){const fr=calcFeeR();if(fr!=='conformance')finds.push({text:`채용 수수료: 부담 근로자 ${S.fees.workerPct||'?'}%, 월급 대비 ${S.fees.feeAmtPct||'?'}%`,sev:fr});}
+  if(id==='a31'&&a.doc['d1']==='no'){const hr=calcHrsR();if(hr!=='conformance')finds.push({text:`근로시간: 최대 주 ${S.hours31.maxHours||'?'}시간, 초과 주 ${S.hours31.pctOver||'?'}%`,sev:hr});}
+  if(id==='a32'&&a.doc['d1']==='no'){const dr=calcDaysR();if(dr!=='conformance')finds.push({text:`연속근로일: 최대 ${S.days32.maxDays||'?'}일, 초과 근로자 ${S.days32.pctOver||'?'}%`,sev:dr});}
+  const af=(S.aiFindings||{})[id];if(af)finds.push({text:'[AI] '+af.finding,sev:af.grade});
+  const lv=(S.lawViol||{})[id];if(lv&&lv.sev)finds.push({text:'[현지법] '+(lv.note||'현지 법령 위반'),sev:lv.sev});
+  return finds;
+}
+async function aiSummarizeItem(id){
+  const m=ITEMS[id];if(!m)return;
+  const cfg=aiCfg();
+  if(aiNeedsKey(cfg)){aiS.judge=null;aiS.judgeKind=null;aiS.ctxId=id;aiShowPanel();aiToggleSettings();return;}
+  const finds=collectItemFindings(id);
+  const iaj=(S.itemAI||{})[id];
+  const findList=finds.map(f=>`- [${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join('\n')||'(집계된 위반 없음)';
+  const noteList=[];
+  ['mgmt','doc','worker'].forEach(step=>{const n=(S.notes[id]||{})[step]||{};Object.entries(n).forEach(([q,t])=>{if(t&&String(t).trim())noteList.push(`[${q.toUpperCase()}] ${String(t).trim()}`);});});
+  const grade=S.done[id]?calcItem(id):null;
+  const ctx=
+`[점검 항목] ${m.code} · ${iTitle(id)} — ${m.desc||''} (${GRPS[m.grp]||m.grp})
+${grade?`[현재 판정] ${RL[grade]}`:''}
+[집계된 위반/발견사항]
+${findList}${iaj&&iaj.rationale?`\n[AI 판정 근거]\n${iaj.rationale}`:''}${noteList.length?`\n[감사자 메모]\n${noteList.join('\n')}`:''}
+
+위 정보를 종합해 감사 보고서용으로 정리하라 (한국어).`;
+  if(!S.itemSummary)S.itemSummary={};
+  S.itemSummary[id]={busy:true};render();
+  try{
+    const res=await aiPost({model:cfg.model,max_tokens:1024,system:AI_SYSTEM,
+      messages:[{role:'user',content:ctx}],
+      output_config:{format:{type:'json_schema',schema:AI_SUMMARY_SCHEMA}}});
+    const data=await res.json();
+    if(!res.ok)throw new Error((data&&data.error&&data.error.message)||('요청 실패 '+res.status));
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    const sug=JSON.parse(txt);
+    S.itemSummary[id]={findings:sug.findings||'',reference:sug.reference||'',ts:Date.now()};
+  }catch(e){
+    S.itemSummary[id]={error:String(e&&e.message?e.message:e)};
+  }
+  render();
+}
+function aiSummaryCard(id){
+  const s=(S.itemSummary||{})[id];if(!s)return'';
+  const en=S.lang==='en';
+  if(s.busy)return`<div class="nsup-card ai-sugg"><div class="ai-sugg-h"><span>🤖 ${en?'Summarizing…':'AI 정리 중…'}</span></div></div>`;
+  if(s.error)return`<div class="nsup-card ai-sugg" style="border-color:var(--P)"><div class="ai-sugg-h"><span>🤖 ${en?'Summary failed':'정리 실패'}</span></div><div class="ai-sugg-body"><div class="ai-sugg-sec">${aiEsc(s.error)}</div></div><div class="ai-sugg-btns"><button class="ap" onclick="aiSummarizeItem('${id}')">${en?'Retry':'다시'}</button><button class="rm" onclick="aiSummaryClear('${id}')">${en?'Delete':'삭제'}</button></div></div>`;
+  return`<div class="nsup-card ai-sugg ai-summary">
+    <div class="ai-sugg-h"><span>🤖 ${en?'AI Summary':'AI 정리'}</span></div>
+    <div class="ai-sum-sec"><div class="ai-sum-h">Findings</div><div class="ai-sum-b">${aiEsc(s.findings||'')}</div></div>
+    <div class="ai-sum-sec"><div class="ai-sum-h">Reference</div><div class="ai-sum-b">${aiEsc(s.reference||'')}</div></div>
+    <div class="ai-sugg-btns">
+      <button class="ap" onclick="aiSummarizeItem('${id}')">${en?'Regenerate':'다시 생성'}</button>
+      <button class="rm" onclick="aiSummaryClear('${id}')">${en?'Delete':'삭제'}</button>
+    </div>
+    <div class="ai-sugg-note">${en?'※ AI draft — the auditor reviews and finalizes.':'※ AI 초안입니다. 감사자가 검토·확정하세요.'}</div>
+  </div>`;
+}
+function aiSummaryClear(id){if(S.itemSummary)delete S.itemSummary[id];render();}
+
+// 전체 요약 — 점검한 항목들을 항목별로(각각) 순차 요약
+let _sumAllBusy=false,_sumAllProg='';
+async function aiSummarizeAll(){
+  if(_sumAllBusy)return;
+  const en=S.lang==='en';
+  const cfg=aiCfg();
+  if(aiNeedsKey(cfg)){aiShowPanel();aiToggleSettings();return;}
+  const all=Object.keys(ITEMS).filter(id=>S.done[id]||hasAns(id));   // 점검한(답변 있는) 항목만
+  if(!all.length){alert(en?'No assessed items to summarize.':'요약할 점검 항목이 없습니다. (먼저 항목을 점검하세요)');return;}
+  const todo=all.filter(id=>{const s=(S.itemSummary||{})[id];return !(s&&s.findings!==undefined&&!s.error);}); // 이미 요약된 것 제외
+  if(!todo.length){alert(en?'All assessed items are already summarized. Use "Regenerate" on a card to refresh.':'점검한 항목이 모두 요약되어 있습니다. 갱신은 각 카드의 "다시 생성"을 사용하세요.');return;}
+  _sumAllBusy=true;let ok=0;
+  for(let i=0;i<todo.length;i++){
+    _sumAllProg=`${i+1}/${todo.length}`;render();
+    try{ await aiSummarizeItem(todo[i]); const s=(S.itemSummary||{})[todo[i]]; if(s&&!s.error)ok++; }catch(e){/* 개별 실패 무시 */}
+  }
+  _sumAllBusy=false;_sumAllProg='';render();
+  alert(en?`Summarized ${ok} of ${todo.length} item(s).`:`${todo.length}개 중 ${ok}개 항목을 요약했습니다.`);
+}
+
 // ─── 사용자 매뉴얼 (실제 화면 스크린샷 + 한/영, 탭·접기) ───
 const MAN_UI={
   ko:{title:'📖 사용 설명서',close:'닫기',tabFeat:'기능 안내',tabProc:'점검 진행',
@@ -3885,11 +4114,11 @@ const MANUAL_SECTIONS=[
    ko:{title:'AI 제안 검토 & 적용',desc:'AI 제안 카드에서 근거를 확인하고 <b>제안 적용</b>을 누르면 문항에 자동 반영됩니다.',steps:['적용 후에도 문항을 직접 수정하면 등급이 다시 계산됩니다.','최종 판정은 항상 감사자가 확정합니다. AI는 초안·근거만 제공합니다.']},
    en:{title:'Review & Apply AI Suggestion',desc:'Review the evidence on the suggestion card and tap <b>Apply Suggestion</b> to prefill the questions.',steps:['Editing answers afterward recalculates the grade.','The auditor always makes the final decision; AI provides only a draft and rationale.']}},
   {n:'10',img:'manual/fab.png',
-   ko:{title:'AI 도우미 열기 (문서분석·질의)',desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 엽니다.',steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
-   en:{title:'Open AI Assistant (Analysis & Q&A)',desc:'Tap the <b>✦</b> button (bottom-right) on any screen to open the AI assistant.',steps:['Attach a photo for OCR analysis, or type a question for RBA VAP guidance.']}},
+   ko:{title:'AI 도우미 열기 (문서분석·질의)',desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 엽니다.',steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 심사 기준으로 답변합니다.']},
+   en:{title:'Open AI Assistant (Analysis & Q&A)',desc:'Tap the <b>✦</b> button (bottom-right) on any screen to open the AI assistant.',steps:['Attach a photo for OCR analysis, or type a question for audit-standard guidance.']}},
   {n:'11',img:'manual/team.png',
-   ko:{title:'팀 공유 기록 — 폰에서 점검, PC에서 열기',desc:'현장에서 <b>폰으로 진행한 점검</b>이 <b>팀 공유 키</b>로 서버에 자동 백업됩니다. 사무실 <b>PC</b>에서 같은 키를 입력하면 그 기록을 그대로 불러와(다운로드) 이어서 작업하거나 Excel로 내보낼 수 있습니다.',steps:['랜딩/홈에서 <b>👥 Team Records</b> → 팀 공유 키를 입력하고 저장합니다.','팀원 모두 같은 키(관리자 SYNC_KEY)를 사용해야 서로의 기록이 보입니다.','목록에서 <b>Open</b>을 눌러 해당 점검을 이 기기로 불러옵니다.','※ 사진은 용량 문제로 서버 백업에서 제외됩니다(텍스트·등급만 공유).']},
-   en:{title:'Team Records — Audit on Phone, Open on PC',desc:'Audits you <b>run on your phone</b> in the field are auto-backed-up to the server under a <b>team sync key</b>. On an office <b>PC</b>, enter the same key to pull those records (download) and continue working or export to Excel.',steps:['From landing/home, tap <b>👥 Team Records</b> → enter the team sync key and save.','Everyone must use the same key (admin SYNC_KEY) to see each other’s records.','Tap <b>Open</b> on a record to load that audit onto this device.','※ Photos are excluded from server backups (text & grades only).']}},
+   ko:{title:'팀 공유 기록 — 폰에서 점검, PC에서 열기',desc:'점검 설정 화면에서 <b>팀 공유 코드</b>를 넣으면, 폰으로 진행한 점검이 그 코드로 서버에 자동 백업됩니다. 사무실 <b>PC</b> 등에서 랜딩 화면에 같은 코드를 입력하면 그 기록들을 그대로 불러와(다운로드) 이어서 작업하거나 Excel로 내보낼 수 있습니다.',steps:['점검 설정에서 <b>팀 공유 코드</b>(예: TEAM-A)를 입력합니다. 비워두면 이 기기에만 저장됩니다.','랜딩 화면의 코드 입력창에 같은 코드를 넣고 <b>Load</b>를 누릅니다.','목록에서 <b>Open</b>을 눌러 해당 점검을 이 기기로 불러옵니다.','※ 코드를 아는 사람은 누구나 접근하니 추측하기 어려운 코드를 쓰세요. 사진은 백업에서 제외됩니다.']},
+   en:{title:'Team Records — Audit on Phone, Open on PC',desc:'Set a <b>team share code</b> on the audit setup screen and the audit you run on your phone is auto-backed-up under that code. On an office <b>PC</b>, enter the same code on the landing screen to pull those records (download) and continue working or export to Excel.',steps:['On setup, enter a <b>share code</b> (e.g. TEAM-A). Leave blank to keep it on this device only.','On the landing screen, type the same code and tap <b>Load</b>.','Tap <b>Open</b> on a record to load that audit onto this device.','※ Anyone who knows the code can access it — use a hard-to-guess code. Photos are excluded from backups.']}},
 ];
 const PROCESS_SECTIONS=[
   {ko:{t:'① 점검 준비 (Setup)',b:'협력사 식별 정보를 입력합니다:<ul><li><b>Vendor Code</b> (선택) — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동 부여.</li><li><b>협력사명</b> (Supplier Name)</li><li><b>법인</b> (Subsidiary — 예: SEV, SEHC)</li><li><b>사업부</b> (GBM — 예: MX, VD)</li><li><b>국가</b></li></ul>입력한 정보는 홈 화면과 Excel 보고서 상단에 표시됩니다. 입력 후 <b>Start</b>를 누릅니다.'},
@@ -3948,30 +4177,31 @@ function viewManualImg(src){
 
 // ═══════════════════════════════════════════════════════════
 //  팀 공유 — 점검 기록 서버 백업/불러오기 (Netlify Blobs)
-//  공유 비밀키(SYNC_KEY)를 팀원이 같은 값으로 설정하면
-//  저장 시 자동 백업되고, 팀 공유 화면에서 서로의 기록을 불러올 수 있다.
+//  점검마다 '공유 코드(shareCode)'를 설정하면 저장 시 그 코드로 서버에
+//  자동 백업된다. 랜딩/팀 화면에서 같은 코드를 입력하면 그 기록들을 불러온다.
+//  코드가 곧 접근 키 — 코드를 아는 사람만 볼 수 있다(별도 비밀키 없음).
 //  ※ 사진은 용량 문제로 서버 백업에서 제외(기기에는 유지).
 // ═══════════════════════════════════════════════════════════
-const TEAM_CFG_KEY='vap_team_cfg';
-function teamCfg(){try{return JSON.parse(localStorage.getItem(TEAM_CFG_KEY))||{};}catch{return{};}}
-function teamSaveCfgObj(c){localStorage.setItem(TEAM_CFG_KEY,JSON.stringify(c));}
-
 let _teamTimer=null,_teamStatus='';   // ''|'saving'|'ok'|'err'
-let _teamList=null,_teamBusy=false,_teamErr='';
+let _teamList=null,_teamBusy=false,_teamErr='',_teamViewCode='',_teamExporting=false;
 
+// 공유 코드 정규화 — Blobs 키 경로에 안전한 문자만 (영문 대문자·숫자·-·_)
+function sanitizeShare(c){return String(c||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');}
+
+// 저장 시 자동 백업 — 이 점검에 '공유 코드'가 설정된 경우에만 서버로 보낸다.
 function teamAutoSync(meta){
-  const k=(teamCfg().syncKey||'').trim();
-  if(!k||!S.vendorCode||!S.auditType)return;
+  const code=sanitizeShare(S.shareCode);
+  if(!code||!S.vendorCode||!S.auditType)return;
   clearTimeout(_teamTimer);
-  _teamTimer=setTimeout(()=>{teamPush(k,meta).catch(()=>{});},2000); // 2초 디바운스
+  _teamTimer=setTimeout(()=>{teamPush(code,meta).catch(()=>{});},2000); // 2초 디바운스
 }
-async function teamPush(k,meta){
+async function teamPush(code,meta){
   _teamStatus='saving';
   try{
     const sess={...S,photos:{}}; // 사진 제외
     const res=await fetch('/api/team?action=save',{
       method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({key:k,session:sess,meta:{
+      body:JSON.stringify({shareCode:code,session:sess,meta:{
         code:S.vendorCode,supplierName:S.supplierName||'',subsidiary:S.subsidiary||'',gbm:S.gbm||'',
         country:S.country,lang:S.lang,auditType:S.auditType,
         rate:(meta&&meta.rate!==undefined)?meta.rate:null,
@@ -3982,29 +4212,28 @@ async function teamPush(k,meta){
   }catch(e){_teamStatus='err';}
 }
 
-async function teamRefresh(){
-  const k=(teamCfg().syncKey||'').trim();
-  if(!k){_teamErr='nokey';_teamList=null;render();return;}
+// 랜딩/팀 화면에서 공유 코드로 기록 목록 조회
+function teamRefresh(){
+  const code=sanitizeShare(_teamViewCode);
+  if(!code){_teamErr='nocode';_teamList=null;render();return Promise.resolve();}
   _teamBusy=true;_teamErr='';render();
-  try{
-    const res=await fetch('/api/team?action=list&key='+encodeURIComponent(k));
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error||res.status);
-    _teamList=data.sessions||[];
-  }catch(e){_teamErr=String(e.message||e);_teamList=null;}
-  _teamBusy=false;render();
+  return fetch('/api/team?action=list&shareCode='+encodeURIComponent(code))
+    .then(r=>r.json().then(data=>{if(!r.ok)throw new Error(data.error||r.status);_teamList=data.sessions||[];}))
+    .catch(e=>{_teamErr=String(e.message||e);_teamList=null;})
+    .finally(()=>{_teamBusy=false;render();});
 }
-async function teamLoad(code){
-  const k=(teamCfg().syncKey||'').trim();
-  if(!k)return;
+// 공유 코드 + 협력사코드로 개별 기록 불러오기
+async function teamLoad(vendorCode){
+  const code=sanitizeShare(_teamViewCode);
+  if(!code)return;
   _teamBusy=true;render();
   try{
-    const res=await fetch('/api/team?action=get&key='+encodeURIComponent(k)+'&code='+encodeURIComponent(code));
+    const res=await fetch('/api/team?action=get&shareCode='+encodeURIComponent(code)+'&vendor='+encodeURIComponent(vendorCode));
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||res.status);
     const loaded=data.session;
     // 이 기기에 같은 코드 세션이 있으면 사진은 로컬 것을 유지
-    try{const local=JSON.parse(localStorage.getItem('vap_'+code)||'null');if(local&&local.photos)loaded.photos=local.photos;}catch(e2){}
+    try{const local=JSON.parse(localStorage.getItem('vap_'+vendorCode)||'null');if(local&&local.photos)loaded.photos=local.photos;}catch(e2){}
     S={...initState(),...loaded,screen:loaded.auditType?'home':'pick'};
     _teamBusy=false;
     render();window.scrollTo(0,0);
@@ -4012,12 +4241,42 @@ async function teamLoad(code){
   }catch(e){_teamErr=String(e.message||e);}
   _teamBusy=false;render();
 }
-function teamSaveKey(){
-  const v=document.getElementById('teamKeyInput').value.trim();
-  teamSaveCfgObj({...teamCfg(),syncKey:v});
+// 공유 코드 입력 → 팀 기록 화면 열고 조회
+function teamOpenCode(code){
+  _teamViewCode=sanitizeShare(code);
+  _teamList=null;_teamErr='';
+  S.screen='team';render();window.scrollTo(0,0);
+  if(_teamViewCode)teamRefresh();
+}
+// 팀 화면 내 코드 입력창에서 조회
+function teamSetViewCode(){
+  const el=document.getElementById('teamCodeInput');
+  _teamViewCode=sanitizeShare(el?el.value:'');
   _teamList=null;_teamErr='';
   render();
-  if(v)teamRefresh();
+  if(_teamViewCode)teamRefresh();
+}
+// 공유 코드의 모든 점검을 각각 엑셀(CSV) 파일로 일괄 다운로드
+async function teamExportAll(){
+  const code=sanitizeShare(_teamViewCode);
+  if(!code||!_teamList||!_teamList.length||_teamExporting)return;
+  const ko=S.lang!=='en';
+  _teamExporting=true;render();
+  const savedS=S;   // 현재 세션 보존 (내보내기 로직이 전역 S를 사용하므로 임시 교체)
+  let ok=0;
+  for(const m of _teamList){
+    try{
+      const res=await fetch('/api/team?action=get&shareCode='+encodeURIComponent(code)+'&vendor='+encodeURIComponent(m.code));
+      const data=await res.json();
+      if(!res.ok||!data.session)continue;
+      S={...initState(),...data.session};
+      exportCSV();  // vendorCode 포함 파일명으로 다운로드
+      ok++;
+      await new Promise(r=>setTimeout(r,700)); // 브라우저 다중 다운로드 간격
+    }catch(e){/* 개별 실패 무시 */}
+  }
+  S=savedS;_teamExporting=false;render();
+  alert(ko?`${ok}건의 점검을 엑셀(CSV) 파일로 저장했습니다.`:`Saved ${ok} audit(s) as Excel (CSV) files.`);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4102,22 +4361,22 @@ async function lockSetPw(){
 
 function screenTeam(){
   const ko=S.lang!=='en';
-  const k=(teamCfg().syncKey||'').trim();
+  const code=sanitizeShare(_teamViewCode);
   const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
   const typeLbl=t=>t==='nsup'?(ko?'신규협력사':'New Supplier'):(ko?'중점관리':'Major');
   let body='';
-  if(!k){
+  if(!code){
     body=`<div class="team-note">${ko
-      ?'팀 공유를 사용하려면 <b>팀 공유 키</b>를 입력하세요.<br>팀원 모두 같은 키를 입력하면 점검 기록이 자동으로 서버에 백업되고 서로 불러올 수 있습니다.<br><span style="color:var(--muted);font-size:12px">키는 관리자(Netlify 환경변수 SYNC_KEY)와 동일해야 합니다.</span>'
-      :'Enter the <b>team sync key</b> to use team sharing.<br>Everyone using the same key can back up and load each other\'s audits.<br><span style="color:var(--muted);font-size:12px">Must match the server\'s SYNC_KEY env var.</span>'}</div>`;
+      ?'점검 기록을 불러오려면 <b>공유 코드</b>를 입력하세요.<br>점검 설정 화면에서 넣은 공유 코드를 여기에 입력하면, 그 코드로 백업된 기록들이 표시됩니다.'
+      :'Enter a <b>share code</b> to load audits.<br>Type the share code you set on the audit setup screen to see records backed up under it.'}</div>`;
   }else if(_teamBusy){
     body=`<div class="team-note">${ko?'불러오는 중…':'Loading…'}</div>`;
   }else if(_teamErr){
-    body=`<div class="team-note" style="border-color:var(--P);color:var(--P)">⚠ ${_teamErr==='nokey'?(ko?'키를 입력하세요':'Enter the key'):aiEsc(_teamErr)}<br><span style="font-size:12px;color:var(--muted)">${ko?'(로컬 file:// 로 열었거나 키가 틀리면 실패합니다. 배포된 사이트에서 사용하세요.)':'(Fails on local file:// or with a wrong key — use the deployed site.)'}</span></div>`;
+    body=`<div class="team-note" style="border-color:var(--P);color:var(--P)">⚠ ${_teamErr==='nocode'?(ko?'공유 코드를 입력하세요':'Enter a share code'):aiEsc(_teamErr)}<br><span style="font-size:12px;color:var(--muted)">${ko?'(로컬 file:// 로 열면 실패합니다. 배포된 사이트에서 사용하세요.)':'(Fails on local file:// — use the deployed site.)'}</span></div>`;
   }else if(_teamList===null){
-    body=`<div class="team-note">${ko?'아래 새로고침을 눌러 팀 기록을 불러오세요.':'Tap refresh to load team audits.'}</div>`;
+    body=`<div class="team-note">${ko?'위 조회 버튼을 눌러 기록을 불러오세요.':'Tap Load to fetch records.'}</div>`;
   }else if(_teamList.length===0){
-    body=`<div class="team-note">${ko?'아직 공유된 점검 기록이 없습니다.<br>점검을 진행하면 자동으로 백업됩니다.':'No shared audits yet.<br>Audits back up automatically as you work.'}</div>`;
+    body=`<div class="team-note">${ko?`<b>${aiEsc(code)}</b> 코드로 저장된 점검 기록이 없습니다.`:`No audits saved under code <b>${aiEsc(code)}</b>.`}</div>`;
   }else{
     body=_teamList.map(m=>`
       <div class="team-card" onclick="teamLoad('${aiEsc(m.code)}')">
@@ -4129,17 +4388,17 @@ function screenTeam(){
         <span class="team-open">${ko?'열기':'Open'}</span>
       </div>`).join('');
   }
-  const st=_teamStatus==='saving'?(ko?'⟳ 백업 중…':'⟳ backing up…'):_teamStatus==='ok'?(ko?'✅ 마지막 백업 성공':'✅ last backup ok'):_teamStatus==='err'?(ko?'⚠ 마지막 백업 실패':'⚠ last backup failed'):'';
   return`${nav(ko?'👥 팀 공유 기록':'👥 Team Audits',"S.screen='landing';render()")}
   <div class="content">
-    <span class="stag" style="background:var(--C)">${ko?'팀 공유':'Team'}</span>
+    <span class="stag" style="background:var(--C)">${ko?'공유 코드':'Share Code'}</span>
     <h2 class="stitle">${ko?'팀 점검 기록':'Shared Audits'}</h2>
-    <p class="ssub">${ko?'팀원들이 백업한 점검 기록을 불러와 이어서 작업할 수 있습니다. 사진은 서버 백업에서 제외됩니다.':'Load audits backed up by your team. Photos are excluded from server backups.'} ${st?`<br><b>${st}</b>`:''}</p>
+    <p class="ssub">${ko?'공유 코드로 백업된 점검 기록을 불러와 이어서 작업할 수 있습니다. 사진은 서버 백업에서 제외됩니다.':'Load audits backed up under a share code and continue working. Photos are excluded from server backups.'}</p>
     <div class="team-keyrow">
-      <input id="teamKeyInput" type="password" placeholder="${ko?'팀 공유 키':'Team sync key'}" value="${aiEsc(k)}">
-      <button onclick="teamSaveKey()">${ko?'저장':'Save'}</button>
-      <button onclick="teamRefresh()" ${k?'':'disabled'}>↻</button>
+      <input id="teamCodeInput" type="text" placeholder="${ko?'공유 코드 (예: TEAM-A)':'Share code (e.g. TEAM-A)'}" value="${aiEsc(code)}" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')teamSetViewCode()">
+      <button onclick="teamSetViewCode()">${ko?'조회':'Load'}</button>
+      <button onclick="teamRefresh()" ${code?'':'disabled'}>↻</button>
     </div>
+    ${(_teamList&&_teamList.length)?`<button class="team-export-all" onclick="teamExportAll()" ${_teamExporting?'disabled':''}>${_teamExporting?(ko?'⟳ 저장 중…':'⟳ Saving…'):(ko?`📊 엑셀 일괄 저장 (${_teamList.length}건)`:`📊 Export All to Excel (${_teamList.length})`)}</button>`:''}
     ${body}
   </div>`;
 }

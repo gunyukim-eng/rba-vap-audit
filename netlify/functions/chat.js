@@ -25,12 +25,12 @@ exports.handler = async (event) => {
   }
 
   // ── 로깅 (best-effort, 실패해도 응답에는 영향 없음) ──
-  logInteraction(event.body, upstreamText, status).catch(() => {});
+  logInteraction(event.body, upstreamText, status, event).catch(() => {});
 
   return { statusCode: status, headers: { ...cors(), 'content-type': 'application/json' }, body: upstreamText };
 };
 
-async function logInteraction(reqBody, resText, status) {
+async function logInteraction(reqBody, resText, status, event) {
   try {
     const req = safeParse(reqBody) || {};
     const res = safeParse(resText) || {};

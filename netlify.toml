@@ -28,3 +28,9 @@
   from = "/api/auth"
   to = "/.netlify/functions/auth"
   status = 200
+
+# 관리자용 Blobs 조회 (읽기 전용) — ADMIN_KEY 필요
+[[redirects]]
+  from = "/api/admin-blobs"
+  to = "/.netlify/functions/admin-blobs"
+  status = 200
