@@ -1,57 +1,57 @@
 // ─── ITEM DEFINITIONS ─────────────────────────
 const ITEMS={
-  a11:{code:'A1.1',title:'Forced Labor',desc:'No forced or coercive labor',grp:'A1'},
-  a12:{code:'A1.2',title:'Employment Terms',desc:'Written terms before employment',grp:'A1'},
-  a13:{code:'A1.3',title:'Document Retention',desc:'No confiscation of personal IDs',grp:'A1'},
-  a21:{code:'A2.1',title:'Minimum Age',desc:'No child labor present',grp:'A2'},
-  a22:{code:'A2.2',title:'Young Worker Protections',desc:'No hazardous work or OT for <18',grp:'A2'},
-  a23:{code:'A2.3',title:'Learner Programs',desc:'Student/intern/apprentice compliance',grp:'A2'},
-  a31:{code:'A3.1',title:'Weekly Hour Limits',desc:'Max 60 hours per week',grp:'A3'},
-  a32:{code:'A3.2',title:'Rest Days',desc:'At least 1 day off per 7 days',grp:'A3'},
-  a33:{code:'A3.3',title:'Breaks & Leave',desc:'Mandatory breaks and leave rights',grp:'A3'},
-  a41:{code:'A4.1',title:'Wages & Payment',desc:'Equal pay, correct calc, timely payment',grp:'A4'},
-  a42:{code:'A4.2',title:'Wage Statements',desc:'Understandable payslips each pay period',grp:'A4'},
-  a43:{code:'A4.3',title:'Deductions & Withholdings',desc:'Correct statutory deductions submitted on time',grp:'A4'},
-  a51:{code:'A5.1',title:'Non-Discrimination',desc:'No discrimination, harassment, or abuse',grp:'A5'},
-  a52:{code:'A5.2',title:'Disciplinary Actions',desc:'Documented and fairly reviewed',grp:'A5'},
-  a53:{code:'A5.3',title:'Religious Accommodation',desc:'Reasonable religious requests considered',grp:'A5'},
-  a54:{code:'A5.4',title:'Disability Accommodation',desc:'Reasonable disability requests considered',grp:'A5'},
-  a61:{code:'A6.1',title:'Freedom of Association',desc:'Workers free to join/form unions',grp:'A6'},
-  a62:{code:'A6.2',title:'Collective Bargaining',desc:'Bargaining rights respected in good faith',grp:'A6'},
-  a63:{code:'A6.3',title:'Peaceful Assembly',desc:'Workers may peacefully assemble and voice concerns',grp:'A6'},
-  am11:{code:'AM.1.1',title:'Compliance Process',desc:'Quarterly process to track applicable laws',grp:'AM'},
-  am12:{code:'AM.1.2',title:'Risk Assessment',desc:'Due diligence on actual and potential labor risks',grp:'AM'},
-  am21:{code:'AM.2.1',title:'Roles & Responsibilities',desc:'Labor compliance responsibilities assigned at all levels',grp:'AM'},
-  am22:{code:'AM.2.2',title:'Policies & Controls',desc:'Adequate labor policies and effective control processes',grp:'AM'},
-  am23:{code:'AM.2.3',title:'Training',desc:'Labor compliance training for all managers and workers',grp:'AM'},
-  am31:{code:'AM.3.1',title:'Communication',desc:'Two-way communication on labor practices',grp:'AM'},
-  am32:{code:'AM.3.2',title:'Grievance Mechanism',desc:'Anonymous reporting without fear of reprisal',grp:'AM'},
-  am41:{code:'AM.4.1',title:'Performance Review',desc:'Annual management review of labor system',grp:'AM'},
-  am42:{code:'AM.4.2',title:'Self-Audit',desc:'Periodic self-audit against RBA Code',grp:'AM'},
-  am43:{code:'AM.4.3',title:'Corrective Action',desc:'Corrective actions are established to close non-conformances',grp:'AM'},
-  d11:{code:'D1',title:'Business Integrity',desc:'Prevents corruption and improper advantage',grp:'D'},
-  d12:{code:'D2',title:'Disclosure of Information',desc:'Ensures accurate and timely reporting',grp:'D'},
-  d13:{code:'D3',title:'Intellectual Property',desc:'Protects IP and confidential information',grp:'D'},
-  d14:{code:'D4',title:'Fair Business Practices',desc:'Supports fair competition and honest advertising',grp:'D'},
-  d15:{code:'D5',title:'Identity Protection',desc:'Protects privacy and non-retaliation for reporters',grp:'D'},
-  d16:{code:'D6',title:'Privacy',desc:'Ensures lawful handling of personal information',grp:'D'},
-  dm11:{code:'D.M.1.1',title:'Ethics Compliance Process',desc:'Ethics compliance risks are monitored and managed',grp:'DM'},
-  dm12:{code:'D.M.1.2',title:'Ethics Risk Due Diligence',desc:'Ethics risks are identified and assessed proactively',grp:'DM'},
-  dm21:{code:'D.M.2.1',title:'Ethics Roles & Responsibilities',desc:'Ethics responsibilities are assigned and authorized',grp:'DM'},
-  dm22:{code:'D.M.2.2',title:'Ethics Policies & Controls',desc:'Ethics policies and control processes are implemented',grp:'DM'},
-  dm23:{code:'D.M.2.3',title:'Ethics Training',desc:'Ethics training is provided for managers and workers',grp:'DM'},
-  dm31:{code:'D.M.3.1',title:'Ethics Communications',desc:'Two-way ethics communication and feedback is established',grp:'DM'},
-  dm32:{code:'D.M.3.2',title:'Ethics Grievance Reporting',desc:'Anonymous ethics grievances can be reported without reprisal',grp:'DM'},
-  dm41:{code:'D.M.4.1',title:'Ethics Management Review',desc:'Ethics management reviews continually improve performance',grp:'DM'},
-  dm42:{code:'D.M.4.2',title:'Ethics Self-Audit',desc:'Ethics self-audits assess conformance with the RBA Code',grp:'DM'},
-  dm43:{code:'D.M.4.3',title:'Ethics Corrective Actions',desc:'Ethics corrective action processes close identified gaps',grp:'DM'},
-  e11:{code:'E1.1',title:'Company Commitment',desc:'Establishes supply chain responsibility commitment',grp:'E'},
-  e12:{code:'E2.1',title:'Materials Restrictions',desc:'Manages restricted and hazardous materials',grp:'E'},
-  e13:{code:'E3.1',title:'Responsible Minerals',desc:'Ensures responsible sourcing of minerals',grp:'E'},
-  e14:{code:'E4.1',title:'Supplier Communication',desc:'Requires suppliers to follow RBA codes',grp:'E'},
-  e15:{code:'E4.2',title:'Supplier Identification',desc:'Next-tier major suppliers are identified and assessed',grp:'E'},
-  e16:{code:'E4.3',title:'Supplier Implementation',desc:'Suppliers are required to implement the RBA code',grp:'E'},
-  e17:{code:'E4.4',title:'Supplier Monitoring',desc:'Supplier RBA code performance and improvement are tracked',grp:'E'},
+  a11:{code:'AL101',title:'Forced Labor',desc:'No forced or coercive labor',grp:'A1'},
+  a12:{code:'AL102',title:'Employment Terms',desc:'Written terms before employment',grp:'A1'},
+  a13:{code:'AL103',title:'Document Retention',desc:'No confiscation of personal IDs',grp:'A1'},
+  a21:{code:'AL201',title:'Minimum Age',desc:'No child labor present',grp:'A2'},
+  a22:{code:'AL202',title:'Young Worker Protections',desc:'No hazardous work or OT for <18',grp:'A2'},
+  a23:{code:'AL203',title:'Learner Programs',desc:'Student/intern/apprentice compliance',grp:'A2'},
+  a31:{code:'AL301',title:'Weekly Hour Limits',desc:'Max 60 hours per week',grp:'A3'},
+  a32:{code:'AL302',title:'Rest Days',desc:'At least 1 day off per 7 days',grp:'A3'},
+  a33:{code:'AL303',title:'Breaks & Leave',desc:'Mandatory breaks and leave rights',grp:'A3'},
+  a41:{code:'AL401',title:'Wages & Payment',desc:'Equal pay, correct calc, timely payment',grp:'A4'},
+  a42:{code:'AL402',title:'Wage Statements',desc:'Understandable payslips each pay period',grp:'A4'},
+  a43:{code:'AL403',title:'Deductions & Withholdings',desc:'Correct statutory deductions submitted on time',grp:'A4'},
+  a51:{code:'AL501',title:'Non-Discrimination',desc:'No discrimination, harassment, or abuse',grp:'A5'},
+  a52:{code:'AL502',title:'Disciplinary Actions',desc:'Documented and fairly reviewed',grp:'A5'},
+  a53:{code:'AL503',title:'Religious Accommodation',desc:'Reasonable religious requests considered',grp:'A5'},
+  a54:{code:'AL504',title:'Disability Accommodation',desc:'Reasonable disability requests considered',grp:'A5'},
+  a61:{code:'AL601',title:'Freedom of Association',desc:'Workers free to join/form unions',grp:'A6'},
+  a62:{code:'AL602',title:'Collective Bargaining',desc:'Bargaining rights respected in good faith',grp:'A6'},
+  a63:{code:'AL603',title:'Peaceful Assembly',desc:'Workers may peacefully assemble and voice concerns',grp:'A6'},
+  am11:{code:'AM101',title:'Compliance Process',desc:'Quarterly process to track applicable laws',grp:'AM'},
+  am12:{code:'AM102',title:'Risk Assessment',desc:'Due diligence on actual and potential labor risks',grp:'AM'},
+  am21:{code:'AM201',title:'Roles & Responsibilities',desc:'Labor compliance responsibilities assigned at all levels',grp:'AM'},
+  am22:{code:'AM202',title:'Policies & Controls',desc:'Adequate labor policies and effective control processes',grp:'AM'},
+  am23:{code:'AM203',title:'Training',desc:'Labor compliance training for all managers and workers',grp:'AM'},
+  am31:{code:'AM301',title:'Communication',desc:'Two-way communication on labor practices',grp:'AM'},
+  am32:{code:'AM302',title:'Grievance Mechanism',desc:'Anonymous reporting without fear of reprisal',grp:'AM'},
+  am41:{code:'AM401',title:'Performance Review',desc:'Annual management review of labor system',grp:'AM'},
+  am42:{code:'AM402',title:'Self-Audit',desc:'Periodic self-audit against RBA Code',grp:'AM'},
+  am43:{code:'AM403',title:'Corrective Action',desc:'Corrective actions are established to close non-conformances',grp:'AM'},
+  d11:{code:'DE101',title:'Business Integrity',desc:'Prevents corruption and improper advantage',grp:'D'},
+  d12:{code:'DE201',title:'Disclosure of Information',desc:'Ensures accurate and timely reporting',grp:'D'},
+  d13:{code:'DE301',title:'Intellectual Property',desc:'Protects IP and confidential information',grp:'D'},
+  d14:{code:'DE401',title:'Fair Business Practices',desc:'Supports fair competition and honest advertising',grp:'D'},
+  d15:{code:'DE501',title:'Identity Protection',desc:'Protects privacy and non-retaliation for reporters',grp:'D'},
+  d16:{code:'DE601',title:'Privacy',desc:'Ensures lawful handling of personal information',grp:'D'},
+  dm11:{code:'DM101',title:'Ethics Compliance Process',desc:'Ethics compliance risks are monitored and managed',grp:'DM'},
+  dm12:{code:'DM102',title:'Ethics Risk Due Diligence',desc:'Ethics risks are identified and assessed proactively',grp:'DM'},
+  dm21:{code:'DM201',title:'Ethics Roles & Responsibilities',desc:'Ethics responsibilities are assigned and authorized',grp:'DM'},
+  dm22:{code:'DM202',title:'Ethics Policies & Controls',desc:'Ethics policies and control processes are implemented',grp:'DM'},
+  dm23:{code:'DM203',title:'Ethics Training',desc:'Ethics training is provided for managers and workers',grp:'DM'},
+  dm31:{code:'DM301',title:'Ethics Communications',desc:'Two-way ethics communication and feedback is established',grp:'DM'},
+  dm32:{code:'DM302',title:'Ethics Grievance Reporting',desc:'Anonymous ethics grievances can be reported without reprisal',grp:'DM'},
+  dm41:{code:'DM401',title:'Ethics Management Review',desc:'Ethics management reviews continually improve performance',grp:'DM'},
+  dm42:{code:'DM402',title:'Ethics Self-Audit',desc:'Ethics self-audits assess conformance with the RBA Code',grp:'DM'},
+  dm43:{code:'DM403',title:'Ethics Corrective Actions',desc:'Ethics corrective action processes close identified gaps',grp:'DM'},
+  e11:{code:'ES101',title:'Company Commitment',desc:'Establishes supply chain responsibility commitment',grp:'E'},
+  e12:{code:'ES201',title:'Materials Restrictions',desc:'Manages restricted and hazardous materials',grp:'E'},
+  e13:{code:'ES301',title:'Responsible Minerals',desc:'Ensures responsible sourcing of minerals',grp:'E'},
+  e14:{code:'ES401',title:'Supplier Communication',desc:'Requires suppliers to follow RBA codes',grp:'E'},
+  e15:{code:'ES402',title:'Supplier Identification',desc:'Next-tier major suppliers are identified and assessed',grp:'E'},
+  e16:{code:'ES403',title:'Supplier Implementation',desc:'Suppliers are required to implement the RBA code',grp:'E'},
+  e17:{code:'ES404',title:'Supplier Monitoring',desc:'Supplier RBA code performance and improvement are tracked',grp:'E'},
 };
 const GRPS={A:'Labor Standards',A1:'Forced Labor',A2:'Young Workers',A3:'Working Hours',A4:'Wages & Benefits',A5:'Non-Discrimination',A6:'Freedom of Association',AM:'Labor Mgmt System',D:'Ethics',DM:'Ethics Mgmt System',E:'Supply Chain'};
 const TOP_GRP_MAP={A:['A1','A2','A3','A4','A5','A6'],AM:['AM'],D:['D'],DM:['DM'],E:['E']};
@@ -488,7 +488,7 @@ const Q={
     {id:'W3',text:'Do you feel genuinely free to resign whenever you choose?',hint:'If hesitant, follow up: "Is there any penalty, fine, or debt you would owe if you decided to quit today?"',sev:'priority'},
     {id:'W4',text:'Can you use toilets and access drinking water freely without any restriction?',hint:'Ask: "Do you need to ask anyone or get a pass to use the restroom during your shift?"',sev:'major'},
     {id:'W5',text:'Can you leave the dormitory freely outside working hours?',hint:'Ask: "Is there a time at night when the gates are locked and you cannot leave?" Any curfew = Priority. Select N/A if not in a dormitory.',sev:'priority',na:true},
-    {id:'W6',text:'Do you currently have your passport/ID in your own possession?',hint:'If "No" → flag for A1.3 (Document Retention) as well. Ask: "Where are they being kept and can you get them back right now if you wanted to?"',sev:'a13f',na:true},
+    {id:'W6',text:'Do you currently have your passport/ID in your own possession?',hint:'If "No" → flag for AL103 (Document Retention) as well. Ask: "Where are they being kept and can you get them back right now if you wanted to?"',sev:'a13f',na:true},
   ],
   // A1.2
   a12_mgmt:[
@@ -2377,10 +2377,10 @@ function screenItem(){
 
 function screenFee(id,idx,tot){
   const f=S.fees,ready=f.reimbursed!==null&&f.workerPct&&f.feeAmtPct,fr=ready?calcFeeR():null;
-  return`${nav('A1.1 — '+t('fee'),'itemBack()',t('home'),'goHome()')}
+  return`${nav('AL101 — '+t('fee'),'itemBack()',t('home'),'goHome()')}
   ${pbar(t('fee'),idx,tot)}
   <div class="content">
-    <span class="stag">A1.1</span>
+    <span class="stag">AL101</span>
     <h2 class="stitle">${t('feeTitle')}</h2>
     <p class="ssub">${t('feeDesc')}</p>
     <div class="spbox">
@@ -2407,10 +2407,10 @@ function screenFee(id,idx,tot){
 
 function screenHours(id,idx,tot){
   const h=S.hours31,ready=h.maxHours&&h.pctOver,hr=ready?calcHrsR():null;
-  return`${nav('A3.1 — '+t('hours'),'itemBack()',t('home'),'goHome()')}
+  return`${nav('AL301 — '+t('hours'),'itemBack()',t('home'),'goHome()')}
   ${pbar(t('hours'),idx,tot)}
   <div class="content">
-    <span class="stag">A3.1</span>
+    <span class="stag">AL301</span>
     <h2 class="stitle">${t('hrsTitle')}</h2>
     <p class="ssub">${t('hrsDesc')}</p>
     <div class="spbox">
@@ -2430,10 +2430,10 @@ function screenHours(id,idx,tot){
 
 function screenDays(id,idx,tot){
   const d=S.days32,ready=d.maxDays&&d.pctOver,dr=ready?calcDaysR():null;
-  return`${nav('A3.2 — '+t('days'),'itemBack()',t('home'),'goHome()')}
+  return`${nav('AL302 — '+t('days'),'itemBack()',t('home'),'goHome()')}
   ${pbar(t('days'),idx,tot)}
   <div class="content">
-    <span class="stag">A3.2</span>
+    <span class="stag">AL302</span>
     <h2 class="stitle">${t('daysTitle')}</h2>
     <p class="ssub">${t('daysDesc')}</p>
     <div class="spbox">
@@ -2766,8 +2766,8 @@ function screenLanding(){
       </div>
       ${!sessions.length?`<div class="land-hint" style="margin-top:14px">Tap to begin the on-site assessment</div>`:''}
       <div style="width:100%;padding:0 24px;margin-top:14px;display:flex;flex-direction:column;gap:9px">
-        <button class="land-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 사용 설명서 (매뉴얼)</button>
-        <button class="land-team" onclick="S.screen='team';render();window.scrollTo(0,0)">👥 팀 공유 기록</button>
+        <button class="land-manual" onclick="S.screen='manual';render();window.scrollTo(0,0)">📖 Manual</button>
+        <button class="land-team" onclick="S.screen='team';render();window.scrollTo(0,0)">👥 Team Records</button>
       </div>
     </div>
     <div class="land-footer">On-Site Audit Standard · January 2024</div>
@@ -3860,27 +3860,36 @@ const MANUAL_SECTIONS=[
   {n:'01',img:'manual/save.png',
    ko:{title:'점검 시작 & 이어하기',desc:'첫 화면(랜딩)입니다. 처음이면 <b>+ New Audit</b>으로 시작하고, 이전에 하던 점검이 있으면 카드나 <b>Resume</b>를 눌러 이어서 작업합니다.',steps:['같은 Vendor Code로 다시 열면 진행 내용이 자동 저장·복원됩니다.','점검 내용은 이 기기 브라우저에 저장됩니다.']},
    en:{title:'Start & Resume an Audit',desc:'This is the landing screen. Tap <b>+ New Audit</b> to start, or tap a saved card / <b>Resume</b> to continue.',steps:['Reopening with the same Vendor Code auto-restores your progress.','Data is stored in this device’s browser.']}},
-  {n:'02',img:'manual/share1.png',
+  {n:'02',img:'manual/major.png',
+   ko:{title:'점검 항목 — 중점관리(Major) 점검',desc:'점검 홈 화면입니다. 상단 요약바에 그룹별(A·AM·D·DM·E) 적합률과 총점이 실시간 표시됩니다. 각 <b>항목 카드</b>를 눌러 점검을 시작합니다.',steps:['항목 코드는 AL·AM·DE·DM·ES 체계입니다 (예: AL101 강제근로).','<b>점검 항목</b> / <b>필요 서류</b> 탭으로 전환할 수 있습니다.','등급은 카드에 색상 배지로 표시됩니다.']},
+   en:{title:'Audit Items — On-Site (Major) Audit',desc:'The audit home screen. The summary bar shows per-group (A·AM·D·DM·E) conformance and total score in real time. Tap an <b>item card</b> to start assessing.',steps:['Item codes use the AL·AM·DE·DM·ES scheme (e.g. AL101 Forced Labor).','Switch between the <b>Audit Items</b> / <b>Documents</b> tabs.','Grades appear as colored badges on each card.']}},
+  {n:'03',img:'manual/newsupplier.png',
+   ko:{title:'신규협력사 체크리스트',desc:'신규 등록 평가용 <b>19개 항목</b> 체크리스트입니다. 각 항목을 눌러 예/아니오로 답하면 <b>총점(100점)</b>과 등급이 자동 산정됩니다.',steps:['필수 항목이 Priority면 즉시 FAIL됩니다.','합격 기준: 85점↑ PASS / 70~84 CONDITIONAL / 그 외 FAIL.']},
+   en:{title:'New-Supplier Checklist',desc:'A <b>19-item</b> checklist for new-registration evaluation. Tap an item and answer Yes/No; the <b>total score (100)</b> and grade are computed automatically.',steps:['A Priority on a mandatory item = immediate FAIL.','Pass: ≥85 PASS / 70–84 CONDITIONAL / else FAIL.']}},
+  {n:'04',img:'manual/setup.png',
+   ko:{title:'점검 준비 — 협력사 정보 입력',desc:'점검 전 협력사 정보를 입력합니다: <b>Vendor Code · 협력사명 · 법인(Subsidiary) · 사업부(GBM) · 국가</b>. 입력값은 홈 화면과 Excel 보고서 상단에 표시됩니다.',steps:['Vendor Code는 세션 저장·복원 키입니다. 비워두면 자동 부여됩니다.','입력 후 <b>Start Inspection</b>을 눌러 시작합니다.']},
+   en:{title:'Prepare — Enter Supplier Info',desc:'Enter the supplier details before auditing: <b>Vendor Code · Supplier Name · Subsidiary · GBM · Country</b>. These appear on home and at the top of the Excel report.',steps:['Vendor Code is the save/restore key; leave blank to auto-generate.','Tap <b>Start Inspection</b> to begin.']}},
+  {n:'05',img:'manual/share1.png',
    ko:{title:'협력사 사전점검 요청 (공유) ①',desc:'홈 화면에서 <b>📤 협력사 사전점검 요청</b> 버튼을 누릅니다.',steps:['협력사가 방문 전에 필요 서류 준비 현황을 미리 체크할 수 있습니다.']},
    en:{title:'Request Supplier Pre-Check (Share) ①',desc:'On the home screen, tap <b>📤 Request Supplier Pre-Check</b>.',steps:['The supplier can check document readiness before your visit.']}},
-  {n:'03',img:'manual/share2.png',
+  {n:'06',img:'manual/share2.png',
    ko:{title:'협력사에 링크 전달 ②',desc:'생성된 링크를 <b>📋 링크 복사</b> 버튼으로 복사해 카카오톡·이메일로 협력사에 보냅니다.',steps:['협력사가 서류 현황을 체크하면 결과 링크를 생성합니다.','결과 링크를 감사원이 열어 “감사에 반영”을 누르면 각 항목 Document Review에 ✓/✗ 배지로 표시됩니다.']},
    en:{title:'Send Link to Supplier ②',desc:'Copy the generated link with <b>📋 Copy Link</b> and send it via messenger/email.',steps:['The supplier checks readiness and generates a result link.','Open that link and tap “Import to Audit” — ✓/✗ badges appear in each item’s Document Review.']}},
-  {n:'04',img:'manual/excel.png',
+  {n:'07',img:'manual/excel.png',
    ko:{title:'점검 결과 Excel(CSV) 내보내기',desc:'홈 <b>점검 항목</b> 탭 맨 아래의 <b>📊 점검 결과 Excel 내보내기</b> 버튼을 누르면 CSV 파일이 다운로드됩니다.',steps:['등급·발견사항·메모·사진 수가 포함됩니다.','다운로드된 .csv 파일은 Excel에서 바로 열립니다.']},
    en:{title:'Export Results to Excel (CSV)',desc:'At the bottom of the <b>Audit Items</b> tab, tap <b>📊 Export Results to Excel</b> to download a CSV.',steps:['Includes ratings, findings, notes and photo counts.','The .csv opens directly in Excel.']}},
-  {n:'05',img:'manual/aibtn.png',
-   ko:{title:'AI 자동판정 — 문서 사진으로 등급 제안',desc:'신규협력사 탭의 각 점검 항목에서 <b>🤖 AI 자동판정</b> 버튼을 누른 뒤 관련 문서 사진(계약서·급여명세서 등)을 첨부합니다.',steps:['AI가 문서를 읽어(OCR) 판정기준과 대조해 등급을 제안합니다.','※ API 키 설정이 필요합니다(08 참고).']},
-   en:{title:'AI Auto-Judge — Grade from Photos',desc:'In a New-Supplier item, tap <b>🤖 AI Auto-Judge</b> and attach relevant document photos (contracts, payslips, etc.).',steps:['AI reads the document (OCR) and suggests a grade against the criteria.','※ Requires an API key (see 08).']}},
-  {n:'06',img:'manual/aicard.png',
+  {n:'08',img:'manual/aibtn.png',
+   ko:{title:'AI 자동판정 — 문서 사진으로 등급 제안',desc:'신규협력사 탭의 각 점검 항목에서 <b>🤖 AI 자동판정</b> 버튼을 누른 뒤 관련 문서 사진(계약서·급여명세서 등)을 첨부합니다.',steps:['AI가 문서를 읽어(OCR) 판정기준과 대조해 등급을 제안합니다.','AI 응답은 서버(백엔드 프록시)를 통해 처리되어 별도 설정이 필요 없습니다.']},
+   en:{title:'AI Auto-Judge — Grade from Photos',desc:'In a New-Supplier item, tap <b>🤖 AI Auto-Judge</b> and attach relevant document photos (contracts, payslips, etc.).',steps:['AI reads the document (OCR) and suggests a grade against the criteria.','AI runs through the backend proxy — no extra setup needed.']}},
+  {n:'09',img:'manual/aicard.png',
    ko:{title:'AI 제안 검토 & 적용',desc:'AI 제안 카드에서 근거를 확인하고 <b>제안 적용</b>을 누르면 문항에 자동 반영됩니다.',steps:['적용 후에도 문항을 직접 수정하면 등급이 다시 계산됩니다.','최종 판정은 항상 감사자가 확정합니다. AI는 초안·근거만 제공합니다.']},
    en:{title:'Review & Apply AI Suggestion',desc:'Review the evidence on the suggestion card and tap <b>Apply Suggestion</b> to prefill the questions.',steps:['Editing answers afterward recalculates the grade.','The auditor always makes the final decision; AI provides only a draft and rationale.']}},
-  {n:'07',img:'manual/fab.png',
+  {n:'10',img:'manual/fab.png',
    ko:{title:'AI 도우미 열기 (문서분석·질의)',desc:'어느 화면에서든 우측 하단 <b>✦</b> 버튼으로 AI 도우미를 엽니다.',steps:['문서 사진을 첨부하면 OCR 분석, 질문을 입력하면 RBA VAP 기준으로 답변합니다.']},
    en:{title:'Open AI Assistant (Analysis & Q&A)',desc:'Tap the <b>✦</b> button (bottom-right) on any screen to open the AI assistant.',steps:['Attach a photo for OCR analysis, or type a question for RBA VAP guidance.']}},
-  {n:'08',img:'manual/aichat.png',
-   ko:{title:'AI 연결 설정',desc:'기본은 <b>백엔드 프록시</b>(/api/chat)라서 앱에는 키를 넣지 않습니다 — API 키는 <b>Netlify 환경변수</b>(ANTHROPIC_API_KEY)에만 둡니다.',steps:['키가 코드·깃·브라우저에 노출되지 않습니다.','로컬 테스트로 직접 호출하려면 설정(⚙)에서 엔드포인트를 api.anthropic.com 으로 바꾸고 키를 입력합니다.','기본 모델은 저비용 Haiku이며 설정에서 변경 가능합니다.']},
-   en:{title:'AI Setup',desc:'By default the app uses a <b>backend proxy</b> (/api/chat), so you don’t enter a key in the app — the API key lives only in a <b>Netlify environment variable</b> (ANTHROPIC_API_KEY).',steps:['The key is never exposed in code, git, or the browser.','For local direct testing, change the endpoint to api.anthropic.com in Settings (⚙) and enter a key.','Default model is low-cost Haiku; changeable in settings.']}},
+  {n:'11',img:'manual/team.png',
+   ko:{title:'팀 공유 기록 — 폰에서 점검, PC에서 열기',desc:'현장에서 <b>폰으로 진행한 점검</b>이 <b>팀 공유 키</b>로 서버에 자동 백업됩니다. 사무실 <b>PC</b>에서 같은 키를 입력하면 그 기록을 그대로 불러와(다운로드) 이어서 작업하거나 Excel로 내보낼 수 있습니다.',steps:['랜딩/홈에서 <b>👥 Team Records</b> → 팀 공유 키를 입력하고 저장합니다.','팀원 모두 같은 키(관리자 SYNC_KEY)를 사용해야 서로의 기록이 보입니다.','목록에서 <b>Open</b>을 눌러 해당 점검을 이 기기로 불러옵니다.','※ 사진은 용량 문제로 서버 백업에서 제외됩니다(텍스트·등급만 공유).']},
+   en:{title:'Team Records — Audit on Phone, Open on PC',desc:'Audits you <b>run on your phone</b> in the field are auto-backed-up to the server under a <b>team sync key</b>. On an office <b>PC</b>, enter the same key to pull those records (download) and continue working or export to Excel.',steps:['From landing/home, tap <b>👥 Team Records</b> → enter the team sync key and save.','Everyone must use the same key (admin SYNC_KEY) to see each other’s records.','Tap <b>Open</b> on a record to load that audit onto this device.','※ Photos are excluded from server backups (text & grades only).']}},
 ];
 const PROCESS_SECTIONS=[
   {ko:{t:'① 점검 준비 (Setup)',b:'협력사 식별 정보를 입력합니다:<ul><li><b>Vendor Code</b> (선택) — 이 코드로 세션이 저장·복원됩니다. 비워두면 자동 부여.</li><li><b>협력사명</b> (Supplier Name)</li><li><b>법인</b> (Subsidiary — 예: SEV, SEHC)</li><li><b>사업부</b> (GBM — 예: MX, VD)</li><li><b>국가</b></li></ul>입력한 정보는 홈 화면과 Excel 보고서 상단에 표시됩니다. 입력 후 <b>Start</b>를 누릅니다.'},
@@ -3889,8 +3898,8 @@ const PROCESS_SECTIONS=[
    en:{t:'② Home Layout',b:'Home has three tabs:<ul><li><b>Audit Items</b> — formal Labor/Ethics/Supply-chain checks (A·AM·D·DM·E)</li><li><b>Documents</b> — required documents per group</li><li><b>New Supplier</b> — new-registration checklist (19 items)</li></ul>The summary bar shows per-group conformance and total score in real time.'}},
   {ko:{t:'③ 항목 점검 — 3단계 진행',b:'각 점검 항목은 세 단계로 진행합니다:<ol><li><b>경영진 면담</b> (Management)</li><li><b>기록 검토</b> (Document Review)</li><li><b>근로자 면담</b> (Worker Interview)</li></ol>각 질문에 <b>예 / 아니오 / N/A</b>로 답합니다. 위반에 해당하면 심각도(Priority·Major·Minor)가 자동 반영됩니다. 하단 <b>다음</b>으로 단계를 이동합니다.'},
    en:{t:'③ Assess an Item — 3 Steps',b:'Each item is assessed in three steps:<ol><li><b>Management interview</b></li><li><b>Document review</b></li><li><b>Worker interview</b></li></ol>Answer each question <b>Yes / No / N/A</b>. Any violation applies its severity (Priority·Major·Minor) automatically. Use <b>Next</b> at the bottom to move between steps.'}},
-  {ko:{t:'④ 특수 입력 — 수수료·근로시간·휴무',b:'일부 항목은 수치 매트릭스를 입력합니다:<ul><li><b>A1.1</b> 채용 수수료 — 부담 근로자 %, 월급 대비 수수료 %</li><li><b>A3.1</b> 근로시간 — 주당 최대 시간, 초과 주 비율 %</li><li><b>A3.2</b> 연속근로일 — 최대 연속일, 초과 근로자 %</li></ul>입력값에 따라 등급이 자동 계산됩니다.'},
-   en:{t:'④ Special Inputs — Fees, Hours, Rest Days',b:'Some items need a numeric matrix:<ul><li><b>A1.1</b> Recruitment fees — % of workers charged, fee as % of monthly wage</li><li><b>A3.1</b> Working hours — max hrs/week, % of weeks over</li><li><b>A3.2</b> Consecutive days — max consecutive days, % of workers</li></ul>The grade is computed automatically from these values.'}},
+  {ko:{t:'④ 특수 입력 — 수수료·근로시간·휴무',b:'일부 항목은 수치 매트릭스를 입력합니다:<ul><li><b>AL101</b> 채용 수수료 — 부담 근로자 %, 월급 대비 수수료 %</li><li><b>AL301</b> 근로시간 — 주당 최대 시간, 초과 주 비율 %</li><li><b>AL302</b> 연속근로일 — 최대 연속일, 초과 근로자 %</li></ul>입력값에 따라 등급이 자동 계산됩니다.'},
+   en:{t:'④ Special Inputs — Fees, Hours, Rest Days',b:'Some items need a numeric matrix:<ul><li><b>AL101</b> Recruitment fees — % of workers charged, fee as % of monthly wage</li><li><b>AL301</b> Working hours — max hrs/week, % of weeks over</li><li><b>AL302</b> Consecutive days — max consecutive days, % of workers</li></ul>The grade is computed automatically from these values.'}},
   {ko:{t:'⑤ 자동 등급 산정 규칙',b:'각 항목은 세 단계 응답 중 <b>가장 심각한 위반</b>으로 등급이 정해집니다: Conformance → Minor → Major → Priority 순으로 심각.<br><br>신규협력사 탭 총점: <b>85점↑ PASS / 70~84 CONDITIONAL / 그 외 FAIL</b>. 필수항목 Priority 시 즉시 FAIL, 근로시간(A0301) Priority 시 CONDITIONAL.'},
    en:{t:'⑤ Auto-Grading Rules',b:'Each item takes the <b>most severe violation</b> among its three steps: Conformance → Minor → Major → Priority.<br><br>New-Supplier total: <b>≥85 PASS / 70–84 CONDITIONAL / else FAIL</b>. A Priority on a mandatory item = immediate FAIL; a Priority on Working Hours (A0301) = CONDITIONAL.'}},
   {ko:{t:'⑥ 사진·메모 첨부',b:'각 질문에 📷로 증거 사진을, 메모 아이콘으로 코멘트를 남길 수 있습니다. 사진·메모는 세션에 저장되고 Excel 내보내기에도 반영됩니다.'},
