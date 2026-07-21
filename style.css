@@ -627,6 +627,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .team-rate{font-size:13px;font-weight:800;color:var(--M);flex-shrink:0}
 .team-open{flex-shrink:0;font-size:12px;font-weight:700;color:#fff;background:var(--blue);
   padding:6px 12px;border-radius:var(--pill)}
+.team-del{flex-shrink:0;font-size:15px;line-height:1;border:1.5px solid var(--line);background:var(--canvas);
+  color:var(--P);padding:6px 9px;border-radius:var(--pill);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.team-del:active{transform:scale(.94)}
+.team-chk{flex-shrink:0;width:20px;height:20px;margin:0;cursor:pointer;accent-color:var(--blue)}
+.team-card.sel{border-color:var(--blue);background:#f2f7ff}
 
 /* ─── 접근 잠금 (내부 전용 비밀번호) ─── */
 #lockScreen{position:fixed;inset:0;z-index:9999;background:var(--dark);display:flex;align-items:center;
