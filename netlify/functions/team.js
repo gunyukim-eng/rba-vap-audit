@@ -7,6 +7,7 @@
 //   GET  /api/team?action=get&shareCode=...&vendor=...
 //   POST /api/team?action=delete  body:{shareCode, vendor}
 const { getBlobStore } = require('../lib/blobs');
+const { isExpired } = require('../lib/retention');
 
 // 공유 코드/협력사 코드 정규화 — Blobs 키 경로에 안전한 문자만 허용
 const safeCode = c => String(c || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
@@ -30,15 +31,29 @@ exports.handler = async (event) => {
       if (!s || !s.vendorCode) return json(400, { error: 'missing session/vendorCode' });
       const code = safeCode(s.vendorCode);
       if (!code) return json(400, { error: 'invalid vendorCode' });
-      const meta = Object.assign({}, body.meta, { code, updated: (body.meta && body.meta.updated) || new Date().toISOString() });
+      // 최초 등록일(created)은 처음 저장 때만 찍고, 이후 저장에서는 보존
+      const prev = await store.get(pfx + 'index/' + code, { type: 'json' }).catch(() => null);
+      const created = (prev && prev.created) || (body.meta && body.meta.created) || new Date().toISOString();
+      const meta = Object.assign({}, body.meta, { code, created, updated: (body.meta && body.meta.updated) || new Date().toISOString() });
       await store.setJSON(pfx + 'data/' + code, s);
       await store.setJSON(pfx + 'index/' + code, meta);
       return json(200, { ok: true });
     }
     if (action === 'list') {
       const { blobs } = await store.list({ prefix: pfx + 'index/' });
+      const now = Date.now();
       const items = [];
-      for (const b of blobs) { const m = await store.get(b.key, { type: 'json' }); if (m) items.push(m); }
+      for (const b of blobs) {
+        const m = await store.get(b.key, { type: 'json' });
+        if (!m) continue;
+        if (isExpired(m, now)) {                    // 첫 등록 2년 경과 → 즉시 삭제하고 목록에서 제외
+          const code = b.key.slice((pfx + 'index/').length);
+          await store.delete(pfx + 'data/' + code).catch(() => {});
+          await store.delete(b.key).catch(() => {});
+          continue;
+        }
+        items.push(m);
+      }
       items.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
       return json(200, { sessions: items });
     }

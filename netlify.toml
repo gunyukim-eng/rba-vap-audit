@@ -5,6 +5,10 @@
 [functions]
   directory = "netlify/functions"
 
+# 팀 공유 기록 보존정책 — 매일 실행, 첫 등록 2년 경과분 삭제
+[functions."team-cleanup"]
+  schedule = "@daily"
+
 # 프론트가 호출하는 /api/chat 를 프록시 함수로 연결 (rewrite)
 [[redirects]]
   from = "/api/chat"
@@ -33,4 +37,10 @@
 [[redirects]]
   from = "/api/admin-blobs"
   to = "/.netlify/functions/admin-blobs"
+  status = 200
+
+# 관리자 전용 전체 점검 기록 조회 — ADMIN_KEY 필요
+[[redirects]]
+  from = "/api/admin-results"
+  to = "/.netlify/functions/admin-results"
   status = 200
