@@ -577,6 +577,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
 .land-admin:active{color:rgba(0,0,0,.5);background:rgba(0,0,0,.05)}
 .admin-scode{display:inline-block;background:var(--dark);color:#fff;font-size:11px;font-weight:800;
   padding:1px 7px;border-radius:var(--pill);margin-right:4px;vertical-align:middle}
+/* 기록 목록 필터 (팀/관리자 공용) */
+.flt-wrap{margin-bottom:12px;display:flex;flex-direction:column;gap:7px}
+.flt-q{width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);
+  border-radius:var(--r-md);font-family:inherit;font-size:14px;background:var(--canvas)}
+.flt-q::placeholder{color:var(--muted)}
+.flt-row{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.flt-sel,.flt-date{padding:8px 9px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-family:inherit;font-size:12px;background:var(--canvas);color:var(--ink);min-width:0}
+.flt-sel{flex-shrink:0}
+.flt-date{flex:1;min-width:0}
+.flt-tilde{color:var(--muted);font-size:12px;flex-shrink:0}
+.flt-lbl{font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0}
+.flt-sort{flex:1;min-width:0;padding:8px 9px;border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-family:inherit;font-size:12px;background:var(--canvas);color:var(--ink)}
+.flt-clear{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
+  background:var(--canvas);color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.flt-clear:active{background:var(--parch)}
+.flt-count{font-size:11px;color:var(--muted);font-weight:700}
 .team-keyrow{display:flex;gap:7px;margin-bottom:14px}
 .team-keyrow input{flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);
   font-family:inherit;font-size:14px}

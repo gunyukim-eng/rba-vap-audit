@@ -1348,6 +1348,8 @@ function aiSaveCfgObj(c){localStorage.setItem(AI_CFG_KEY,JSON.stringify(c));}
 function aiProxyMode(cfg){return !/api\.anthropic\.com/i.test((cfg||aiCfg()).endpoint||'');}
 function aiNeedsKey(cfg){cfg=cfg||aiCfg();return !aiProxyMode(cfg)&&!cfg.apiKey;}
 const AUDIT_AI_CAP=80; // 점검 1회당 AI 호출 상한 (Haiku 기준 약 $1) — 프록시(우리 예산) 모드에서만 적용
+// 낮은 temperature = 기준에 충실하고 일관된 답변(정확도 우선). 창의성보다 재현성이 중요한 감사 판정·질의에 적합.
+const AI_TEMPERATURE=0.2;
 async function aiPost(payload){
   const cfg=aiCfg();
   // 점검당 AI 비용 상한 — 백엔드 프록시(우리 API 예산)를 쓸 때만 카운트/차단
@@ -1368,17 +1370,55 @@ async function aiPost(payload){
     headers['anthropic-version']='2023-06-01';
     headers['anthropic-dangerous-direct-browser-access']='true';
   }
-  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(payload)});
+  // temperature 미지정 호출엔 기본값 주입(정확도 우선). 호출부가 지정하면 그 값 우선.
+  const finalPayload=('temperature' in payload)?payload:{temperature:AI_TEMPERATURE,...payload};
+  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(finalPayload)});
 }
 
-const AI_SYSTEM=`당신은 삼성전자 협력사 심사를 돕는 AI 보조자입니다.
-- 삼성전자 협력사 대상 노동·인권·안전보건(EHS) 심사 기준에 근거해 답변합니다.
-- 문서 사진이 첨부되면, 먼저 문서에서 읽어낸 핵심 사실을 항목별로 정리(OCR)한 뒤 관련 점검 기준과 대조해 분석합니다.
-- 근거가 부족하면 추측하지 말고 "제공된 정보로는 확인 불가"라고 명시합니다.
-- 답변·근거에 'RBA VAP', 'RBA' 같은 명칭은 사용하지 말고 '심사기준'으로 표현합니다.
-- 최종 판정은 감사자가 확정합니다. 당신은 초안·근거·참고의견만 제시하며, 확정 판정을 단정하지 않습니다.
-- 사용자가 질문한 언어와 동일한 언어로 답변합니다 (영어로 물으면 영어, 중국어로 물으면 중국어, 한국어로 물으면 한국어). 문서 내용이 다른 언어여도 답변 언어는 질문 언어를 따릅니다.
-- 간결하고 실무적으로 답변합니다.`;
+// NOTE: 이 프롬프트는 의도적으로 영어로 작성되었다. 한국어로 쓰면 모델이 한국어로 답하는
+// 경향이 생겨(영어 질문에도 한국어 답변) 언어 지시가 무너진다. 출력 언어는 aiLangDirective()가 결정한다.
+const AI_SYSTEM=`You are an AI assistant supporting supplier audits for Samsung Electronics.
+
+ROLE
+- Answer based on the audit standard for labor, human rights, and EHS applied to Samsung Electronics suppliers.
+- When document photos are attached, first extract the key facts from the document (OCR), then compare them against the relevant audit criteria.
+- Never use the names 'RBA VAP' or 'RBA'. Always refer to it as the audit standard ("심사기준" in Korean).
+- The auditor makes the final determination. You provide only a draft, the supporting evidence, and advisory opinions — never state a final verdict as settled fact.
+- Be concise and practical.
+
+EVIDENCE RULES (these drive accuracy — follow them strictly)
+1. Rely only on what the document actually states. When citing evidence, quote the exact wording from the document.
+2. Absence of information is NOT a violation. "Not stated in the document" and "violates the standard" are different things. If something is not stated, mark it as unverifiable — do not call it a violation.
+3. Do not reason from industry norms, general practice, or assumptions. If you would have to guess, do not answer — leave it unverifiable.
+4. When a judgment depends on a numeric threshold (hours, wages, percentages, age, duration), state the actual value read from the document next to the threshold value, then give the comparison result.
+5. If the document is blurry, partially visible, or lacks signatures/dates, state that limitation before giving your assessment.
+6. Rate confidence honestly: high only when the document clearly establishes the fact; low when interpretation is debatable.`;
+
+// 질문에 쓰인 문자(스크립트)로 답변 언어를 판정 — 시스템 프롬프트가 한국어라 모델이
+// 한국어로 끌리는 현상을 막기 위해, 감지 결과를 프롬프트 맨 끝에 강하게 못박는다.
+function aiDetectLang(text){
+  const s=String(text||'');
+  const n=re=>(s.match(re)||[]).length;
+  const ko=n(/[가-힣ᄀ-ᇿ]/g);   // 한글
+  const ja=n(/[぀-ヿ]/g);                // 가나
+  const zh=n(/[一-鿿]/g);                // 한자
+  const en=n(/[A-Za-z]/g);
+  // 표의문자는 글자당 정보량이 많아 라틴문자보다 적게 나오므로 가중치를 준다
+  const score={ko:ko*2,ja:ja*2,zh:zh*2,en:en};
+  const best=Object.keys(score).reduce((a,b)=>score[b]>score[a]?b:a,'en');
+  return score[best]>0?best:null;                // 전부 0이면 판정 불가 → 앱 언어 사용
+}
+const AI_LANG_NAME={ko:'Korean (한국어)',en:'English',zh:'Chinese (中文)',ja:'Japanese (日本語)'};
+// 답변 언어 지시문 — payload.system 맨 끝에 붙인다(끝에 둘수록 지시가 강하게 작동).
+function aiLangDirective(userText){
+  const lang=aiDetectLang(userText)||(S.lang==='ko'?'ko':S.lang==='zh'?'zh':'en');
+  const name=AI_LANG_NAME[lang]||'English';
+  return`\n\n=== OUTPUT LANGUAGE (HIGHEST PRIORITY — OVERRIDES EVERYTHING ABOVE) ===
+The user's question is written in ${name}. You MUST write your ENTIRE reply in ${name}.
+This applies to every part of the output, including all JSON string values.
+The language of these instructions, of the audit item context, and of the attached documents does NOT determine your output language — only ${name} does.
+Write every sentence in ${name}.`;
+}
 
 // in-memory chat state (감사 세션 저장소와 분리)
 const aiS={busy:false,msgs:[],pending:[],judge:null,judgeKind:null,ctx:null,ctxId:null,ctxKind:null}; // judge: 자동판정 대상 · judgeKind: 'nsup'|'item' · ctx/ctxId/ctxKind: 현재 항목 맥락
@@ -1566,7 +1606,8 @@ async function aiSend(){
   const payload={model:cfg.model,max_tokens:4096,
     system:AI_SYSTEM
       +(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:'')
-      +(structured?`\n\n[판정요소 추출] 답변이 특정 위반/판정을 시사하면 has_judgment=true 로 하고, grade(conformance|minor|major|priority|na)와 finding(위반 내용 한 줄 요약)을 채워라. 단순 정보성 답변이면 has_judgment=false, grade='na', finding=''.`:''),
+      +(structured?`\n\n[판정요소 추출] 답변이 특정 위반/판정을 시사하면 has_judgment=true 로 하고, grade(conformance|minor|major|priority|na)와 finding(위반 내용 한 줄 요약)을 채워라. 단순 정보성 답변이면 has_judgment=false, grade='na', finding=''.`:'')
+      +aiLangDirective(userQ),
     messages:apiMsgs};
   if(structured)payload.output_config={format:{type:'json_schema',schema:AI_QA_SCHEMA}};
 
@@ -1752,7 +1793,7 @@ ${note}
 
   try{
     const res=await aiPost({
-      model:cfg.model,max_tokens:2000,system:AI_SYSTEM,
+      model:cfg.model,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
       messages:[{role:'user',content:blocks}],
       output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}
     });
@@ -1857,7 +1898,11 @@ async function aiItemJudgeRun(){
   let qtxt='';
   ['mgmt','doc','worker'].forEach(st=>{
     const qs=Q[`${id}_${st}`]||[];
-    if(qs.length)qtxt+=`\n[${stepLbl[st]}]\n`+qs.map(q=>`${q.id} [${q.sev}${q.inv?' · 역질문(yes=위반)':''}] ${q.text}`).join('\n')+'\n';
+    // 힌트(q.hint)는 감사자가 화면에서 보는 판정 기준(임계값·등급·N/A 조건)이다.
+    // AI도 같은 기준으로 판단하도록 영어 원문을 그대로 함께 보낸다(번역 손실 방지).
+    if(qs.length)qtxt+=`\n[${stepLbl[st]}]\n`+qs.map(q=>
+      `${q.id} [${q.sev}${q.inv?' · 역질문(yes=위반)':''}] ${q.text}`
+      +(q.hint?`\n    └ criteria: ${q.hint}`:'')).join('\n')+'\n';
   });
   blocks.push({type:'text',text:
 `[점검 항목]
@@ -1875,7 +1920,7 @@ ${qtxt}${note?`\n[감사자 참고사항]\n${note}\n`:''}
   aiS.pending=[];inp.value='';aiAutoGrow(inp);
   aiS.busy=true;aiRender();
   try{
-    const res=await aiPost({model:cfg.model,max_tokens:2000,system:AI_SYSTEM,
+    const res=await aiPost({model:cfg.model,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
       messages:[{role:'user',content:blocks}],
       output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}});
     const data=await res.json();
@@ -1921,14 +1966,17 @@ async function aiItemAskRun(id,q){
   ['mgmt','doc','worker'].forEach(st=>{
     const qs=Q[`${id}_${st}`]||[];if(!qs.length)return;
     const ans=(S.ans[id]||{})[st]||{};
-    ctx+=`\n[${stepLbl[st]}]\n`+qs.map(qq=>`${qq.id} [${qq.sev}${qq.inv?' · 역질문(yes=위반)':''}] ${qq.text} → 현재답변:${ans[qq.id.toLowerCase()]||'미답'}`).join('\n')+'\n';
+    ctx+=`\n[${stepLbl[st]}]\n`+qs.map(qq=>
+      `${qq.id} [${qq.sev}${qq.inv?' · 역질문(yes=위반)':''}] ${qq.text} → 현재답변:${ans[qq.id.toLowerCase()]||'미답'}`
+      +(qq.hint?`\n    └ criteria: ${qq.hint}`:'')).join('\n')+'\n';
   });
   // 대화 이력(첫 assistant 안내문은 API 규칙상 제거)
   let hist=aiS.msgs.filter(x=>x.role==='user'||x.role==='assistant');
   while(hist.length&&hist[0].role==='assistant')hist.shift();
   const apiMsgs=hist.map(x=>({role:x.role,content:[{type:'text',text:x.text}]}));
   const payload={model:cfg.model,max_tokens:2000,
-    system:AI_SYSTEM+`\n\n[현재 점검 항목 맥락]\n${ctx}\n이 항목에 대한 질문이면 위 문항·판정기준·현재답변을 근거로 답하라. 최종 판정은 감사자가 확정한다.`,
+    system:AI_SYSTEM+`\n\n[현재 점검 항목 맥락]\n${ctx}\n이 항목에 대한 질문이면 위 문항·판정기준·현재답변을 근거로 답하라. 최종 판정은 감사자가 확정한다.`
+      +aiLangDirective(q),
     messages:apiMsgs};
   try{
     const res=await aiPost(payload);
@@ -2032,7 +2080,7 @@ ${findList}${iaj&&iaj.rationale?`\n[AI 판정 근거]\n${iaj.rationale}`:''}${no
   if(!S.itemSummary)S.itemSummary={};
   S.itemSummary[id]={busy:true};render();
   try{
-    const res=await aiPost({model:cfg.model,max_tokens:1024,system:AI_SYSTEM,
+    const res=await aiPost({model:cfg.model,max_tokens:1024,system:AI_SYSTEM+aiLangDirective(''),
       messages:[{role:'user',content:ctx}],
       output_config:{format:{type:'json_schema',schema:AI_SUMMARY_SCHEMA}}});
     const data=await res.json();
@@ -2264,10 +2312,98 @@ async function teamDelete(vendorCode){
   }catch(e){_teamErr=String(e.message||e);}
   _teamBusy=false;render();
 }
+// ─── 기록 목록 필터 (팀 공유 / 관리자 화면 공용) ───────────────
+// q: 코드·협력사명·법인·사업부·국가·공유코드 통합 검색 / type: 점검 유형 / from~to: 점검 일자 범위
+// sort: 정렬 기준 (기본 최신순)
+let _flt={q:'',type:'',from:'',to:'',sort:'date_desc'};
+function fltReset(){_flt={q:'',type:'',from:'',to:'',sort:'date_desc'};}
+function fltClear(){fltReset();render();}
+function fltActive(){return !!(_flt.q||_flt.type||_flt.from||_flt.to||_flt.sort!=='date_desc');}
+function fltSet(k,v){_flt[k]=v;render();}
+// 검색어는 매 입력마다 재렌더되므로 포커스·커서를 복원한다
+function fltSetQ(v){
+  _flt.q=v;render();
+  const el=document.getElementById('fltQ');
+  if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}
+}
+function fltApply(list){
+  if(!list)return list;
+  const q=_flt.q.trim().toLowerCase();
+  const from=_flt.from?new Date(_flt.from+'T00:00:00').getTime():null;
+  const to=_flt.to?new Date(_flt.to+'T23:59:59.999').getTime():null;
+  const out=list.filter(m=>{
+    if(_flt.type&&(m.auditType||'major')!==_flt.type)return false;
+    if(from!==null||to!==null){
+      const t=new Date(m.updated||m.created||0).getTime();
+      if(isNaN(t))return false;
+      if(from!==null&&t<from)return false;
+      if(to!==null&&t>to)return false;
+    }
+    if(q){
+      const hay=[m.code,m.supplierName,m.subsidiary,m.gbm,m.country,m.shareCode]
+        .filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    return true;
+  });
+  return fltSort(out);
+}
+// 정렬 — 값이 없는 항목(rate 미산정 등)은 항상 뒤로 보낸다
+function fltSort(list){
+  const ts=m=>{const t=new Date(m.updated||m.created||0).getTime();return isNaN(t)?0:t;};
+  const str=v=>String(v||'').toLowerCase();
+  const cmpStr=(a,b)=>{const x=str(a),y=str(b);if(!x&&!y)return 0;if(!x)return 1;if(!y)return -1;
+    return x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'});};
+  const cmpNum=(a,b,desc)=>{const x=(a===null||a===undefined)?null:Number(a),y=(b===null||b===undefined)?null:Number(b);
+    if(x===null&&y===null)return 0;if(x===null)return 1;if(y===null)return -1;return desc?y-x:x-y;};
+  const arr=list.slice();
+  switch(_flt.sort){
+    case'date_asc':   arr.sort((a,b)=>ts(a)-ts(b));break;
+    case'code_asc':   arr.sort((a,b)=>cmpStr(a.code,b.code));break;
+    case'name_asc':   arr.sort((a,b)=>cmpStr(a.supplierName,b.supplierName)||cmpStr(a.code,b.code));break;
+    case'rate_desc':  arr.sort((a,b)=>cmpNum(a.rate,b.rate,true));break;
+    case'rate_asc':   arr.sort((a,b)=>cmpNum(a.rate,b.rate,false));break;
+    default:          arr.sort((a,b)=>ts(b)-ts(a));            // date_desc (최신순)
+  }
+  return arr;
+}
+// 필터 UI — 총 건수(total)와 필터 후 건수(shown)를 함께 표시
+function fltBar(shown,total){
+  const ko=S.lang!=='en';
+  return`<div class="flt-wrap">
+    <input id="fltQ" class="flt-q" type="search" placeholder="${ko?'🔍 코드 · 협력사명 · 법인 · 국가 검색':'🔍 Search code, supplier, subsidiary, country'}"
+      value="${aiEsc(_flt.q)}" oninput="fltSetQ(this.value)">
+    <div class="flt-row">
+      <select class="flt-sel" onchange="fltSet('type',this.value)">
+        <option value=""${_flt.type===''?' selected':''}>${ko?'전체 유형':'All types'}</option>
+        <option value="major"${_flt.type==='major'?' selected':''}>${ko?'중점관리':'Major'}</option>
+        <option value="nsup"${_flt.type==='nsup'?' selected':''}>${ko?'신규협력사':'New Supplier'}</option>
+      </select>
+      <input class="flt-date" type="date" value="${aiEsc(_flt.from)}" onchange="fltSet('from',this.value)" title="${ko?'시작일':'From'}">
+      <span class="flt-tilde">~</span>
+      <input class="flt-date" type="date" value="${aiEsc(_flt.to)}" onchange="fltSet('to',this.value)" title="${ko?'종료일':'To'}">
+      ${fltActive()?`<button class="flt-clear" onclick="fltClear()" title="${ko?'필터·정렬 초기화':'Clear filters & sort'}">✕</button>`:''}
+    </div>
+    <div class="flt-row">
+      <span class="flt-lbl">${ko?'정렬':'Sort'}</span>
+      <select class="flt-sort" onchange="fltSet('sort',this.value)">
+        ${[['date_desc',ko?'최신순':'Newest first'],
+           ['date_asc', ko?'오래된순':'Oldest first'],
+           ['code_asc', ko?'코드순 (A→Z)':'Code (A→Z)'],
+           ['name_asc', ko?'협력사명순 (A→Z)':'Supplier name (A→Z)'],
+           ['rate_desc',ko?'적합률 높은순':'Conformance high→low'],
+           ['rate_asc', ko?'적합률 낮은순':'Conformance low→high']]
+          .map(o=>`<option value="${o[0]}"${_flt.sort===o[0]?' selected':''}>${o[1]}</option>`).join('')}
+      </select>
+    </div>
+    ${fltActive()?`<div class="flt-count">${ko?`${shown}건 표시 / 전체 ${total}건`:`${shown} shown / ${total} total`}</div>`:''}
+  </div>`;
+}
+
 // 공유 코드 입력 → 팀 기록 화면 열고 조회
 function teamOpenCode(code){
   _teamViewCode=sanitizeShare(code);
-  _teamList=null;_teamErr='';
+  _teamList=null;_teamErr='';fltReset();
   S.screen='team';render();window.scrollTo(0,0);
   if(_teamViewCode)teamRefresh();
 }
@@ -2275,19 +2411,21 @@ function teamOpenCode(code){
 function teamSetViewCode(){
   const el=document.getElementById('teamCodeInput');
   _teamViewCode=sanitizeShare(el?el.value:'');
-  _teamList=null;_teamErr='';
+  _teamList=null;_teamErr='';fltReset();
   render();
   if(_teamViewCode)teamRefresh();
 }
 // 공유 코드의 모든 점검을 각각 엑셀(CSV) 파일로 일괄 다운로드
 function teamToggleSel(vendorCode){ _teamSel[vendorCode]=!_teamSel[vendorCode]; render(); }
-function teamSelCount(){ return (_teamList||[]).filter(m=>_teamSel[m.code]).length; }
+function teamVisible(){ return fltApply(_teamList)||[]; }   // 필터 적용된 목록(화면에 보이는 것)
+function teamSelCount(){ return teamVisible().filter(m=>_teamSel[m.code]).length; }
 // selOnly=true → 선택된 것만, 아니면 전체
 async function teamExportAll(selOnly){
   const code=sanitizeShare(_teamViewCode);
   if(!code||!_teamList||!_teamList.length||_teamExporting)return;
   const ko=S.lang!=='en';
-  const list=selOnly?_teamList.filter(m=>_teamSel[m.code]):_teamList;
+  const vis=teamVisible();   // 필터가 걸려 있으면 화면에 보이는 것만 내보낸다
+  const list=selOnly?vis.filter(m=>_teamSel[m.code]):vis;
   if(!list.length){alert(ko?'선택된 기록이 없습니다.':'No records selected.');return;}
   _teamExporting=true;render();
   const savedS=S;   // 현재 세션 보존 (내보내기 로직이 전역 S를 사용하므로 임시 교체)
@@ -2316,7 +2454,7 @@ let _adminKey='',_adminList=null,_adminBusy=false,_adminErr='',_adminExporting=f
 function adminSelKeyOf(m){return m.shareCode+'|'+m.code;}
 function adminOpen(){
   try{_adminKey=localStorage.getItem(ADMIN_KEY_LS)||'';}catch(e){_adminKey='';}
-  _adminList=null;_adminErr='';_adminSel={};
+  _adminList=null;_adminErr='';_adminSel={};fltReset();
   S.screen='admin';render();window.scrollTo(0,0);
   if(_adminKey)adminRefresh();
 }
@@ -2348,12 +2486,29 @@ async function adminLoad(shareCode,vendor){
   }catch(e){_adminErr=String(e.message||e);}
   _adminBusy=false;render();
 }
+// 관리자 화면에서 특정 공유코드의 특정 기록을 서버에서 삭제
+async function adminDelete(shareCode,vendor){
+  const en=S.lang==='en';
+  if(!confirm(en?`Delete audit "${vendor}" under code ${shareCode}? This removes the server backup and cannot be undone.`:`공유 코드 ${shareCode}의 점검 "${vendor}"을(를) 삭제할까요? 서버 백업이 제거되며 되돌릴 수 없습니다.`))return;
+  _adminBusy=true;render();
+  try{
+    const res=await fetch('/api/team?action=delete',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({shareCode,vendor})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||res.status);
+    if(_adminList)_adminList=_adminList.filter(x=>!(x.shareCode===shareCode&&x.code===vendor));
+    delete _adminSel[shareCode+'|'+vendor];
+  }catch(e){_adminErr=String(e.message||e);}
+  _adminBusy=false;render();
+}
 function adminToggleSel(k){_adminSel[k]=!_adminSel[k];render();}
-function adminSelCount(){return (_adminList||[]).filter(m=>_adminSel[adminSelKeyOf(m)]).length;}
+function adminVisible(){return fltApply(_adminList)||[];}   // 필터 적용된 목록
+function adminSelCount(){return adminVisible().filter(m=>_adminSel[adminSelKeyOf(m)]).length;}
 async function adminExportAll(selOnly){
   if(!_adminList||!_adminList.length||_adminExporting)return;
   const ko=S.lang!=='en';
-  const list=selOnly?_adminList.filter(m=>_adminSel[adminSelKeyOf(m)]):_adminList;
+  const vis=adminVisible();   // 필터가 걸려 있으면 화면에 보이는 것만 내보낸다
+  const list=selOnly?vis.filter(m=>_adminSel[adminSelKeyOf(m)]):vis;
   if(!list.length){alert(ko?'선택된 기록이 없습니다.':'No records selected.');return;}
   _adminExporting=true;render();
   const savedS=S;let ok=0;
@@ -2385,8 +2540,10 @@ function screenAdmin(){
     body=`<div class="team-note">${ko?'위 조회 버튼을 눌러 전체 기록을 불러오세요.':'Tap Load to fetch all records.'}</div>`;
   }else if(_adminList.length===0){
     body=`<div class="team-note">${ko?'저장된 점검 기록이 없습니다.':'No audit records found.'}</div>`;
+  }else if(adminVisible().length===0){
+    body=fltBar(0,_adminList.length)+`<div class="team-note">${ko?'조건에 맞는 기록이 없습니다. 필터를 조정해 보세요.':'No records match the filters. Try adjusting them.'}</div>`;
   }else{
-    body=_adminList.map(m=>{const k=adminSelKeyOf(m);return`
+    body=fltBar(adminVisible().length,_adminList.length)+adminVisible().map(m=>{const k=adminSelKeyOf(m);return`
       <div class="team-card${_adminSel[k]?' sel':''}" onclick="adminLoad('${aiEsc(m.shareCode)}','${aiEsc(m.code)}')">
         <input type="checkbox" class="team-chk" ${_adminSel[k]?'checked':''} onclick="event.stopPropagation();adminToggleSel('${aiEsc(k)}')" title="${ko?'선택':'Select'}">
         <div class="team-info">
@@ -2395,6 +2552,7 @@ function screenAdmin(){
         </div>
         ${m.rate!=null?`<span class="team-rate">${m.rate}%</span>`:''}
         <span class="team-open">${ko?'열기':'Open'}</span>
+        <button class="team-del" title="${ko?'삭제':'Delete'}" onclick="event.stopPropagation();adminDelete('${aiEsc(m.shareCode)}','${aiEsc(m.code)}')">🗑</button>
       </div>`;}).join('');
   }
   return`${nav(ko?'🔐 관리자 · 전체 기록':'🔐 Admin · All Audits',"S.screen='landing';render()")}
@@ -2407,7 +2565,7 @@ function screenAdmin(){
       <button onclick="adminSetKey()">${ko?'조회':'Load'}</button>
       <button onclick="adminRefresh()" ${_adminKey?'':'disabled'}>↻</button>
     </div>
-    ${(_adminList&&_adminList.length)?`<button class="team-export-all" onclick="adminExportAll(${adminSelCount()>0})" ${_adminExporting?'disabled':''}>${_adminExporting?(ko?'⟳ 저장 중…':'⟳ Saving…'):(adminSelCount()>0?(ko?`📊 선택 저장 (${adminSelCount()}건)`:`📊 Export Selected (${adminSelCount()})`):(ko?`📊 엑셀 일괄 저장 (${_adminList.length}건)`:`📊 Export All (${_adminList.length})`))}</button>`:''}
+    ${(_adminList&&adminVisible().length)?`<button class="team-export-all" onclick="adminExportAll(${adminSelCount()>0})" ${_adminExporting?'disabled':''}>${_adminExporting?(ko?'⟳ 저장 중…':'⟳ Saving…'):(adminSelCount()>0?(ko?`📊 선택 저장 (${adminSelCount()}건)`:`📊 Export Selected (${adminSelCount()})`):(ko?`📊 엑셀 일괄 저장 (${adminVisible().length}건)`:`📊 Export All (${adminVisible().length})`))}</button>`:''}
     ${body}
   </div>`;
 }
@@ -2509,8 +2667,10 @@ function screenTeam(){
     body=`<div class="team-note">${ko?'위 조회 버튼을 눌러 기록을 불러오세요.':'Tap Load to fetch records.'}</div>`;
   }else if(_teamList.length===0){
     body=`<div class="team-note">${ko?`<b>${aiEsc(code)}</b> 코드로 저장된 점검 기록이 없습니다.`:`No audits saved under code <b>${aiEsc(code)}</b>.`}</div>`;
+  }else if(teamVisible().length===0){
+    body=fltBar(0,_teamList.length)+`<div class="team-note">${ko?'조건에 맞는 기록이 없습니다. 필터를 조정해 보세요.':'No records match the filters. Try adjusting them.'}</div>`;
   }else{
-    body=_teamList.map(m=>`
+    body=fltBar(teamVisible().length,_teamList.length)+teamVisible().map(m=>`
       <div class="team-card${_teamSel[m.code]?' sel':''}" onclick="teamLoad('${aiEsc(m.code)}')">
         <input type="checkbox" class="team-chk" ${_teamSel[m.code]?'checked':''} onclick="event.stopPropagation();teamToggleSel('${aiEsc(m.code)}')" title="${ko?'선택':'Select'}">
         <div class="team-info">
@@ -2532,7 +2692,7 @@ function screenTeam(){
       <button onclick="teamSetViewCode()">${ko?'조회':'Load'}</button>
       <button onclick="teamRefresh()" ${code?'':'disabled'}>↻</button>
     </div>
-    ${(_teamList&&_teamList.length)?`<button class="team-export-all" onclick="teamExportAll(${teamSelCount()>0})" ${_teamExporting?'disabled':''}>${_teamExporting?(ko?'⟳ 저장 중…':'⟳ Saving…'):(teamSelCount()>0?(ko?`📊 선택 저장 (${teamSelCount()}건)`:`📊 Export Selected (${teamSelCount()})`):(ko?`📊 엑셀 일괄 저장 (${_teamList.length}건)`:`📊 Export All (${_teamList.length})`))}</button>`:''}
+    ${(_teamList&&teamVisible().length)?`<button class="team-export-all" onclick="teamExportAll(${teamSelCount()>0})" ${_teamExporting?'disabled':''}>${_teamExporting?(ko?'⟳ 저장 중…':'⟳ Saving…'):(teamSelCount()>0?(ko?`📊 선택 저장 (${teamSelCount()}건)`:`📊 Export Selected (${teamSelCount()})`):(ko?`📊 엑셀 일괄 저장 (${teamVisible().length}건)`:`📊 Export All (${teamVisible().length})`))}</button>`:''}
     ${body}
   </div>`;
 }
