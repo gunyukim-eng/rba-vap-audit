@@ -1348,8 +1348,8 @@ function aiSaveCfgObj(c){localStorage.setItem(AI_CFG_KEY,JSON.stringify(c));}
 function aiProxyMode(cfg){return !/api\.anthropic\.com/i.test((cfg||aiCfg()).endpoint||'');}
 function aiNeedsKey(cfg){cfg=cfg||aiCfg();return !aiProxyMode(cfg)&&!cfg.apiKey;}
 const AUDIT_AI_CAP=80; // 점검 1회당 AI 호출 상한 (Haiku 기준 약 $1) — 프록시(우리 예산) 모드에서만 적용
-// 낮은 temperature = 기준에 충실하고 일관된 답변(정확도 우선). 창의성보다 재현성이 중요한 감사 판정·질의에 적합.
-const AI_TEMPERATURE=0.2;
+// ※ temperature 는 최신 Claude 모델(4.5+)에서 더 이상 지원되지 않아 요청이 거부된다(400).
+//    답변 일관성은 프롬프트(AI_SYSTEM의 근거 원칙 + 판정기준 주입)로 확보한다.
 async function aiPost(payload){
   const cfg=aiCfg();
   // 점검당 AI 비용 상한 — 백엔드 프록시(우리 API 예산)를 쓸 때만 카운트/차단
@@ -1370,9 +1370,7 @@ async function aiPost(payload){
     headers['anthropic-version']='2023-06-01';
     headers['anthropic-dangerous-direct-browser-access']='true';
   }
-  // temperature 미지정 호출엔 기본값 주입(정확도 우선). 호출부가 지정하면 그 값 우선.
-  const finalPayload=('temperature' in payload)?payload:{temperature:AI_TEMPERATURE,...payload};
-  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(finalPayload)});
+  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(payload)});
 }
 
 // NOTE: 이 프롬프트는 의도적으로 영어로 작성되었다. 한국어로 쓰면 모델이 한국어로 답하는
