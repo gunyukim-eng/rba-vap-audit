@@ -1392,6 +1392,15 @@ EVIDENCE RULES (these drive accuracy — follow them strictly)
 5. If the document is blurry, partially visible, or lacks signatures/dates, state that limitation before giving your assessment.
 6. Rate confidence honestly: high only when the document clearly establishes the fact; low when interpretation is debatable.`;
 
+// FAB 챗(항목 맥락 없는 일반 모드)에서 "어떤 항목에서 뭘 봐야 하나요?" 류 질문에 답할 수 있도록
+// 52개 점검항목 코드/제목/설명을 항상 참조용으로 주입한다. 문항별 세부 판정기준은 여기 없음 —
+// 그건 각 항목 화면의 AI 자동판정(aiItemJudgeOpen)이 별도로 주입한다.
+function aiCatalogText(){
+  const byGrp={};
+  Object.entries(ITEMS).forEach(([id,m])=>{(byGrp[m.grp]=byGrp[m.grp]||[]).push(`${m.code} ${m.title} — ${m.desc||''}`);});
+  return Object.keys(byGrp).map(g=>`${g} (${GRPS[g]||g}):\n  `+byGrp[g].join('\n  ')).join('\n');
+}
+
 // 질문에 쓰인 문자(스크립트)로 답변 언어를 판정 — 시스템 프롬프트가 한국어라 모델이
 // 한국어로 끌리는 현상을 막기 위해, 감지 결과를 프롬프트 맨 끝에 강하게 못박는다.
 function aiDetectLang(text){
@@ -1603,6 +1612,7 @@ async function aiSend(){
   const structured=aiS.ctxKind==='major';
   const payload={model:cfg.model,max_tokens:4096,
     system:AI_SYSTEM
+      +`\n\n[AUDIT ITEM CATALOG — all 52 checklist items in this on-site audit]\n${aiCatalogText()}\nUse this only to identify which item(s) a question relates to and give general guidance. It has no question-level grading criteria — do not invent specific thresholds or pass/fail rules from it. For item-specific criteria, the auditor should open that item's own screen and use its dedicated AI panel.`
       +(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:'')
       +(structured?`\n\n[판정요소 추출] 답변이 특정 위반/판정을 시사하면 has_judgment=true 로 하고, grade(conformance|minor|major|priority|na)와 finding(위반 내용 한 줄 요약)을 채워라. 단순 정보성 답변이면 has_judgment=false, grade='na', finding=''.`:'')
       +aiLangDirective(userQ),
