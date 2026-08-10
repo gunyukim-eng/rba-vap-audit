@@ -1,9 +1,11 @@
 // Netlify Function — 관리자용 Blobs 조회 (읽기 전용)
 // ADMIN_KEY(환경변수)로 보호. 모든 스토어의 키 목록과 개별 값을 확인.
-//   GET /api/admin-blobs?key=ADMIN_KEY                              → 전체 스토어 요약(키 목록)
-//   GET /api/admin-blobs?key=ADMIN_KEY&store=team-sessions         → 해당 스토어 키 목록
-//   GET /api/admin-blobs?key=ADMIN_KEY&store=team-sessions&prefix=index/
-//   GET /api/admin-blobs?key=ADMIN_KEY&store=team-sessions&blob=data/BMSS  → 값 조회
+// 키는 쿼리스트링이 아니라 x-admin-key 헤더로 전달한다(쿼리스트링은 access 로그·
+// 브라우저 히스토리·Referer에 평문으로 남아 admin-results.js와 동일한 방식으로 통일).
+//   GET /api/admin-blobs                              -H "x-admin-key: ADMIN_KEY" → 전체 스토어 요약(키 목록)
+//   GET /api/admin-blobs?store=team-sessions          -H "x-admin-key: ADMIN_KEY" → 해당 스토어 키 목록
+//   GET /api/admin-blobs?store=team-sessions&prefix=index/          -H "x-admin-key: ADMIN_KEY"
+//   GET /api/admin-blobs?store=team-sessions&blob=data/BMSS         -H "x-admin-key: ADMIN_KEY" → 값 조회
 const { getBlobStore } = require('../lib/blobs');
 
 const STORES = ['team-sessions', 'config', 'ai-logs'];
@@ -14,7 +16,8 @@ exports.handler = async (event) => {
 
   const adminKey = process.env.ADMIN_KEY;
   if (!adminKey) return json(500, { error: 'ADMIN_KEY is not set on the server (Netlify env var).' });
-  if ((q.key || '') !== adminKey) return json(401, { error: 'unauthorized' });
+  const provided = (event.headers && (event.headers['x-admin-key'] || event.headers['X-Admin-Key'])) || '';
+  if (provided !== adminKey) return json(401, { error: 'unauthorized' });
 
   try {
     // 개별 blob 값 조회
@@ -53,7 +56,7 @@ async function listKeys(name, prefix, event) {
 }
 
 function cors() {
-  return { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-allow-headers': 'content-type' };
+  return { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-allow-headers': 'content-type, x-admin-key' };
 }
 function json(status, obj) {
   return { statusCode: status, headers: { ...cors(), 'content-type': 'application/json' }, body: JSON.stringify(obj, null, 2) };
