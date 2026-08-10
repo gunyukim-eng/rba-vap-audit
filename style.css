@@ -416,15 +416,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
   font-size:18px;cursor:pointer;flex-shrink:0;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ai-send{background:var(--blue);color:#fff}
 .ai-send:disabled{opacity:.4}
-.ai-cfg{padding:16px 14px;overflow-y:auto;flex:1;background:var(--parch)}
-.ai-cfg h3{font-size:15px;margin-bottom:4px}
-.ai-cfg p{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
-.ai-cfg label{display:block;font-size:12px;font-weight:700;margin:12px 0 4px}
-.ai-cfg input{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-family:inherit;font-size:14px}
-.ai-cfg .save{width:100%;margin-top:18px;padding:11px;border:none;border-radius:var(--pill);background:var(--blue);
-  color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer}
-.ai-cfg .note{font-size:11px;color:var(--M);margin-top:10px;line-height:1.5}
-
 /* ─── AI 자동판정 제안 카드 ─── */
 .ai-sugg{border:1.5px solid #c0d8f8;background:#f6faff}
 .ai-sugg-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}

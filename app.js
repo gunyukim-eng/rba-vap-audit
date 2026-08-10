@@ -1337,40 +1337,26 @@ render();
 
 // ═══════════════════════════════════════════════════════════
 //  AI INTEGRATION — OCR 문서분석 + 챗봇 (Claude Messages API)
-//  키/엔드포인트는 설정(⚙)에 저장. 엔드포인트를 백엔드 프록시로
-//  교체하면 브라우저에 키를 두지 않고도 그대로 동작한다.
+//  항상 백엔드 프록시(/api/chat)만 사용한다. 키는 서버(Netlify env var)에만
+//  존재하며 브라우저에는 절대 두지 않는다 — 내부 심사원용 앱에서 개인 API
+//  키를 브라우저에 입력·저장하게 하는 경로는 만들지 않는다.
 // ═══════════════════════════════════════════════════════════
-const AI_CFG_KEY='vap_ai_cfg';
-const AI_DEFAULTS={endpoint:'/api/chat',model:'claude-haiku-4-5',apiKey:''};
-function aiCfg(){try{return{...AI_DEFAULTS,...(JSON.parse(localStorage.getItem(AI_CFG_KEY))||{})};}catch{return{...AI_DEFAULTS};}}
-function aiSaveCfgObj(c){localStorage.setItem(AI_CFG_KEY,JSON.stringify(c));}
-// 프록시 모드: 엔드포인트가 Anthropic 직접 호출이 아니면(=백엔드 프록시) 브라우저에 키 불필요
-function aiProxyMode(cfg){return !/api\.anthropic\.com/i.test((cfg||aiCfg()).endpoint||'');}
-function aiNeedsKey(cfg){cfg=cfg||aiCfg();return !aiProxyMode(cfg)&&!cfg.apiKey;}
-const AUDIT_AI_CAP=80; // 점검 1회당 AI 호출 상한 (Haiku 기준 약 $1) — 프록시(우리 예산) 모드에서만 적용
+const AI_ENDPOINT='/api/chat';
+const AI_MODEL='claude-haiku-4-5';
+const AUDIT_AI_CAP=80; // 점검 1회당 AI 호출 상한 (Haiku 기준 약 $1)
 // ※ temperature 는 최신 Claude 모델(4.5+)에서 더 이상 지원되지 않아 요청이 거부된다(400).
 //    답변 일관성은 프롬프트(AI_SYSTEM의 근거 원칙 + 판정기준 주입)로 확보한다.
 async function aiPost(payload){
-  const cfg=aiCfg();
-  // 점검당 AI 비용 상한 — 백엔드 프록시(우리 API 예산)를 쓸 때만 카운트/차단
-  if(aiProxyMode(cfg)){
-    if(typeof S.aiCalls!=='number')S.aiCalls=0;
-    if(S.aiCalls>=AUDIT_AI_CAP){
-      const en=S.lang==='en';
-      const msg=en
-        ?`This audit reached its AI usage cap (${AUDIT_AI_CAP} calls, ~$1). Further AI calls are blocked to keep cost under ~$1 per audit — you can still complete the audit manually.`
-        :`이 점검의 AI 사용 한도(${AUDIT_AI_CAP}회, 약 $1)에 도달했습니다. 점검 1회 비용을 약 $1 이하로 유지하기 위해 추가 AI 호출이 차단됩니다 — 점검은 수동으로 계속 진행할 수 있습니다.`;
-      return {ok:false,status:429,json:async()=>({error:{message:msg}})};
-    }
-    S.aiCalls++;
+  if(typeof S.aiCalls!=='number')S.aiCalls=0;
+  if(S.aiCalls>=AUDIT_AI_CAP){
+    const en=S.lang==='en';
+    const msg=en
+      ?`This audit reached its AI usage cap (${AUDIT_AI_CAP} calls, ~$1). Further AI calls are blocked to keep cost under ~$1 per audit — you can still complete the audit manually.`
+      :`이 점검의 AI 사용 한도(${AUDIT_AI_CAP}회, 약 $1)에 도달했습니다. 점검 1회 비용을 약 $1 이하로 유지하기 위해 추가 AI 호출이 차단됩니다 — 점검은 수동으로 계속 진행할 수 있습니다.`;
+    return {ok:false,status:429,json:async()=>({error:{message:msg}})};
   }
-  const headers={'content-type':'application/json'};
-  if(!aiProxyMode(cfg)){
-    headers['x-api-key']=cfg.apiKey;
-    headers['anthropic-version']='2023-06-01';
-    headers['anthropic-dangerous-direct-browser-access']='true';
-  }
-  return fetch(cfg.endpoint,{method:'POST',headers,body:JSON.stringify(payload)});
+  S.aiCalls++;
+  return fetch(AI_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
 }
 
 // NOTE: 이 프롬프트는 의도적으로 영어로 작성되었다. 한국어로 쓰면 모델이 한국어로 답하는
@@ -1487,7 +1473,6 @@ function aiFmt(s){
 function aiShowPanel(){
   document.getElementById('aiScrim').classList.remove('ai-hidden');
   document.getElementById('aiPanel').classList.remove('ai-hidden');
-  document.getElementById('aiCfg').classList.add('ai-hidden');
   document.getElementById('aiFoot').classList.remove('ai-hidden');
   const t=document.getElementById('aiTitle');
   const en=S.lang==='en';
@@ -1499,7 +1484,6 @@ function aiShowPanel(){
 function aiOpen(){ // FAB → 일반 챗 모드
   if(aiS.judge||aiS.ctx){aiS.judge=null;aiS.judgeKind=null;aiS.ctx=null;aiS.ctxLabel=null;aiS.ctxId=null;aiS.ctxKind=null;aiS.msgs=[];aiS.pending=[];}
   aiShowPanel();
-  if(aiNeedsKey()&&aiS.msgs.length===0)aiToggleSettings();
 }
 // 각 항목 안에서 AI 분석·질문 (항목 맥락 주입, Haiku로 답변)
 function aiAskItem(id,kind){
@@ -1519,7 +1503,6 @@ function aiAskItem(id,kind){
     :`**${aiS.ctxLabel}** 항목에 대해 무엇이든 물어보세요 — 판정기준 해석, 필요 서류, 인터뷰 질문 예시, 상황 판정 방법 등. 문서 사진을 첨부해도 됩니다.`}];
   aiS.pending=[];
   aiShowPanel();
-  if(aiNeedsKey())aiToggleSettings();
 }
 function aiClose(){
   document.getElementById('aiScrim').classList.add('ai-hidden');
@@ -1589,8 +1572,6 @@ async function aiSend(){
   const inp=document.getElementById('aiInput');
   const text=inp.value.trim();
   if(!text&&aiS.pending.length===0)return;
-  const cfg=aiCfg();
-  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
 
   const images=aiS.pending.map(p=>p.dataURL);
   const apiImgs=aiS.pending.map(p=>({type:'image',source:{type:'base64',media_type:p.media_type,data:p.data}}));
@@ -1610,7 +1591,7 @@ async function aiSend(){
 
   // Major 협력사 항목 질문이면 판정요소를 구조화로 함께 받는다
   const structured=aiS.ctxKind==='major';
-  const payload={model:cfg.model,max_tokens:4096,
+  const payload={model:AI_MODEL,max_tokens:4096,
     system:AI_SYSTEM
       +`\n\n[AUDIT ITEM CATALOG — all 52 checklist items in this on-site audit]\n${aiCatalogText()}\nUse this only to identify which item(s) a question relates to and give general guidance. It has no question-level grading criteria — do not invent specific thresholds or pass/fail rules from it. For item-specific criteria, the auditor should open that item's own screen and use its dedicated AI panel.`
       +(aiS.ctx?`\n\n[현재 점검 항목 맥락]\n${aiS.ctx}\n질문이 이 항목과 관련되면 위 판정기준·정보를 근거로 답하라.`:'')
@@ -1698,35 +1679,6 @@ function aiFindingCard(id){
   </div>`;
 }
 
-function aiToggleSettings(){
-  const cfgEl=document.getElementById('aiCfg'),foot=document.getElementById('aiFoot'),body=document.getElementById('aiBody');
-  const showing=!cfgEl.classList.contains('ai-hidden');
-  if(showing){cfgEl.classList.add('ai-hidden');foot.classList.remove('ai-hidden');body.classList.remove('ai-hidden');return;}
-  const c=aiCfg();const en=S.lang==='en';const proxy=aiProxyMode(c);
-  cfgEl.innerHTML=`
-    <h3>${en?'AI Connection Settings':'AI 연결 설정'}</h3>
-    <p>${proxy
-      ?(en?'✅ Using a backend proxy — the API key lives on the server (Netlify env var). You do NOT need to enter a key here.':'✅ 백엔드 프록시 사용 중 — API 키는 서버(Netlify 환경변수)에만 있습니다. 여기에 키를 넣을 필요가 없습니다.')
-      :(en?'⚠ Direct mode — the API key is stored only on this device and is visible in the browser. Prefer a backend proxy.':'⚠ 직접 호출 모드 — API 키가 이 기기에만 저장되며 브라우저에서 노출됩니다. 가급적 백엔드 프록시를 쓰세요.')}</p>
-    <label>API Key ${proxy?(en?'(not needed with proxy)':'(프록시 사용 시 불필요)'):''}</label>
-    <input id="aiCfgKey" type="password" placeholder="${proxy?(en?'— handled by server —':'— 서버에서 처리됨 —'):'sk-ant-...'}" value="${aiEsc(c.apiKey)}">
-    <label>${en?'Model':'모델'}</label>
-    <input id="aiCfgModel" value="${aiEsc(c.model)}">
-    <label>${en?'Endpoint':'엔드포인트'}</label>
-    <input id="aiCfgEndpoint" value="${aiEsc(c.endpoint)}">
-    <button class="save" onclick="aiSaveSettings()">${en?'Save':'저장'}</button>
-    <p class="note">${en?'Proxy endpoint /api/chat keeps the key server-side (recommended). To call Claude directly for local testing, set the endpoint to https://api.anthropic.com/v1/messages and enter a key.':'프록시 엔드포인트 /api/chat 는 키를 서버에만 둡니다(권장). 로컬 테스트로 Claude를 직접 호출하려면 엔드포인트를 https://api.anthropic.com/v1/messages 로 바꾸고 키를 입력하세요.'}</p>`;
-  cfgEl.classList.remove('ai-hidden');foot.classList.add('ai-hidden');body.classList.add('ai-hidden');
-}
-function aiSaveSettings(){
-  aiSaveCfgObj({
-    apiKey:document.getElementById('aiCfgKey').value.trim(),
-    model:document.getElementById('aiCfgModel').value.trim()||AI_DEFAULTS.model,
-    endpoint:document.getElementById('aiCfgEndpoint').value.trim()||AI_DEFAULTS.endpoint
-  });
-  aiToggleSettings();
-}
-
 // ─── AI 자동판정 (신규협력사 항목별 등급 제안) ───
 // 문서 사진 → 판정기준 대조 → {등급, 문항응답, 근거} 구조화 출력 → 감사자 검토·적용
 const AI_JUDGE_SCHEMA={
@@ -1756,15 +1708,12 @@ function aiJudgeOpen(id){
   aiS.judge=id;aiS.judgeKind='nsup';aiS.msgs=[];aiS.pending=[];
   aiS.msgs.push({role:'assistant',text:`[${it.id} · ${it.title}] 자동판정 모드입니다.\n\n관련 문서 사진(계약서·급여명세서·정책문서 등)을 📷로 첨부한 뒤 ➤를 누르세요. 판정기준과 대조해 등급을 제안합니다.\n\n※ 제안은 초안이며, 적용 여부는 감사자가 결정합니다.`});
   aiShowPanel();
-  if(aiNeedsKey())aiToggleSettings();
 }
 
 async function aiJudgeRun(){
   if(aiS.busy)return;
   const id=aiS.judge,it=nsupItemById(id);
   if(!it)return;
-  const cfg=aiCfg();
-  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
   if(aiS.pending.length===0){
     aiS.msgs.push({role:'error',text:'⚠ 문서 사진을 1장 이상 첨부해 주세요.'});
     aiRender();return;
@@ -1801,7 +1750,7 @@ ${note}
 
   try{
     const res=await aiPost({
-      model:cfg.model,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
+      model:AI_MODEL,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
       messages:[{role:'user',content:blocks}],
       output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}
     });
@@ -1886,13 +1835,10 @@ function aiItemJudgeOpen(id){
     ?`[${m.code} · ${iTitle(id)}] Auto-Judge mode.\n\n**① Attach documents** — attach related photos (contracts, payslips, policies, records) with 📷 and tap ➤. AI reads them and drafts Yes/No answers for the questions it can verify.\n**② Ask a question** — or just type a question about this item (grading criteria, required documents, how to judge a situation) and tap ➤.\n\n※ Questions needing interviews/observation are left as “unknown” for the auditor.`
     :`[${m.code} · ${iTitle(id)}] 자동판정 모드입니다.\n\n**① 문서 첨부** — 관련 문서 사진(계약서·급여명세서·정책·기록 등)을 📷로 첨부하고 ➤를 누르면 문서로 확인 가능한 문항의 예/아니오를 초안으로 채웁니다.\n**② 질문하기** — 또는 이 항목에 대해 궁금한 점(판정기준·필요 서류·상황 판정 방법 등)을 입력하고 ➤를 누르세요.\n\n※ 면담·현장확인이 필요한 문항은 ‘확인불가’로 남겨 감사자가 답합니다.`});
   aiShowPanel();
-  if(aiNeedsKey())aiToggleSettings();
 }
 async function aiItemJudgeRun(){
   if(aiS.busy)return;
   const id=aiS.judge,m=ITEMS[id];if(!m)return;
-  const cfg=aiCfg();
-  if(aiNeedsKey(cfg)){aiToggleSettings();return;}
   const inp=document.getElementById('aiInput');
   const note=inp.value.trim();
   // 사진이 없으면: 이 항목에 대한 자유질문(Q&A) 모드로 동작
@@ -1928,7 +1874,7 @@ ${qtxt}${note?`\n[감사자 참고사항]\n${note}\n`:''}
   aiS.pending=[];inp.value='';aiAutoGrow(inp);
   aiS.busy=true;aiRender();
   try{
-    const res=await aiPost({model:cfg.model,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
+    const res=await aiPost({model:AI_MODEL,max_tokens:2000,system:AI_SYSTEM+aiLangDirective(note),
       messages:[{role:'user',content:blocks}],
       output_config:{format:{type:'json_schema',schema:AI_JUDGE_SCHEMA}}});
     const data=await res.json();
@@ -1964,7 +1910,6 @@ ${(sug.answers||[]).map(a=>`${a.q_id} · ${a.answer==='unknown'?'확인불가':a
 // 항목 특화 자유질문 — 문항·판정기준·현재답변을 맥락으로 주입해 대화형 답변
 async function aiItemAskRun(id,q){
   const m=ITEMS[id];if(!m)return;
-  const cfg=aiCfg();
   const inp=document.getElementById('aiInput');
   aiS.msgs.push({role:'user',text:q});
   if(inp){inp.value='';aiAutoGrow(inp);}
@@ -1982,7 +1927,7 @@ async function aiItemAskRun(id,q){
   let hist=aiS.msgs.filter(x=>x.role==='user'||x.role==='assistant');
   while(hist.length&&hist[0].role==='assistant')hist.shift();
   const apiMsgs=hist.map(x=>({role:x.role,content:[{type:'text',text:x.text}]}));
-  const payload={model:cfg.model,max_tokens:2000,
+  const payload={model:AI_MODEL,max_tokens:2000,
     system:AI_SYSTEM+`\n\n[현재 점검 항목 맥락]\n${ctx}\n이 항목에 대한 질문이면 위 문항·판정기준·현재답변을 근거로 답하라. 최종 판정은 감사자가 확정한다.`
       +aiLangDirective(q),
     messages:apiMsgs};
@@ -2069,8 +2014,6 @@ function collectItemFindings(id){
 }
 async function aiSummarizeItem(id){
   const m=ITEMS[id];if(!m)return;
-  const cfg=aiCfg();
-  if(aiNeedsKey(cfg)){aiS.judge=null;aiS.judgeKind=null;aiS.ctxId=id;aiShowPanel();aiToggleSettings();return;}
   const finds=collectItemFindings(id);
   const iaj=(S.itemAI||{})[id];
   const findList=finds.map(f=>`- [${(RL[f.sev]||f.sev||'').toUpperCase()}] ${f.text}`).join('\n')||'(집계된 위반 없음)';
@@ -2088,7 +2031,7 @@ ${findList}${iaj&&iaj.rationale?`\n[AI 판정 근거]\n${iaj.rationale}`:''}${no
   if(!S.itemSummary)S.itemSummary={};
   S.itemSummary[id]={busy:true};render();
   try{
-    const res=await aiPost({model:cfg.model,max_tokens:1024,system:AI_SYSTEM+aiLangDirective(''),
+    const res=await aiPost({model:AI_MODEL,max_tokens:1024,system:AI_SYSTEM+aiLangDirective(''),
       messages:[{role:'user',content:ctx}],
       output_config:{format:{type:'json_schema',schema:AI_SUMMARY_SCHEMA}}});
     const data=await res.json();
@@ -2124,8 +2067,6 @@ let _sumAllBusy=false,_sumAllProg='';
 async function aiSummarizeAll(){
   if(_sumAllBusy)return;
   const en=S.lang==='en';
-  const cfg=aiCfg();
-  if(aiNeedsKey(cfg)){aiShowPanel();aiToggleSettings();return;}
   const all=Object.keys(ITEMS).filter(id=>S.done[id]||hasAns(id));   // 점검한(답변 있는) 항목만
   if(!all.length){alert(en?'No assessed items to summarize.':'요약할 점검 항목이 없습니다. (먼저 항목을 점검하세요)');return;}
   const todo=all.filter(id=>{const s=(S.itemSummary||{})[id];return !(s&&s.findings!==undefined&&!s.error);}); // 이미 요약된 것 제외
